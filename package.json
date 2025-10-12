@@ -1,0 +1,29 @@
+{
+  "name": "fholio-monorepo",
+  "private": true,
+  "scripts": {
+    "dev:backend": "pnpm --filter @fholio/backend dev",
+    "dev:cron": "pnpm --filter @fholio/cron-jobs dev",
+    "dev:frontend": "pnpm --filter @fholio/frontend dev",
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "clean": "pnpm -r exec rm -rf node_modules dist .next"
+    // "dev": "ts-node-dev src/index.ts",
+    // "build": "tsc",
+    // "start": "node dist/index.js",
+    // "sync": "ts-node src/jobs/chartmetric-sync.job.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "axios": "^1.6.0",
+    "bottleneck": "^2.19.5",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.2.0",
+    "turbo": "^2.0.0"
+  }
+}
