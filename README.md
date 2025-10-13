@@ -893,11 +893,8 @@ lsof -ti:3001 | xargs kill -9
 ```
 
 ### **Get Help**
-- 📧 Email: support@fholio.com
-- 💬 Discord: [Join our community](#)
+- 📧 Email: dev@fholio.com
 - 🐛 Issues: [GitHub Issues](https://github.com/yourusername/fholio/issues)
-- 📖 Docs: [Full Documentation](#)
-
 ---
 
 ## **🙏 Acknowledgments**
@@ -910,18 +907,6 @@ lsof -ti:3001 | xargs kill -9
 
 ---
 
-## **📊 Project Status**
-
-- [x] Core architecture setup
-- [x] Database schema design
-- [x] Backend API scaffolding
-- [x] Chartmetric integration
-- [x] Nightly sync jobs
-- [ ] Payment processing (Stripe)
-- [ ] Email notifications
-- [ ] Mobile app (React Native)
-- [ ] Advanced analytics
-- [ ] Secondary market trading
 
 **Built with ❤️ by the Fholio Team**
 
