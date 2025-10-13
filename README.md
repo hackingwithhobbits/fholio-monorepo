@@ -897,17 +897,6 @@ lsof -ti:3001 | xargs kill -9
 - 🐛 Issues: [GitHub Issues](https://github.com/yourusername/fholio/issues)
 ---
 
-## **🙏 Acknowledgments**
-
-- [Supabase](https://supabase.com) - Database and authentication
-- [Chartmetric](https://chartmetric.com) - Music analytics data
-- [Next.js](https://nextjs.org) - React framework
-- [Radix UI](https://radix-ui.com) - Accessible component primitives
-- [shadcn/ui](https://ui.shadcn.com) - Beautiful UI components
-
----
-
-
 **Built with ❤️ by the Fholio Team**
 
 **Star ⭐ this repo if you find it helpful!**
