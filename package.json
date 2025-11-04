@@ -10,10 +10,7 @@
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "clean": "pnpm -r exec rm -rf node_modules dist .next"
-    // "dev": "ts-node-dev src/index.ts",
-    // "build": "tsc",
-    // "start": "node dist/index.js",
-    // "sync": "ts-node src/jobs/chartmetric-sync.job.ts"
+  
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0",

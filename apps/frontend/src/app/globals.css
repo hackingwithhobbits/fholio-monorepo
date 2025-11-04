@@ -1,131 +1,48 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+@import url("https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,600,700,800&display=swap");
+@import "tailwindcss";
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
   --font-size: 16px;
-  /* Premium Dark Theme - Default to Dark */
   --background: #000000;
   --foreground: #ffffff;
-  --card: #111111;
+  --card: #000000;
   --card-foreground: #ffffff;
-  --popover: #111111;
+  --popover: #0a0a0a;
   --popover-foreground: #ffffff;
-  --primary: #8a2be2;
+  --primary: #7e1fff;
   --primary-foreground: #ffffff;
-  --secondary: #1a1a1a;
-  --secondary-foreground: #b3b3b3;
+  --secondary: #ff1f70;
+  --secondary-foreground: #ffffff;
   --muted: #1a1a1a;
-  --muted-foreground: #b3b3b3;
-  --accent: #1a1a1a;
-  --accent-foreground: #ffffff;
-  --destructive: #ff6b6b;
+  --muted-foreground: #9ca3af;
+  --accent: #00ffd5;
+  --accent-foreground: #000000;
+  --destructive: #d4183d;
   --destructive-foreground: #ffffff;
-  --border: #1a1a1a;
-  --input: #111111;
-  --input-background: #111111;
-  --switch-background: #1a1a1a;
+  --border: rgba(126, 31, 255, 0.15);
+  --input: transparent;
+  --input-background: #0f0f0f;
+  --switch-background: #2a2a2a;
   --font-weight-medium: 600;
   --font-weight-normal: 400;
-  --font-weight-bold: 700;
-  --font-weight-black: 900;
-  --ring: #8a2be2;
-  --chart-1: #8a2be2;
-  --chart-2: #ff2fb9;
-  --chart-3: #39d98a;
-  --chart-4: #ff6b6b;
-  --chart-5: #ffc107;
-  --radius: 0.75rem;
-  --sidebar: #111111;
+  --ring: #7e1fff;
+  --chart-1: #7e1fff;
+  --chart-2: #ff1f70;
+  --chart-3: #00ffd5;
+  --chart-4: #9d4edd;
+  --chart-5: #ff6ec7;
+  --radius: 1rem;
+  --sidebar: #0a0a0a;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #8a2be2;
+  --sidebar-primary: #7e1fff;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1a1a1a;
-  --sidebar-accent-foreground: #b3b3b3;
-  --sidebar-border: #1a1a1a;
-  --sidebar-ring: #8a2be2;
-
-  /* Fholio Premium Brand Colors */
-  --gradient-primary: linear-gradient(135deg, #8a2be2 0%, #ff2fb9 100%);
-  --gradient-secondary: linear-gradient(135deg, #8a2be2 0%, #ff2fb9 100%);
-  --gradient-hero: linear-gradient(
-    135deg,
-    #000000 0%,
-    #8a2be2 50%,
-    #ff2fb9 100%
-  );
-  --gradient-glass: linear-gradient(
-    135deg,
-    rgba(138, 43, 226, 0.1) 0%,
-    rgba(255, 47, 185, 0.05) 100%
-  );
-  --gradient-glass-dark: linear-gradient(
-    135deg,
-    rgba(138, 43, 226, 0.15) 0%,
-    rgba(255, 47, 185, 0.1) 100%
-  );
-  --accent-positive: #39d98a;
-  --accent-negative: #ff6b6b;
-  --glass-border: rgba(138, 43, 226, 0.2);
-  --glass-backdrop: rgba(17, 17, 17, 0.8);
-}
-
-.dark {
-  /* Same as root - we're defaulting to dark mode */
-  --background: #000000;
-  --foreground: #ffffff;
-  --card: #111111;
-  --card-foreground: #ffffff;
-  --popover: #111111;
-  --popover-foreground: #ffffff;
-  --primary: #8a2be2;
-  --primary-foreground: #ffffff;
-  --secondary: #1a1a1a;
-  --secondary-foreground: #b3b3b3;
-  --muted: #1a1a1a;
-  --muted-foreground: #b3b3b3;
-  --accent: #1a1a1a;
-  --accent-foreground: #ffffff;
-  --destructive: #ff6b6b;
-  --destructive-foreground: #ffffff;
-  --border: #1a1a1a;
-  --input: #111111;
-  --ring: #8a2be2;
-  --font-weight-medium: 600;
-  --font-weight-normal: 400;
-  --chart-1: #8a2be2;
-  --chart-2: #ff2fb9;
-  --chart-3: #39d98a;
-  --chart-4: #ff6b6b;
-  --chart-5: #ffc107;
-  --sidebar: #111111;
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #8a2be2;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1a1a1a;
-  --sidebar-accent-foreground: #b3b3b3;
-  --sidebar-border: #1a1a1a;
-  --sidebar-ring: #8a2be2;
-
-  /* Premium gradients */
-  --gradient-primary: linear-gradient(135deg, #8a2be2 0%, #ff2fb9 100%);
-  --gradient-secondary: linear-gradient(135deg, #8a2be2 0%, #ff2fb9 100%);
-  --gradient-hero: linear-gradient(
-    135deg,
-    #000000 0%,
-    #8a2be2 50%,
-    #ff2fb9 100%
-  );
-  --gradient-glass: linear-gradient(
-    135deg,
-    rgba(138, 43, 226, 0.1) 0%,
-    rgba(255, 47, 185, 0.05) 100%
-  );
-  --gradient-glass-dark: linear-gradient(
-    135deg,
-    rgba(138, 43, 226, 0.15) 0%,
-    rgba(255, 47, 185, 0.1) 100%
-  );
-  --glass-border: rgba(138, 43, 226, 0.2);
-  --glass-backdrop: rgba(17, 17, 17, 0.8);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(126, 31, 255, 0.15);
+  --sidebar-ring: #7e1fff;
 }
 
 @theme inline {
@@ -175,50 +92,17 @@
   }
 
   body {
-    @apply bg-background text-foreground font-medium;
-  }
-
-  /* Premium Fintech Styling */
-  .glass {
-    background: var(--gradient-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px rgba(138, 43, 226, 0.1);
-  }
-
-  .glass-card {
-    background: var(--gradient-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px rgba(138, 43, 226, 0.1);
-  }
-
-  .premium-card {
-    background: #111111;
-    border: 1px solid #1a1a1a;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  }
-
-  .neon-glow {
-    box-shadow: 0 0 20px rgba(138, 43, 226, 0.4),
-      0 0 40px rgba(138, 43, 226, 0.2);
-  }
-
-  .neon-text {
-    text-shadow: 0 0 10px rgba(138, 43, 226, 0.8),
-      0 0 20px rgba(138, 43, 226, 0.4);
-  }
-
-  .fintech-gradient {
-    background: var(--gradient-primary);
-  }
-
-  .positive {
-    color: var(--accent-positive);
-  }
-
-  .negative {
-    color: var(--accent-negative);
+    @apply bg-background text-foreground;
+    font-family:
+      "Satoshi",
+      "Inter",
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
+    font-feature-settings: "cv11", "ss01", "ss02";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
   }
 }
 
@@ -230,50 +114,47 @@
     h1 {
       font-size: var(--text-2xl);
       font-weight: var(--font-weight-medium);
-      line-height: 1.3;
-      letter-spacing: -0.02em;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
     }
 
     h2 {
       font-size: var(--text-xl);
       font-weight: var(--font-weight-medium);
-      line-height: 1.4;
-      letter-spacing: -0.01em;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
     }
 
     h3 {
       font-size: var(--text-lg);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-      letter-spacing: 0;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+      letter-spacing: -0.015em;
     }
 
     h4 {
       font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
+      font-weight: var(--font-weight-medium);
       line-height: 1.5;
-      letter-spacing: 0;
     }
 
     p {
-      font-size: var(--text-sm);
+      font-size: var(--text-base);
       font-weight: var(--font-weight-normal);
       line-height: 1.6;
-      letter-spacing: 0;
     }
 
     label {
-      font-size: var(--text-sm);
-      font-weight: var(--font-weight-normal);
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
       line-height: 1.5;
-      letter-spacing: 0;
     }
 
     button {
-      font-size: var(--text-sm);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.4;
-      letter-spacing: 0;
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      letter-spacing: -0.01em;
     }
 
     input {
@@ -286,4 +167,728 @@
 
 html {
   font-size: var(--font-size);
+  scroll-behavior: smooth;
+}
+
+/* Premium gradient backgrounds - Luxury Tech Edition */
+.gradient-bg {
+  background: linear-gradient(135deg, #1a0b3d 0%, #7e1fff 50%, #ff1f70 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.gradient-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(126, 31, 255, 0.95) 0%,
+    rgba(255, 31, 112, 0.95) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.gradient-bg:hover::before {
+  opacity: 1;
+}
+
+.gradient-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 50%
+  );
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.gradient-text {
+  background: linear-gradient(
+    135deg,
+    #4d1d99 0%,
+    #7e1fff 30%,
+    #ff1f70 60%,
+    #00ffd5 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Premium glass card with depth - Luxury Edition */
+.glass-card {
+  background: rgba(5, 5, 15, 0.85);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(126, 31, 255, 0.12);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.6),
+    0 2px 8px rgba(126, 31, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  position: relative;
+}
+
+.glass-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  opacity: 0.6;
+}
+
+/* Directional Light Glow - Sophisticated */
+.neon-glow {
+  box-shadow:
+    0 8px 32px rgba(126, 31, 255, 0.18),
+    0 2px 8px rgba(255, 31, 112, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition:
+    box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s ease;
+}
+
+.neon-glow:hover {
+  box-shadow:
+    0 16px 56px rgba(126, 31, 255, 0.28),
+    0 4px 16px rgba(255, 31, 112, 0.22),
+    0 0 80px rgba(0, 255, 213, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Metallic Gradient Divider */
+.metallic-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(126, 31, 255, 0.3) 20%,
+    rgba(255, 31, 112, 0.5) 50%,
+    rgba(0, 255, 213, 0.3) 80%,
+    transparent 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.metallic-divider::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Card Tilt on Hover - Subtle 3D Effect */
+.card-tilt {
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.card-tilt:hover {
+  transform: perspective(1000px) rotateX(2deg) rotateY(2deg) translateZ(10px);
+}
+
+/* Smooth Parallax Scrolling */
+.parallax-slow {
+  will-change: transform;
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Premium Focus States */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: rgba(126, 31, 255, 0.5);
+  box-shadow:
+    0 0 0 3px rgba(126, 31, 255, 0.1),
+    0 8px 24px rgba(126, 31, 255, 0.15);
+}
+
+/* Smooth Color Transitions */
+* {
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Holographic button effect */
+.holo-button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.holo-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.holo-button:hover::before {
+  transform: translateX(100%);
+}
+
+/* Neon glow effect */
+.neon-glow {
+  box-shadow:
+    0 0 20px rgba(139, 31, 255, 0.4),
+    0 0 40px rgba(255, 31, 112, 0.2),
+    inset 0 0 20px rgba(139, 31, 255, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.neon-glow:hover {
+  box-shadow:
+    0 0 30px rgba(139, 31, 255, 0.6),
+    0 0 60px rgba(255, 31, 112, 0.4),
+    inset 0 0 30px rgba(139, 31, 255, 0.2);
+}
+
+/* Ticker animation */
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.ticker-animation {
+  animation: ticker 40s linear infinite;
+}
+
+/* Smooth glow pulse */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 20px rgba(139, 31, 255, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 40px rgba(255, 31, 112, 0.6));
+  }
+}
+
+.glow-pulse {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+/* Float animation */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.float-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Particles background */
+@keyframes particles {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(50px);
+    opacity: 0;
+  }
+}
+
+.particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(139, 31, 255, 0.6);
+  border-radius: 50%;
+  animation: particles 15s linear infinite;
+}
+
+/* Gradient shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(139, 31, 255, 0.2),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Logo watermark */
+.logo-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Card reflection effect */
+.card-reflection {
+  position: relative;
+}
+
+.card-reflection::after {
+  content: "";
+  position: absolute;
+  bottom: -50%;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to bottom, rgba(139, 31, 255, 0.05), transparent);
+  transform: scaleY(-1);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Improved scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 15, 15, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #8b1fff 0%, #ff1f70 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #9d31ff 0%, #ff3080 100%);
+}
+
+/* Selection color */
+::selection {
+  background: rgba(139, 31, 255, 0.3);
+  color: white;
+}
+
+/* Focus states */
+*:focus-visible {
+  outline: 2px solid rgba(139, 31, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* Premium input styling */
+input,
+textarea,
+select {
+  background: rgba(15, 15, 15, 0.8);
+  border: 1px solid rgba(139, 31, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  background: rgba(15, 15, 15, 0.95);
+  border-color: rgba(139, 31, 255, 0.5);
+  box-shadow: 0 0 20px rgba(139, 31, 255, 0.2);
+}
+
+/* Flip card animation */
+.flip-card {
+  perspective: 1000px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: inherit;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+/* ============================================
+   MOBILE-FIRST OPTIMIZATIONS
+   ============================================ */
+
+/* Safe area support for iOS notch */
+@supports (padding: max(0px)) {
+  .pb-safe {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .pt-safe {
+    padding-top: max(8px, env(safe-area-inset-top));
+  }
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Touch-optimized tap targets (44x44 minimum) */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth momentum scrolling for iOS */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+}
+
+/* Card swipe animation */
+@keyframes swipe-right {
+  from {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(150%) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes swipe-left {
+  from {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-150%) rotate(-20deg);
+    opacity: 0;
+  }
+}
+
+.swipe-right {
+  animation: swipe-right 0.4s ease-out forwards;
+}
+
+.swipe-left {
+  animation: swipe-left 0.4s ease-out forwards;
+}
+
+/* Mobile pull-to-refresh indicator */
+@keyframes pull-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.pull-refresh {
+  animation: pull-bounce 1s ease-in-out infinite;
+}
+
+/* Bottom sheet modal */
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(5, 5, 15, 0.98),
+    rgba(0, 0, 0, 0.98)
+  );
+  backdrop-filter: blur(20px);
+  border-radius: 24px 24px 0 0;
+  z-index: 100;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bottom-sheet.open {
+  transform: translateY(0);
+}
+
+.bottom-sheet-handle {
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  margin: 12px auto;
+}
+
+/* Mobile card stack (Tinder-style) */
+.card-stack {
+  position: relative;
+  width: 100%;
+  height: 500px;
+}
+
+.card-stack-item {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  touch-action: pan-y;
+}
+
+/* Mobile-optimized glass effect */
+@media (max-width: 768px) {
+  .glass-card {
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+  }
+}
+
+/* Snap scroll for carousels */
+.snap-x {
+  scroll-snap-type: x mandatory;
+}
+
+.snap-center {
+  scroll-snap-align: center;
+}
+
+.snap-start {
+  scroll-snap-align: start;
+}
+
+/* Mobile typography refinements */
+@media (max-width: 768px) {
+  :root {
+    --font-size: 16px; /* Preserve 16px for accessibility */
+  }
+
+  /* Optimize line heights for mobile reading */
+  p {
+    line-height: 1.7;
+  }
+
+  /* Slightly larger tap targets for buttons */
+  button {
+    min-height: 44px;
+  }
+}
+
+/* Haptic feedback simulation (visual) */
+@keyframes haptic-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.haptic-feedback:active {
+  animation: haptic-pulse 0.15s ease-out;
+}
+
+/* Mobile swipe hints */
+.swipe-hint {
+  position: relative;
+}
+
+.swipe-hint::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.8), transparent);
+  pointer-events: none;
+}
+
+/* Optimized gradient performance for mobile */
+@media (max-width: 768px) {
+  .gradient-bg {
+    will-change: auto;
+  }
+
+  .gradient-text {
+    background-size: 100% 100%;
+    animation: none;
+  }
+
+  /* Reduce animation complexity on mobile */
+  .particle {
+    animation-duration: 20s;
+  }
+}
+
+/* Mobile progress bars */
+.mobile-progress {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mobile-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #7e1fff, #ff1f70);
+  transition: width 0.3s ease;
+}
+
+/* Mobile toast/notification position */
+@media (max-width: 768px) {
+  [data-sonner-toaster] {
+    bottom: 80px !important; /* Above bottom nav */
+  }
+}
+
+/* Thumb-reachable zone highlight (for development/testing) */
+.thumb-zone {
+  /* Lower 2/3 of screen is easily reachable */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 66.666vh;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Mobile menu backdrop */
+.mobile-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 40;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-menu-backdrop.open {
+  opacity: 1;
+}
+
+/* Mobile optimized focus states */
+@media (max-width: 768px) {
+  *:focus-visible {
+    outline: 3px solid rgba(126, 31, 255, 0.5);
+    outline-offset: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode optimization for OLED screens */
+@media (max-width: 768px) {
+  body {
+    background: #000000; /* Pure black for OLED */
+  }
 }

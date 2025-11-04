@@ -1,0 +1,97 @@
+import { Logger } from '../../utils/logger';
+import { SyncConfig } from '../../config/sync.config';
+import { batchInsertSnapshots } from '@fholio/database';
+import { SnapshotInsert } from '@fholio/database';
+
+export class BatchWriter {
+  private logger: Logger;
+  private buffer: SnapshotInsert[] = [];
+  private totalWritten: number = 0;
+
+  constructor() {
+    this.logger = new Logger('BatchWriter');
+  }
+
+  /**
+   * Add snapshot to buffer
+   */
+  add(snapshot: SnapshotInsert): void {
+    this.buffer.push(snapshot);
+    this.logger.debug(`Added snapshot to buffer (${this.buffer.length}/${SyncConfig.batch.dbBatchSize})`);
+  }
+
+  /**
+   * Flush buffer to database
+   */
+  async flush(): Promise<number> {
+    if (this.buffer.length === 0) {
+      this.logger.debug('Buffer empty, nothing to flush');
+      return 0;
+    }
+
+    const batchSize = SyncConfig.batch.dbBatchSize;
+    const batches = Math.ceil(this.buffer.length / batchSize);
+
+    this.logger.info(`Flushing ${this.buffer.length} snapshots in ${batches} batches...`);
+
+    let written = 0;
+
+    for (let i = 0; i < this.buffer.length; i += batchSize) {
+      const batch = this.buffer.slice(i, i + batchSize);
+      const batchNum = Math.floor(i / batchSize) + 1;
+
+      try {
+        await batchInsertSnapshots(batch);
+        written += batch.length;
+        this.totalWritten += batch.length;
+
+        this.logger.success(`Batch ${batchNum}/${batches} written (${batch.length} records)`);
+      } catch (error) {
+        this.logger.error(`Failed to write batch ${batchNum}/${batches}`, error);
+        throw error;
+      }
+    }
+
+    // Clear buffer after successful flush
+    this.buffer = [];
+
+    this.logger.success(`Flushed ${written} snapshots to database`, {
+      totalWritten: this.totalWritten,
+    });
+
+    return written;
+  }
+
+  /**
+   * Auto-flush when buffer reaches threshold
+   */
+  async autoFlush(): Promise<void> {
+    if (this.buffer.length >= SyncConfig.batch.dbBatchSize) {
+      this.logger.info('Buffer threshold reached, auto-flushing...');
+      await this.flush();
+    }
+  }
+
+  /**
+   * Get current buffer size
+   */
+  getBufferSize(): number {
+    return this.buffer.length;
+  }
+
+  /**
+   * Get total records written
+   */
+  getTotalWritten(): number {
+    return this.totalWritten;
+  }
+
+  /**
+   * Clear buffer without writing (use with caution!)
+   */
+  clearBuffer(): void {
+    const size = this.buffer.length;
+    this.buffer = [];
+    this.logger.warn(`Buffer cleared without writing (${size} records lost)`);
+  }
+}

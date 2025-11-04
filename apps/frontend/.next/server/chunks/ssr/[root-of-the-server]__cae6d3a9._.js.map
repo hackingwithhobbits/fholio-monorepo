@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///Users/amittal/Documents/fholio-project/fholio-monorepo/apps/frontend/src/providers/SWRProvider.tsx"],"sourcesContent":["\"use client\";\n\nimport { SWRConfig } from \"swr\";\nimport { ReactNode } from \"react\";\n\ninterface SWRProviderProps {\n  children: ReactNode;\n}\n\nexport function SWRProvider({ children }: SWRProviderProps) {\n  return (\n    <SWRConfig\n      value={{\n        revalidateOnFocus: false,\n        revalidateOnReconnect: true,\n        shouldRetryOnError: false,\n        dedupingInterval: 5000,\n        errorRetryCount: 3,\n      }}\n    >\n      {children}\n    </SWRConfig>\n  );\n}\n"],"names":[],"mappings":";;;;;AAEA;AAFA;;;AASO,SAAS,YAAY,EAAE,QAAQ,EAAoB;IACxD,qBACE,2YAAC,ySAAS;QACR,OAAO;YACL,mBAAmB;YACnB,uBAAuB;YACvB,oBAAoB;YACpB,kBAAkB;YAClB,iBAAiB;QACnB;kBAEC;;;;;;AAGP","debugId":null}}]
+}

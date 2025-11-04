@@ -1,263 +1,320 @@
-// src/services/chartmetric/chartmetric-api.service.ts
-
-import axios, { AxiosInstance } from "axios";
-import { Logger } from "../../utils/logger";
+import { ChartmetricClient } from "./chartmetric-client";
 import { RateLimiter } from "./rate-limiter";
+import { Logger } from "../../utils/logger";
+import {
+  ChartmetricArtistSearchResult,
+  ChartmetricArtistDetails,
+  ChartmetricSpotifyStatsResponse,
+  ChartmetricStatDataPoint,
+  ChartmetricPlaylistStats,
+  ChartmetricEmergingArtist,
+  ChartmetricTrack,
+} from "@fholio/database";
 
-export interface ArtistStats {
-  chartmetricId: string;
-  spotifyFollowers: number;
-  spotifyMonthlyListeners: number;
-  spotifyPopularity: number;
-  instagramFollowers?: number;
-  tiktokFollowers?: number;
-  playlistCount?: number;
-  playlistReach?: number;
+export interface ArtistSpotifyStats {
+  chartmetricId: number;
+  followers: number;
+  monthlyListeners: number;
+  popularity: number;
+  timestamp: string;
 }
 
-export interface TrackStats {
-  chartmetricTrackId: string;
-  spotifyStreams: number;
-  spotifyPopularity: number;
-  playlistCount?: number;
+export interface ArtistPlaylistData {
+  totalPlaylists: number;
+  totalReach: number;
+  totalFollowers: number;
 }
 
 export class ChartmetricAPIService {
-  private client: AxiosInstance;
+  private client: ChartmetricClient;
   private rateLimiter: RateLimiter;
   private logger: Logger;
-  private accessToken: string | null = null;
-  private tokenExpiresAt: Date | null = null;
 
   constructor() {
-    this.client = axios.create({
-      baseURL: "https://api.chartmetric.com/api",
-      timeout: 30000,
-    });
-
+    this.client = new ChartmetricClient();
     this.rateLimiter = new RateLimiter();
     this.logger = new Logger("ChartmetricAPI");
   }
 
   /**
-   * Authenticate with Chartmetric
+   * Search for artists by name
    */
-  private async authenticate(): Promise<void> {
-    // Check if token is still valid
-    if (
-      this.accessToken &&
-      this.tokenExpiresAt &&
-      new Date() < this.tokenExpiresAt
-    ) {
-      return;
-    }
-
-    try {
-      const response = await this.client.post("/token", {
-        refreshtoken: process.env.CHARTMETRIC_REFRESH_TOKEN,
-      });
-
-      this.accessToken = response.data.token;
-      this.tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-      this.logger.info("Authenticated with Chartmetric");
-    } catch (error) {
-      this.logger.error("Failed to authenticate with Chartmetric", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Make authenticated request with rate limiting & retry
-   */
-  private async makeRequest<T>(
-    method: string,
-    endpoint: string,
-    retryCount = 0
-  ): Promise<T> {
-    await this.authenticate();
+  async searchArtists(
+    query: string,
+    limit: number = 10
+  ): Promise<ChartmetricArtistSearchResult[]> {
+    this.logger.debug(`Searching for artists: "${query}"`);
 
     return this.rateLimiter.execute(async () => {
-      try {
-        const response = await this.client.request<T>({
-          method,
-          url: endpoint,
-          headers: {
-            Authorization: `Bearer ${this.accessToken}`,
-          },
-        });
+      const response = await this.client.request<any>("GET", "/search", {
+        q: query,
+        type: "artists",
+        limit,
+      });
 
-        return response.data;
-      } catch (error: any) {
-        // Handle rate limiting (429)
-        if (error.response?.status === 429) {
-          this.logger.warn("Rate limited by Chartmetric, waiting...");
-
-          const retryAfter = parseInt(
-            error.response.headers["retry-after"] || "60",
-            10
-          );
-          await this.sleep(retryAfter * 1000);
-
-          // Retry
-          if (retryCount < SyncConfig.rateLimit.retryAttempts) {
-            return this.makeRequest<T>(method, endpoint, retryCount + 1);
-          }
-        }
-
-        // Handle other errors
-        if (error.response?.status === 401) {
-          // Token expired, re-authenticate
-          this.accessToken = null;
-          await this.authenticate();
-
-          if (retryCount < SyncConfig.rateLimit.retryAttempts) {
-            return this.makeRequest<T>(method, endpoint, retryCount + 1);
-          }
-        }
-
-        // Retry on network errors
-        if (
-          !error.response &&
-          retryCount < SyncConfig.rateLimit.retryAttempts
-        ) {
-          await this.sleep(SyncConfig.rateLimit.retryDelay);
-          return this.makeRequest<T>(method, endpoint, retryCount + 1);
-        }
-
-        throw error;
-      }
-    });
+      return response.obj?.artists || [];
+    }, `Search artists: ${query}`);
   }
 
   /**
-   * Get artist statistics
+   * Get artist details by Chartmetric ID
    */
-  async getArtistStats(chartmetricId: string): Promise<ArtistStats> {
-    try {
-      // Fetch multiple stats in parallel (but rate-limited)
-      const [spotifyStats, socialStats, playlistStats] = await Promise.all([
-        this.makeRequest<any>("GET", `/artist/${chartmetricId}/stat/spotify`),
-        this.makeRequest<any>(
-          "GET",
-          `/artist/${chartmetricId}/social-stats`
-        ).catch(() => null),
-        this.makeRequest<any>(
-          "GET",
-          `/artist/${chartmetricId}/playlists/spotify`
-        ).catch(() => null),
-      ]);
+  async getArtistDetails(
+    chartmetricId: number
+  ): Promise<ChartmetricArtistDetails> {
+    this.logger.debug(`Fetching artist details for CM ID: ${chartmetricId}`);
 
-      // Extract latest values
-      const latestSpotify = spotifyStats?.data?.[spotifyStats.data.length - 1];
+    return this.rateLimiter.execute(async () => {
+      const response = await this.client.request<any>(
+        "GET",
+        `/artist/${chartmetricId}`
+      );
+      return response.obj;
+    }, `Get artist ${chartmetricId}`);
+  }
+
+  /**
+   * Get artist Spotify stats (followers, listeners, popularity)
+   */
+  async getArtistSpotifyStats(
+    chartmetricId: number,
+    since?: string
+  ): Promise<ArtistSpotifyStats> {
+    this.logger.debug(`Fetching Spotify stats for CM ID: ${chartmetricId}`);
+
+    return this.rateLimiter.execute(async () => {
+      const params: any = {};
+      if (since) {
+        params.since = since;
+      }
+
+      const response =
+        await this.client.request<ChartmetricSpotifyStatsResponse>(
+          "GET",
+          `/artist/${chartmetricId}/stat/spotify`,
+          params
+        );
+
+      const data = response.obj.data;
+
+      if (!data || data.length === 0) {
+        throw new Error(`No Spotify stats found for artist ${chartmetricId}`);
+      }
+
+      // Get the latest data point for each field
+      const latestFollowers = this.getLatestValue(data, "followers");
+      const latestListeners = this.getLatestValue(data, "listeners");
+      const latestPopularity = this.getLatestValue(data, "popularity");
 
       return {
         chartmetricId,
-        spotifyFollowers: latestSpotify?.followers || 0,
-        spotifyMonthlyListeners: latestSpotify?.monthly_listeners || 0,
-        spotifyPopularity: latestSpotify?.popularity || 0,
-        instagramFollowers: socialStats?.instagram?.followers,
-        tiktokFollowers: socialStats?.tiktok?.followers,
-        playlistCount: playlistStats?.total || 0,
-        playlistReach: playlistStats?.reach || 0,
+        followers: latestFollowers?.value || 0,
+        monthlyListeners: latestListeners?.value || 0,
+        popularity: latestPopularity?.value || 0,
+        timestamp: latestFollowers?.timestp || new Date().toISOString(),
       };
-    } catch (error) {
-      this.logger.error(
-        `Failed to fetch stats for artist ${chartmetricId}`,
-        error
-      );
-      throw error;
-    }
+    }, `Get Spotify stats ${chartmetricId}`);
   }
 
   /**
-   * Get track statistics
+   * Get artist's tracks
    */
-  async getTrackStats(chartmetricTrackId: string): Promise<TrackStats> {
-    try {
-      const stats = await this.makeRequest<any>(
+  async getArtistTracks(
+    chartmetricId: number,
+    limit: number = 50
+  ): Promise<ChartmetricTrack[]> {
+    this.logger.debug(`Fetching tracks for CM ID: ${chartmetricId}`);
+
+    return this.rateLimiter.execute(async () => {
+      const response = await this.client.request<any>(
         "GET",
-        `/track/${chartmetricTrackId}/spotify-streaming-stats`
+        `/artist/${chartmetricId}/tracks/spotify`,
+        { limit }
       );
 
-      const latest = stats?.data?.[stats.data.length - 1];
+      return response.obj?.data || [];
+    }, `Get tracks ${chartmetricId}`);
+  }
+
+  /**
+   * Get artist playlist placements (count and reach)
+   */
+  async getArtistPlaylistData(
+    chartmetricId: number
+  ): Promise<ArtistPlaylistData> {
+    this.logger.debug(`Fetching playlist data for CM ID: ${chartmetricId}`);
+
+    return this.rateLimiter.execute(async () => {
+      const response = await this.client.request<any>(
+        "GET",
+        `/artist/${chartmetricId}/playlists/spotify`
+      );
+
+      const playlists = response.obj?.data || [];
+
+      // Calculate totals
+      const uniquePlaylists = new Set(playlists.map((p: any) => p.playlist_id));
+      const totalReach = playlists.reduce(
+        (sum: number, p: any) => sum + (p.followers || 0),
+        0
+      );
 
       return {
-        chartmetricTrackId,
-        spotifyStreams: latest?.streams || 0,
-        spotifyPopularity: latest?.popularity || 0,
-        playlistCount: latest?.playlist_count || 0,
+        totalPlaylists: uniquePlaylists.size,
+        totalReach: totalReach,
+        totalFollowers: totalReach, // Same as reach in this case
       };
-    } catch (error) {
-      this.logger.error(
-        `Failed to fetch stats for track ${chartmetricTrackId}`,
-        error
-      );
-      throw error;
-    }
+    }, `Get playlists ${chartmetricId}`);
   }
 
   /**
-   * Get trending artists
+   * Get emerging artists
    */
-  async getTrendingArtists(country = "us"): Promise<any[]> {
-    try {
-      const response = await this.makeRequest<any>(
+  async getEmergingArtists(
+    options: {
+      limit?: number;
+      genre?: string;
+      countryCode?: string;
+    } = {}
+  ): Promise<ChartmetricEmergingArtist[]> {
+    const { limit = 100, genre, countryCode } = options;
+
+    this.logger.debug("Fetching emerging artists", {
+      limit,
+      genre,
+      countryCode,
+    });
+
+    return this.rateLimiter.execute(async () => {
+      const params: any = { limit };
+      if (genre) params.genre = genre;
+      if (countryCode) params.country_code = countryCode;
+
+      const response = await this.client.request<any>(
         "GET",
-        `/charts/spotify/trending/artists?country=${country}`
+        "/artist/list/emerging",
+        params
       );
-      return response.data || [];
-    } catch (error) {
-      this.logger.error("Failed to fetch trending artists", error);
-      return [];
-    }
+
+      return response.obj?.data || [];
+    }, "Get emerging artists");
   }
 
   /**
-   * Batch get artist stats (more efficient)
+   * Get momentum artists (fast-growing)
+   */
+  async getMomentumArtists(
+    options: {
+      limit?: number;
+      countryCode?: string;
+    } = {}
+  ): Promise<any[]> {
+    const { limit = 50, countryCode } = options;
+
+    this.logger.debug("Fetching momentum artists", { limit, countryCode });
+
+    return this.rateLimiter.execute(async () => {
+      const params: any = {
+        type: "spotify",
+        limit,
+      };
+      if (countryCode) params.country_code = countryCode;
+
+      const response = await this.client.request<any>(
+        "GET",
+        "/charts/momentum/artists",
+        params
+      );
+
+      return response.obj?.data || [];
+    }, "Get momentum artists");
+  }
+
+  /**
+   * Get artist Instagram followers
+   */
+  async getArtistInstagramStats(chartmetricId: number): Promise<number> {
+    this.logger.debug(`Fetching Instagram stats for CM ID: ${chartmetricId}`);
+
+    return this.rateLimiter.execute(async () => {
+      const response = await this.client.request<any>(
+        "GET",
+        `/artist/${chartmetricId}/stat/instagram`
+      );
+
+      const data = response.obj?.data || [];
+      const latestFollowers = this.getLatestValue(data, "followers");
+
+      return latestFollowers?.value || 0;
+    }, `Get Instagram ${chartmetricId}`);
+  }
+
+  /**
+   * Get artist TikTok followers
+   */
+  async getArtistTikTokStats(chartmetricId: number): Promise<number> {
+    this.logger.debug(`Fetching TikTok stats for CM ID: ${chartmetricId}`);
+
+    return this.rateLimiter.execute(async () => {
+      const response = await this.client.request<any>(
+        "GET",
+        `/artist/${chartmetricId}/stat/tiktok`
+      );
+
+      const data = response.obj?.data || [];
+      const latestFollowers = this.getLatestValue(data, "followers");
+
+      return latestFollowers?.value || 0;
+    }, `Get TikTok ${chartmetricId}`);
+  }
+
+  /**
+   * Batch get artist stats (with rate limiting)
    */
   async batchGetArtistStats(
-    chartmetricIds: string[]
-  ): Promise<Map<string, ArtistStats>> {
-    const results = new Map<string, ArtistStats>();
+    chartmetricIds: number[]
+  ): Promise<Map<number, ArtistSpotifyStats>> {
+    this.logger.info(
+      `Batch fetching stats for ${chartmetricIds.length} artists`
+    );
 
-    // Process in smaller batches to respect rate limits
-    for (
-      let i = 0;
-      i < chartmetricIds.length;
-      i += SyncConfig.batch.parallelRequests
-    ) {
-      const batch = chartmetricIds.slice(
-        i,
-        i + SyncConfig.batch.parallelRequests
-      );
+    const results = new Map<number, ArtistSpotifyStats>();
 
-      const batchResults = await Promise.allSettled(
-        batch.map((id) => this.getArtistStats(id))
-      );
+    for (let i = 0; i < chartmetricIds.length; i++) {
+      const id = chartmetricIds[i];
 
-      batchResults.forEach((result, index) => {
-        if (result.status === "fulfilled") {
-          results.set(batch[index], result.value);
-        } else {
-          this.logger.warn(
-            `Failed to fetch stats for ${batch[index]}:`,
-            result.reason
-          );
+      try {
+        const stats = await this.getArtistSpotifyStats(id);
+        results.set(id, stats);
+
+        // Log progress every 10 artists
+        if ((i + 1) % 10 === 0) {
+          this.logger.progress(i + 1, chartmetricIds.length);
         }
-      });
-
-      // Log progress
-      this.logger.info(
-        `Fetched ${i + batch.length}/${chartmetricIds.length} artist stats`
-      );
+      } catch (error) {
+        this.logger.error(`Failed to fetch stats for artist ${id}`, error);
+      }
     }
+
+    this.logger.success(
+      `Fetched stats for ${results.size}/${chartmetricIds.length} artists`
+    );
 
     return results;
   }
 
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+  /**
+   * Helper: Get latest value from time series data
+   */
+  private getLatestValue(
+    data: ChartmetricStatDataPoint[],
+    field: string
+  ): ChartmetricStatDataPoint | undefined {
+    return data
+      .filter((d) => d.field === field)
+      .sort(
+        (a, b) => new Date(b.timestp).getTime() - new Date(a.timestp).getTime()
+      )[0];
   }
 
   /**
@@ -265,5 +322,19 @@ export class ChartmetricAPIService {
    */
   getRateLimiterStatus() {
     return this.rateLimiter.getStatus();
+  }
+
+  /**
+   * Log rate limiter stats
+   */
+  logRateLimiterStats() {
+    this.rateLimiter.logStats();
+  }
+
+  /**
+   * Wait for all pending requests
+   */
+  async drain() {
+    await this.rateLimiter.drain();
   }
 }

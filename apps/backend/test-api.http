@@ -1,0 +1,40 @@
+### Variables
+@baseUrl = http://localhost:3001/api/v1
+@userId = u1111111-1111-4111-b111-111111111111
+
+### Health Check
+GET {{baseUrl}}/health
+
+### Get All Artists
+GET {{baseUrl}}/artists?page=1&limit=10&league=Major
+
+### Get Single Artist
+GET {{baseUrl}}/artists/a1111111-1111-4111-a111-111111111111
+
+### Get Trending Artists
+GET {{baseUrl}}/artists/trending?limit=5
+
+### Get Genres
+GET {{baseUrl}}/artists/genres
+
+### Get Current Portfolio
+GET {{baseUrl}}/portfolio/current
+x-user-id: {{userId}}
+
+### Get Top 100
+GET {{baseUrl}}/charts/top100
+
+### Get My Votes
+GET {{baseUrl}}/votes/my-votes
+x-user-id: {{userId}}
+
+### Get Wallet
+GET {{baseUrl}}/wallet
+x-user-id: {{userId}}
+
+### Get User Profile
+GET {{baseUrl}}/users/me
+x-user-id: {{userId}}
+
+### Get FAQs
+GET {{baseUrl}}/faqs

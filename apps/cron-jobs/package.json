@@ -1,0 +1,30 @@
+{
+  "name": "@fholio/cron-jobs",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "sync:manual": "ts-node src/jobs/sync-emerging-artists.job.ts",
+    "sync:test": "ts-node src/scripts/test-sync.ts"
+  },
+  "dependencies": {
+    "@fholio/database": "workspace:*",
+    "@supabase/supabase-js": "^2.75.0",
+    "axios": "^1.12.2",
+    "bottleneck": "^2.19.5",
+    "dotenv": "^16.6.1",
+    "node-cron": "^3.0.3",
+    "p-limit": "^5.0.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.21",
+    "@types/node-cron": "^3.0.11",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3"
+  }
+}

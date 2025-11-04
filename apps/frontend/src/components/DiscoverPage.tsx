@@ -1,576 +1,706 @@
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Play,
-  Pause,
-  Heart,
+  Search,
+  Filter,
   TrendingUp,
-  TrendingDown,
   MapPin,
+  Sparkles,
+  X,
+  ChevronDown,
   Music,
-  Zap,
-  Crown,
-  Star,
-  ChevronLeft,
-  ChevronRight,
+  Users,
+  BarChart3,
+  Plus,
+  Check,
 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "./ui/button";
-import { Card, CardContent } from "./ui/card";
+import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Dialog, DialogContent, DialogHeader } from "./ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { artists } from "../data/mockData";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { Logo } from "./Logo";
+import { ShareButtons } from "./ShareButtons";
+import { LineChart, Line, ResponsiveContainer } from "recharts";
 
 interface DiscoverPageProps {
-  onPageChange: (page: string) => void;
+  onNavigate: (page: string, artistId?: string) => void;
 }
 
-export function DiscoverPage({ onPageChange }: DiscoverPageProps) {
-  const [playingTrack, setPlayingTrack] = useState<number | null>(null);
+const genres = [
+  "All",
+  "Pop",
+  "Hip-Hop",
+  "Alt Rock",
+  "Electronic",
+  "Indie",
+  "R&B",
+  "EDM",
+  "Alternative",
+];
+const statuses = [
+  "All",
+  "Hot Streak",
+  "Rising",
+  "New Entrant",
+  "Trending",
+  "Stable",
+];
+const leagues = ["All", "Major", "Minor"];
+const sortOptions = [
+  "Trending",
+  "Growth %",
+  "Total Streams",
+  "Most Picked",
+  "Score",
+];
 
-  const topMovers = [
-    {
-      id: 1,
-      title: "Electric Dreams",
-      artist: "Nova Sound",
-      genre: "Electronic",
-      price: 15.75,
-      change: 24.5,
-      cover:
-        "https://images.unsplash.com/photo-1573470369532-03944ae8ab93?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWMlMjBhbGJ1bSUyMGNvdmVyJTIwbmVvbnxlbnwxfHx8fDE3NTY5Mjk2Njd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 2,
-      title: "Midnight Drive",
-      artist: "Retro Wave",
-      genre: "Synthwave",
-      price: 22.3,
-      change: 18.7,
-      cover:
-        "https://images.unsplash.com/photo-1611084352382-062f1bfe31e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzeW50aHdhdmUlMjBhbGJ1bSUyMGNvdmVyJTIwcmV0cm98ZW58MXx8fHwxNzU2OTI5NjcwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 3,
-      title: "Ocean Waves",
-      artist: "Coastal Sound",
-      genre: "Ambient",
-      price: 8.9,
-      change: 15.2,
-      cover:
-        "https://images.unsplash.com/photo-1589528272863-16654bde3a71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbWJpZW50JTIwbXVzaWMlMjBvY2VhbiUyMHdhdmVzfGVufDF8fHx8MTc1NjkyOTY3M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 4,
-      title: "Urban Pulse",
-      artist: "City Beats",
-      genre: "Hip Hop",
-      price: 12.4,
-      change: 12.8,
-      cover:
-        "https://images.unsplash.com/photo-1735977162604-6e6cb5795124?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoaXAlMjBob3AlMjBhbGJ1bSUyMGNvdmVyJTIwdXJiYW58ZW58MXx8fHwxNzU2OTI5Njc3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 5,
-      title: "Stellar Journey",
-      artist: "Space Collective",
-      genre: "Progressive",
-      price: 19.6,
-      change: 9.4,
-      cover:
-        "https://images.unsplash.com/photo-1708199011440-82c0afc27b68?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9ncmVzc2l2ZSUyMG11c2ljJTIwc3BhY2UlMjBjb3Ntb3N8ZW58MXx8fHwxNzU2OTI5NjgwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-  ];
+export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [selectedLeague, setSelectedLeague] = useState("All");
+  const [sortBy, setSortBy] = useState("Trending");
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
+  const [myPicks, setMyPicks] = useState<string[]>([]);
 
-  const trendingToday = [
-    {
-      id: 6,
-      title: "Neon Nights",
-      artist: "Luna Valley",
-      genre: "Indie Pop",
-      price: 14.25,
-      trending: true,
-      cover:
-        "https://images.unsplash.com/photo-1701696934148-83396d061968?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpZSUyMHBvcCUyMGFsYnVtJTIwY292ZXIlMjBkcmVhbXl8ZW58MXx8fHwxNzU2OTI5Njg0fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 7,
-      title: "Digital Love",
-      artist: "Cyber Dreams",
-      genre: "Electronic",
-      price: 18.8,
-      trending: true,
-      cover:
-        "https://images.unsplash.com/photo-1746365588568-3513fdefde2e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwbXVzaWMlMjBjb3ZlciUyMGN5YmVycHVua3xlbnwxfHx8fDE3NTY5Mjk2ODh8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 8,
-      title: "Sunset Boulevard",
-      artist: "West Coast",
-      genre: "Pop Rock",
-      price: 11.5,
-      trending: true,
-      cover:
-        "https://images.unsplash.com/photo-1669335596758-4437aef2d612?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjByb2NrJTIwc3Vuc2V0JTIwbXVzaWN8ZW58MXx8fHwxNzU2OTI5NjkxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 9,
-      title: "Cosmic Flow",
-      artist: "Astral Plane",
-      genre: "Psychedelic",
-      price: 16.7,
-      trending: true,
-      cover:
-        "https://images.unsplash.com/photo-1621974714993-465ae51a4483?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwc3ljaGVkZWxpYyUyMG11c2ljJTIwY29zbWljJTIwZmxvd3xlbnwxfHx8fDE3NTY5Mjk2OTV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-  ];
-
-  const newLaunches = [
-    {
-      id: 10,
-      title: "First Light",
-      artist: "Dawn Collective",
-      genre: "Ambient",
-      price: 10.0,
-      isNew: true,
-      daysLeft: 29,
-      cover:
-        "https://images.unsplash.com/photo-1621546852360-0a9e6e63eab0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbWJpZW50JTIwZGF3biUyMGxpZ2h0JTIwbXVzaWN8ZW58MXx8fHwxNzU2OTI5Njk5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 11,
-      title: "Rising Sun",
-      artist: "Tokyo Drift",
-      genre: "Lo-Fi",
-      price: 7.5,
-      isNew: true,
-      daysLeft: 25,
-      cover:
-        "https://images.unsplash.com/photo-1718952199003-63687f5e0f05?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsb2ZpJTIwbXVzaWMlMjB0b2t5byUyMHJpc2luZyUyMHN1bnxlbnwxfHx8fDE3NTY5Mjk3MDJ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 12,
-      title: "Velocity",
-      artist: "Speed Runners",
-      genre: "Drum & Bass",
-      price: 13.25,
-      isNew: true,
-      daysLeft: 22,
-      cover:
-        "https://images.unsplash.com/photo-1596121589085-da000f4e0d9b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkcnVtJTIwYmFzcyUyMG11c2ljJTIwdmVsb2NpdHklMjBzcGVlZHxlbnwxfHx8fDE3NTY5Mjk3MDZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-  ];
-
-  const byGenre = [
-    { genre: "Electronic", count: 127, color: "from-blue-500 to-cyan-500" },
-    { genre: "Hip Hop", count: 89, color: "from-orange-500 to-red-500" },
-    { genre: "Indie Pop", count: 156, color: "from-pink-500 to-purple-500" },
-    { genre: "Rock", count: 98, color: "from-green-500 to-emerald-500" },
-    { genre: "Ambient", count: 67, color: "from-indigo-500 to-blue-500" },
-    { genre: "Jazz", count: 45, color: "from-yellow-500 to-orange-500" },
-  ];
-
-  const byLocation = [
-    { location: "Los Angeles", count: 234, flag: "🇺🇸" },
-    { location: "London", count: 189, flag: "🇬🇧" },
-    { location: "Berlin", count: 156, flag: "🇩🇪" },
-    { location: "Tokyo", count: 134, flag: "🇯🇵" },
-    { location: "Nashville", count: 112, flag: "🇺🇸" },
-    { location: "Stockholm", count: 89, flag: "🇸🇪" },
-  ];
-
-  const risingArtists = [
-    {
-      id: 13,
-      name: "Echo Chamber",
-      genre: "Electronic",
-      location: "Berlin",
-      totalRaised: "$45,200",
-      tracks: 3,
-      roi: 28.5,
-      avatar:
-        "https://images.unsplash.com/photo-1573470369532-03944ae8ab93?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWMlMjBhbGJ1bSUyMGNvdmVyJTIwbmVvbnxlbnwxfHx8fDE3NTY5Mjk2Njd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 14,
-      name: "Midnight Collective",
-      genre: "Synthwave",
-      location: "Los Angeles",
-      totalRaised: "$67,800",
-      tracks: 5,
-      roi: 34.2,
-      avatar:
-        "https://images.unsplash.com/photo-1611084352382-062f1bfe31e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzeW50aHdhdmUlMjBhbGJ1bSUyMGNvdmVyJTIwcmV0cm98ZW58MXx8fHwxNzU2OTI5NjcwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 15,
-      name: "Ocean Depths",
-      genre: "Ambient",
-      location: "Vancouver",
-      totalRaised: "$23,400",
-      tracks: 2,
-      roi: 19.7,
-      avatar:
-        "https://images.unsplash.com/photo-1589528272863-16654bde3a71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbWJpZW50JTIwbXVzaWMlMjBvY2VhbiUyMHdhdmVzfGVufDF8fHx8MTc1NjkyOTY3M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 16,
-      name: "Urban Legends",
-      genre: "Hip Hop",
-      location: "Atlanta",
-      totalRaised: "$89,100",
-      tracks: 7,
-      roi: 42.1,
-      avatar:
-        "https://images.unsplash.com/photo-1735977162604-6e6cb5795124?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoaXAlMjBob3AlMjBhbGJ1bSUyMGNvdmVyJTIwdXJiYW58ZW58MXx8fHwxNzU2OTI5Njc3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-  ];
-
-  const togglePlay = (trackId: number) => {
-    setPlayingTrack(playingTrack === trackId ? null : trackId);
+  const getArtistStatus = (artist: any) => {
+    if (artist.change > 4) return "Hot Streak";
+    if (artist.change > 2) return "Rising";
+    if (artist.score > 90) return "Top 100";
+    return "Fan Favorite";
   };
 
-  const renderTrackCard = (
-    track: any,
-    size: "large" | "medium" | "small" = "medium"
-  ) => {
-    const sizeClasses = {
-      large: "w-80",
-      medium: "w-64",
-      small: "w-56",
-    };
-
-    const imageSizes = {
-      large: "h-80",
-      medium: "h-64",
-      small: "h-56",
-    };
-
-    return (
-      <Card
-        key={track.id}
-        className={`${sizeClasses[size]} premium-card hover:neon-glow transition-all duration-300 cursor-pointer group flex-shrink-0`}
-        onClick={() => onPageChange("track-detail")}
-      >
-        <div className="relative">
-          <ImageWithFallback
-            src={track.cover}
-            alt={track.title}
-            className={`w-full ${imageSizes[size]} object-cover rounded-t-xl`}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-t-xl" />
-
-          {/* Play Button */}
-          <Button
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              togglePlay(track.id);
-            }}
-            className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white border-0 rounded-full w-12 h-12 opacity-0 group-hover:opacity-100 transition-all duration-300"
-          >
-            {playingTrack === track.id ? (
-              <Pause className="w-6 h-6" />
-            ) : (
-              <Play className="w-6 h-6" />
-            )}
-          </Button>
-
-          {/* Heart Button */}
-          <Button
-            size="icon"
-            variant="ghost"
-            className="absolute top-4 left-4 bg-black/60 hover:bg-black/80 text-white border-0 rounded-full w-12 h-12 opacity-0 group-hover:opacity-100 transition-all duration-300"
-          >
-            <Heart className="w-6 h-6" />
-          </Button>
-
-          {/* Badges */}
-          <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
-            <Badge className="bg-black/60 text-white border-0">
-              {track.genre}
-            </Badge>
-            {track.trending && (
-              <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 font-bold">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                Trending
-              </Badge>
-            )}
-            {track.isNew && (
-              <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 font-bold">
-                <Zap className="w-3 h-3 mr-1" />
-                New
-              </Badge>
-            )}
-            {track.change && (
-              <Badge
-                className={`border-0 font-bold ${
-                  track.change > 0 ? "positive" : "negative"
-                }`}
-              >
-                {track.change > 0 ? (
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                ) : (
-                  <TrendingDown className="w-3 h-3 mr-1" />
-                )}
-                {track.change > 0 ? "+" : ""}
-                {track.change}%
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        <CardContent className="p-4">
-          <h3 className="font-bold text-foreground text-lg mb-1 truncate">
-            {track.title}
-          </h3>
-          <p
-            className="text-muted-foreground mb-3 cursor-pointer hover:text-primary transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPageChange("artist-page");
-            }}
-          >
-            {track.artist}
-          </p>
-
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-2xl font-bold text-foreground">
-              ${track.price}
-            </span>
-            {track.daysLeft && (
-              <span className="text-sm text-muted-foreground">
-                {track.daysLeft} days left
-              </span>
-            )}
-          </div>
-
-          <Button
-            className="w-full fintech-gradient text-white border-0 hover:opacity-90 rounded-xl font-semibold"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPageChange("track-detail");
-            }}
-          >
-            Invest in Track
-          </Button>
-        </CardContent>
-      </Card>
-    );
+  const handleAddToPicks = (artistId: string) => {
+    if (myPicks.length < 5 && !myPicks.includes(artistId)) {
+      setMyPicks([...myPicks, artistId]);
+    } else if (myPicks.includes(artistId)) {
+      setMyPicks(myPicks.filter((id) => id !== artistId));
+    }
   };
+
+  const filteredArtists = artists.filter((artist) => {
+    const matchesSearch =
+      artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      artist.genre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      artist.location.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesGenre =
+      selectedGenre === "All" || artist.genre === selectedGenre;
+    const matchesStatus =
+      selectedStatus === "All" || artist.status === selectedStatus;
+    const matchesLeague =
+      selectedLeague === "All" || artist.league === selectedLeague;
+    return matchesSearch && matchesGenre && matchesStatus && matchesLeague;
+  });
+
+  const selectedArtistData = artists.find((a) => a.id === selectedArtist);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-black text-foreground mb-4">
-            Discover Your Next Big Investment
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Explore trending tracks, rising artists, and breakthrough music
-            across genres and locations
-          </p>
+    <div className="min-h-screen relative">
+      {/* Background particles */}
+      <div className="particles">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <div
+            key={i}
+            className="particle"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 15}s`,
+              animationDuration: `${15 + Math.random() * 10}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Hero Banner */}
+      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0">
+          <ImageWithFallback
+            src="https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGZlc3RpdmFsJTIwY3Jvd2R8ZW58MXx8fHwxNzYxNjE3MzMyfDA&ixlib=rb-4.1.0&q=80&w=1080"
+            alt="Concert crowd"
+            className="w-full h-full object-cover opacity-20 blur-sm"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/95 to-black" />
+
+          {/* Animated gradient waves */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-1/3 left-0 w-full h-32 bg-gradient-to-r from-primary via-secondary to-primary shimmer" />
+            <div
+              className="absolute bottom-1/3 left-0 w-full h-32 bg-gradient-to-r from-secondary via-accent to-secondary shimmer"
+              style={{ animationDelay: "1s" }}
+            />
+          </div>
         </div>
 
-        {/* Top Movers */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <TrendingUp className="w-6 h-6 text-accent-positive" />
-              <h2 className="text-2xl font-bold text-foreground">
-                Top Movers (24h)
-              </h2>
-            </div>
-            <Button variant="outline" className="hover:bg-accent">
-              View All
-            </Button>
-          </div>
-          <div className="flex space-x-6 overflow-x-auto pb-4">
-            {topMovers.map((track) => renderTrackCard(track, "large"))}
-          </div>
-        </section>
-
-        {/* Trending Today */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <Star className="w-6 h-6 text-primary" />
-              <h2 className="text-2xl font-bold text-foreground">
-                Trending Today
-              </h2>
-            </div>
-            <Button variant="outline" className="hover:bg-accent">
-              View All
-            </Button>
-          </div>
-          <div className="flex space-x-6 overflow-x-auto pb-4">
-            {trendingToday.map((track) => renderTrackCard(track))}
-          </div>
-        </section>
-
-        {/* New Launches */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <Zap className="w-6 h-6 text-blue-500" />
-              <h2 className="text-2xl font-bold text-foreground">
-                New Launches
-              </h2>
-            </div>
-            <Button variant="outline" className="hover:bg-accent">
-              View All
-            </Button>
-          </div>
-          <div className="flex space-x-6 overflow-x-auto pb-4">
-            {newLaunches.map((track) => renderTrackCard(track))}
-          </div>
-        </section>
-
-        {/* Browse by Category */}
-        <div className="grid lg:grid-cols-2 gap-16 mb-16">
-          {/* By Genre */}
-          <section>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <Music className="w-6 h-6 text-purple-500" />
-                <h2 className="text-2xl font-bold text-foreground">By Genre</h2>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {byGenre.map((item, index) => (
-                <Card
-                  key={index}
-                  className="premium-card hover:neon-glow transition-all duration-300 cursor-pointer"
-                >
-                  <CardContent className="p-6">
-                    <div
-                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} mb-4 flex items-center justify-center`}
-                    >
-                      <Music className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="font-bold text-foreground text-lg mb-1">
-                      {item.genre}
-                    </h3>
-                    <p className="text-muted-foreground">{item.count} tracks</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-
-          {/* By Location */}
-          <section>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <MapPin className="w-6 h-6 text-green-500" />
-                <h2 className="text-2xl font-bold text-foreground">
-                  By Location
-                </h2>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {byLocation.map((item, index) => (
-                <Card
-                  key={index}
-                  className="premium-card hover:neon-glow transition-all duration-300 cursor-pointer"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <span className="text-2xl">{item.flag}</span>
-                      <div>
-                        <h3 className="font-bold text-foreground text-lg">
-                          {item.location}
-                        </h3>
-                        <p className="text-muted-foreground">
-                          {item.count} artists
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
+        {/* Logo Watermark */}
+        <div className="logo-watermark">
+          <Logo size="xl" className="opacity-100" style={{ height: "300px" }} />
         </div>
 
-        {/* Rising Artists */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <Crown className="w-6 h-6 text-yellow-500" />
-              <h2 className="text-2xl font-bold text-foreground">
-                Rising Artists
-              </h2>
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h1 className="text-5xl md:text-7xl mb-6 tracking-tight">
+              <span className="gradient-text">Discover Artists.</span>
+              <br />
+              <span className="text-white">Build Your Fholio.</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Search, explore, and scout your lineup for this week's league.
+            </p>
+            <div className="text-sm text-accent tracking-wider">
+              YOUR LINEUP. YOUR LEAGUE.
             </div>
-            <Button variant="outline" className="hover:bg-accent">
-              View All
-            </Button>
-          </div>
-          <div className="flex space-x-6 overflow-x-auto pb-4">
-            {risingArtists.map((artist) => (
-              <Card
-                key={artist.id}
-                className="w-80 premium-card hover:neon-glow transition-all duration-300 cursor-pointer flex-shrink-0"
-                onClick={() => onPageChange("artist-page")}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Search & Filters */}
+      <div className="sticky top-16 z-40 glass-card border-b border-primary/10 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search Bar */}
+            <div className="flex-1 relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input
+                placeholder="Search artists, genres, or locations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 pr-4 h-12 bg-input-background border-primary/20 focus:border-primary/50 neon-glow text-white placeholder:text-muted-foreground"
+              />
+            </div>
+
+            {/* Quick Filters */}
+            <div className="flex gap-3 flex-wrap">
+              <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+                <SelectTrigger className="w-40 h-12 glass-card border-primary/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {genres.map((genre) => (
+                    <SelectItem key={genre} value={genre}>
+                      {genre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedLeague} onValueChange={setSelectedLeague}>
+                <SelectTrigger className="w-40 h-12 glass-card border-primary/20">
+                  <SelectValue placeholder="League" />
+                </SelectTrigger>
+                <SelectContent>
+                  {leagues.map((league) => (
+                    <SelectItem key={league} value={league}>
+                      {league} League
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-40 h-12 glass-card border-primary/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="h-12 border-primary/30 hover:bg-primary/10 neon-glow"
               >
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-4 mb-4">
-                    <ImageWithFallback
-                      src={artist.avatar}
-                      alt={artist.name}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
-                    <div>
-                      <h3 className="font-bold text-foreground text-lg">
-                        {artist.name}
-                      </h3>
-                      <p className="text-muted-foreground">{artist.genre}</p>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        {artist.location}
-                      </div>
-                    </div>
-                  </div>
+                <Filter className="w-4 h-4 mr-2" />
+                Filters
+                <ChevronDown
+                  className={`w-4 h-4 ml-2 transition-transform ${
+                    showFilters ? "rotate-180" : ""
+                  }`}
+                />
+              </Button>
+            </div>
+          </div>
 
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="font-bold text-foreground">
-                        {artist.tracks}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Tracks
-                      </div>
-                    </div>
-                    <div>
-                      <div className="font-bold text-accent-positive">
-                        +{artist.roi}%
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Avg ROI
-                      </div>
-                    </div>
-                    <div>
-                      <div className="font-bold text-foreground">
-                        {artist.totalRaised}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Raised
-                      </div>
-                    </div>
-                  </div>
+          {/* Extended Filters */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="mt-4 pt-4 border-t border-white/10"
+              >
+                <div className="flex flex-wrap gap-2">
+                  {statuses.map((status) => (
+                    <Badge
+                      key={status}
+                      variant={
+                        selectedStatus === status ? "default" : "outline"
+                      }
+                      className={`cursor-pointer px-4 py-2 ${
+                        selectedStatus === status
+                          ? "gradient-bg border-0"
+                          : "border-primary/30 hover:border-primary/60"
+                      }`}
+                      onClick={() => setSelectedStatus(status)}
+                    >
+                      {status}
+                    </Badge>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-                  <Button
-                    className="w-full mt-4 fintech-gradient text-white border-0 hover:opacity-90 rounded-xl font-semibold"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onPageChange("artist-page");
-                    }}
+          {/* My Picks Counter */}
+          {myPicks.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 flex items-center justify-between glass-card p-4 rounded-xl border-accent/30"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg gradient-bg flex items-center justify-center neon-glow">
+                  <Music className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-white">My Picks: {myPicks.length}/5</div>
+                  <div className="text-sm text-muted-foreground">
+                    {5 - myPicks.length}{" "}
+                    {5 - myPicks.length === 1 ? "spot" : "spots"} remaining
+                  </div>
+                </div>
+              </div>
+              <Button className="gradient-bg neon-glow holo-button">
+                Lock In Lineup
+              </Button>
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Artist Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredArtists.map((artist, index) => {
+            const isPicked = myPicks.includes(artist.id);
+            const status = getArtistStatus(artist);
+
+            return (
+              <motion.div
+                key={artist.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="flip-card group cursor-pointer"
+              >
+                <div className="flip-card-inner">
+                  {/* Front */}
+                  <div
+                    className="flip-card-front glass-card rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 neon-glow"
+                    onClick={() => setSelectedArtist(artist.id)}
                   >
-                    View Artist
-                  </Button>
-                </CardContent>
-              </Card>
+                    <div className="relative h-80">
+                      <ImageWithFallback
+                        src={artist.imageUrl}
+                        alt={artist.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+
+                      {/* League Badge */}
+                      <div className="absolute top-4 left-4">
+                        <Badge
+                          className={`glass-card backdrop-blur-xl ${
+                            artist.league === "Major"
+                              ? "border-accent/50 bg-accent/10 text-accent"
+                              : "border-primary/50 bg-primary/10 text-primary"
+                          }`}
+                        >
+                          {artist.league} League
+                        </Badge>
+                      </div>
+
+                      {/* Status Badge */}
+                      <div className="absolute top-4 right-4">
+                        <Badge
+                          className={`glass-card backdrop-blur-xl ${
+                            artist.status === "Hot Streak"
+                              ? "border-accent/50 bg-accent/10 text-accent"
+                              : artist.status === "Rising"
+                                ? "border-primary/50 bg-primary/10 text-primary"
+                                : artist.status === "New Entrant"
+                                  ? "border-secondary/50 bg-secondary/10 text-secondary"
+                                  : "border-white/30 bg-white/10"
+                          }`}
+                        >
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          {artist.status}
+                        </Badge>
+                      </div>
+
+                      {/* Score */}
+                      <div className="absolute top-16 left-4 glass-card px-4 py-2 rounded-full backdrop-blur-xl border-primary/30">
+                        <span className="gradient-text text-lg">
+                          {artist.score.toFixed(1)}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div className="absolute bottom-0 left-0 right-0 p-6">
+                        <h3 className="text-2xl text-white mb-1 tracking-tight">
+                          {artist.name}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-4">
+                          <div className="flex items-center gap-1">
+                            <Music className="w-3 h-3" />
+                            {artist.genre}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {artist.location}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {(artist.fanBackers / 1000).toFixed(1)}K
+                          </div>
+                          <div
+                            className={`flex items-center gap-1 ${
+                              artist.change >= 0
+                                ? "text-accent"
+                                : "text-secondary"
+                            }`}
+                          >
+                            <TrendingUp
+                              className={`w-3 h-3 ${
+                                artist.change < 0 ? "rotate-180" : ""
+                              }`}
+                            />
+                            {artist.change >= 0 ? "+" : ""}
+                            {artist.change.toFixed(1)}%
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToPicks(artist.id);
+                          }}
+                          disabled={myPicks.length >= 5 && !isPicked}
+                          className={`w-full ${
+                            isPicked
+                              ? "bg-accent/20 border-accent text-accent hover:bg-accent/30"
+                              : "gradient-bg"
+                          } neon-glow holo-button`}
+                        >
+                          {isPicked ? (
+                            <>
+                              <Check className="w-4 h-4 mr-2" />
+                              In My Fholio
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add to Fholio
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Back - Engagement Data */}
+                  <div className="flip-card-back glass-card rounded-2xl p-6 neon-glow">
+                    <div className="h-full flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-xl text-white mb-6 tracking-tight">
+                          {artist.name}
+                        </h3>
+                        <div className="space-y-4">
+                          <div className="glass-card p-4 rounded-xl">
+                            <div className="text-sm text-muted-foreground mb-1">
+                              Streams
+                            </div>
+                            <div className="text-2xl gradient-text">
+                              {(artist.streams / 1000000).toFixed(1)}M
+                            </div>
+                          </div>
+                          <div className="glass-card p-4 rounded-xl">
+                            <div className="text-sm text-muted-foreground mb-1">
+                              Engagement
+                            </div>
+                            <div className="text-2xl text-accent">
+                              {artist.engagement}%
+                            </div>
+                          </div>
+                          <div className="glass-card p-4 rounded-xl">
+                            <div className="text-sm text-muted-foreground mb-1">
+                              Growth
+                            </div>
+                            <div
+                              className={`text-2xl ${
+                                artist.growth >= 0
+                                  ? "text-accent"
+                                  : "text-secondary"
+                              }`}
+                            >
+                              {artist.growth >= 0 ? "+" : ""}
+                              {artist.growth}%
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNavigate("artist", artist.id);
+                        }}
+                        variant="outline"
+                        className="w-full border-primary/40 hover:bg-primary/20"
+                      >
+                        View Full Profile
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {filteredArtists.length === 0 && (
+          <div className="text-center py-20">
+            <Music className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl text-white mb-2">No artists found</h3>
+            <p className="text-muted-foreground">
+              Try adjusting your filters or search query
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Section - Hot Picks */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="glass-card p-8 rounded-2xl card-reflection">
+          <h2 className="text-3xl text-white mb-6 tracking-tight">
+            This Week's Hot Picks
+          </h2>
+          <div className="grid sm:grid-cols-3 gap-6">
+            {artists.slice(0, 3).map((artist, index) => (
+              <motion.div
+                key={artist.id}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="glass-card p-6 rounded-xl hover:scale-105 transition-all cursor-pointer neon-glow"
+                onClick={() => onNavigate("artist", artist.id)}
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <ImageWithFallback
+                    src={artist.imageUrl}
+                    alt={artist.name}
+                    className="w-16 h-16 rounded-lg object-cover"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white truncate">{artist.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {artist.genre}
+                    </div>
+                  </div>
+                </div>
+                <div className="h-16">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={artist.weeklyHistory.map((score, i) => ({ score }))}
+                    >
+                      <Line
+                        type="monotone"
+                        dataKey="score"
+                        stroke="#8b1fff"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Performance
+                  </span>
+                  <span className="gradient-text">
+                    {artist.score.toFixed(1)}
+                  </span>
+                </div>
+              </motion.div>
             ))}
           </div>
-        </section>
+        </div>
       </div>
+
+      {/* Artist Detail Modal */}
+      <Dialog
+        open={!!selectedArtist}
+        onOpenChange={() => setSelectedArtist(null)}
+      >
+        <DialogContent className="glass-card max-w-4xl border-primary/20 p-0 overflow-hidden">
+          {selectedArtistData && (
+            <div>
+              <div className="relative h-64">
+                <ImageWithFallback
+                  src={selectedArtistData.imageUrl}
+                  alt={selectedArtistData.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+                <button
+                  onClick={() => setSelectedArtist(null)}
+                  className="absolute top-4 right-4 glass-card p-2 rounded-lg hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <h2 className="text-3xl text-white mb-2 tracking-tight">
+                    {selectedArtistData.name}
+                  </h2>
+                  <div className="flex items-center gap-4 text-muted-foreground">
+                    <span>{selectedArtistData.genre}</span>
+                    <span>•</span>
+                    <span>
+                      {selectedArtistData.fanBackers.toLocaleString()} backers
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <Tabs defaultValue="overview" className="p-6">
+                <TabsList className="grid w-full grid-cols-3 mb-6">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="stats">Stats</TabsTrigger>
+                  <TabsTrigger value="activity">Activity</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="overview" className="space-y-4">
+                  <p className="text-muted-foreground">
+                    {selectedArtistData.bio}
+                  </p>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="glass-card p-4 rounded-xl text-center">
+                      <div className="text-3xl gradient-text mb-1">
+                        {selectedArtistData.score.toFixed(1)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Score</div>
+                    </div>
+                    <div className="glass-card p-4 rounded-xl text-center">
+                      <div className="text-3xl text-accent mb-1">
+                        {selectedArtistData.engagement}%
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Engagement
+                      </div>
+                    </div>
+                    <div className="glass-card p-4 rounded-xl text-center">
+                      <div
+                        className={`text-3xl mb-1 ${
+                          selectedArtistData.growth >= 0
+                            ? "text-accent"
+                            : "text-secondary"
+                        }`}
+                      >
+                        {selectedArtistData.growth >= 0 ? "+" : ""}
+                        {selectedArtistData.growth}%
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Growth
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      handleAddToPicks(selectedArtistData.id);
+                      setSelectedArtist(null);
+                    }}
+                    disabled={
+                      myPicks.length >= 5 &&
+                      !myPicks.includes(selectedArtistData.id)
+                    }
+                    className="w-full gradient-bg neon-glow holo-button"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add to My Fholio
+                  </Button>
+                </TabsContent>
+
+                <TabsContent value="stats" className="space-y-4">
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart
+                      data={selectedArtistData.weeklyHistory.map(
+                        (score, i) => ({ week: `W${i + 1}`, score })
+                      )}
+                    >
+                      <Line
+                        type="monotone"
+                        dataKey="score"
+                        stroke="#8b1fff"
+                        strokeWidth={3}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">
+                        Total Streams
+                      </span>
+                      <span className="text-white">
+                        {selectedArtistData.streams.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Fan Votes</span>
+                      <span className="text-white">
+                        {selectedArtistData.votes}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">
+                        Backers This Week
+                      </span>
+                      <span className="text-white">
+                        {selectedArtistData.fanBackers.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="activity">
+                  <div className="text-center py-8 text-muted-foreground">
+                    Social activity feed coming soon...
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

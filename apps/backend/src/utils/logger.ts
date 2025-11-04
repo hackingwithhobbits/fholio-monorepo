@@ -1,26 +1,50 @@
-// src/utils/logger.ts
+import winston from 'winston';
 
-export class Logger {
-  constructor(private context: string) {}
+import { env } from '@/config/env';
 
-  info(message: string, ...args: any[]) {
-    console.log(
-      `[${new Date().toISOString()}] [${this.context}] INFO: ${message}`,
-      ...args
-    );
-  }
+const logFormat = winston.format.combine(
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.errors({ stack: true }),
+  winston.format.splat(),
+  winston.format.json()
+);
 
-  warn(message: string, ...args: any[]) {
-    console.warn(
-      `[${new Date().toISOString()}] [${this.context}] WARN: ${message}`,
-      ...args
-    );
-  }
+const developmentFormat = winston.format.combine(
+  winston.format.colorize(),
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.printf(({ timestamp, level, message, ...meta }) => {
+    const metaString = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
+    return `${timestamp} [${level}]: ${message} ${metaString}`;
+  })
+);
 
-  error(message: string, error?: any) {
-    console.error(
-      `[${new Date().toISOString()}] [${this.context}] ERROR: ${message}`,
-      error
-    );
-  }
+export const logger = winston.createLogger({
+  level: env.LOG_LEVEL,
+  format: env.NODE_ENV === 'production' ? logFormat : developmentFormat,
+  transports: [
+    new winston.transports.Console({
+      silent: env.NODE_ENV === 'test',
+    }),
+  ],
+  exceptionHandlers: [new winston.transports.Console()],
+  rejectionHandlers: [new winston.transports.Console()],
+});
+
+// Add file transports in production
+if (env.NODE_ENV === 'production') {
+  logger.add(
+    new winston.transports.File({
+      filename: 'logs/error.log',
+      level: 'error',
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+    })
+  );
+  logger.add(
+    new winston.transports.File({
+      filename: 'logs/combined.log',
+      maxsize: 5242880,
+      maxFiles: 5,
+    })
+  );
 }

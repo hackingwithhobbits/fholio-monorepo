@@ -1,333 +1,617 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   User,
-  Bell,
+  Mail,
+  Lock,
   Shield,
+  Bell,
   CreditCard,
-  Palette,
-  Globe,
-  LogOut,
-  ChevronRight,
+  Music,
+  Eye,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
-import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import { Separator } from "./ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Badge } from "./ui/badge";
+import { Card } from "./ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { toast } from "sonner";
 
 interface SettingsPageProps {
-  onPageChange: (page: string) => void;
+  onNavigate: (page: string) => void;
 }
 
-export function SettingsPage({ onPageChange }: SettingsPageProps) {
+interface PaymentMethod {
+  id: string;
+  type: "card" | "paypal" | "apple-pay";
+  last4?: string;
+  brand?: string;
+  isDefault: boolean;
+}
+
+interface LinkedAccount {
+  id: string;
+  platform: "spotify" | "apple-music" | "youtube-music" | "soundcloud";
+  username: string;
+  isConnected: boolean;
+}
+
+export function SettingsPage({ onNavigate }: SettingsPageProps) {
+  // Account Settings State
+  const [email, setEmail] = useState("user@fholio.com");
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+
+  // Notification Preferences State
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
+  const [smsNotifications, setSmsNotifications] = useState(false);
+  const [weeklyDigest, setWeeklyDigest] = useState(true);
+  const [draftReminders, setDraftReminders] = useState(true);
+  const [priceAlerts, setPriceAlerts] = useState(true);
+
+  // Payment Methods State
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
+    { id: "1", type: "card", last4: "4242", brand: "Visa", isDefault: true },
+    { id: "2", type: "apple-pay", isDefault: false },
+  ]);
+
+  // Linked Music Accounts State
+  const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>([
+    { id: "1", platform: "spotify", username: "user123", isConnected: true },
+    { id: "2", platform: "apple-music", username: "", isConnected: false },
+    { id: "3", platform: "youtube-music", username: "", isConnected: false },
+    { id: "4", platform: "soundcloud", username: "", isConnected: false },
+  ]);
+
+  // Privacy Settings State
+  const [profileVisibility, setProfileVisibility] = useState<
+    "public" | "friends" | "private"
+  >("public");
+  const [showStats, setShowStats] = useState(true);
+  const [dataSharing, setDataSharing] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
-  const [twoFactorAuth, setTwoFactorAuth] = useState(false);
+
+  const handleSaveEmail = () => {
+    setIsEditingEmail(false);
+    toast.success("Email updated successfully");
+  };
+
+  const handleChangePassword = () => {
+    toast.info("Password change email sent", {
+      description: "Check your inbox for reset instructions",
+    });
+  };
+
+  const handleToggle2FA = (enabled: boolean) => {
+    setTwoFactorEnabled(enabled);
+    toast.success(enabled ? "2FA enabled" : "2FA disabled");
+  };
+
+  const handleAddPaymentMethod = () => {
+    toast.info("Add payment method", {
+      description: "This would open a payment form",
+    });
+  };
+
+  const handleRemovePaymentMethod = (id: string) => {
+    setPaymentMethods((methods) => methods.filter((m) => m.id !== id));
+    toast.success("Payment method removed");
+  };
+
+  const handleSetDefaultPayment = (id: string) => {
+    setPaymentMethods((methods) =>
+      methods.map((m) => ({ ...m, isDefault: m.id === id }))
+    );
+    toast.success("Default payment method updated");
+  };
+
+  const handleToggleLinkedAccount = (id: string) => {
+    const account = linkedAccounts.find((a) => a.id === id);
+    if (!account) return;
+
+    if (account.isConnected) {
+      // Disconnect
+      setLinkedAccounts((accounts) =>
+        accounts.map((a) =>
+          a.id === id ? { ...a, isConnected: false, username: "" } : a
+        )
+      );
+      toast.success(`${account.platform} disconnected`);
+    } else {
+      // Connect (simulate)
+      toast.info("Connecting...", {
+        description: "This would open OAuth flow",
+      });
+      setTimeout(() => {
+        setLinkedAccounts((accounts) =>
+          accounts.map((a) =>
+            a.id === id ? { ...a, isConnected: true, username: "user123" } : a
+          )
+        );
+        toast.success(`${account.platform} connected`);
+      }, 1500);
+    }
+  };
+
+  const getPlatformIcon = (platform: string) => {
+    return <Music className="w-5 h-5" />;
+  };
+
+  const getPaymentIcon = (type: string) => {
+    return <CreditCard className="w-5 h-5" />;
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your account settings and preferences
+    <div className="min-h-screen bg-background pt-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Page Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-12"
+        >
+          <h1 className="text-white text-5xl tracking-tight mb-3">Settings</h1>
+          <p className="text-muted-foreground text-lg">
+            Manage your account and preferences
           </p>
-        </div>
+        </motion.div>
 
-        <div className="space-y-8">
-          {/* Profile Settings */}
-          <Card className="premium-card">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <User className="w-5 h-5 mr-2" />
-                Profile Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-                <div>
-                  <Button variant="outline" className="mb-2">
-                    Change Photo
+        {/* Tabs Layout */}
+        <Tabs defaultValue="account" className="w-full">
+          <TabsList className="glass-card border-primary/20 p-1 h-auto mb-8">
+            <TabsTrigger
+              value="account"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/20 data-[state=active]:to-secondary/20 data-[state=active]:text-white px-6 py-3 rounded-lg"
+            >
+              <User className="w-4 h-4 mr-2" />
+              Account
+            </TabsTrigger>
+            <TabsTrigger
+              value="notifications"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/20 data-[state=active]:to-secondary/20 data-[state=active]:text-white px-6 py-3 rounded-lg"
+            >
+              <Bell className="w-4 h-4 mr-2" />
+              Notifications
+            </TabsTrigger>
+            <TabsTrigger
+              value="payments"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/20 data-[state=active]:to-secondary/20 data-[state=active]:text-white px-6 py-3 rounded-lg"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Payments
+            </TabsTrigger>
+            <TabsTrigger
+              value="accounts"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/20 data-[state=active]:to-secondary/20 data-[state=active]:text-white px-6 py-3 rounded-lg"
+            >
+              <Music className="w-4 h-4 mr-2" />
+              Linked Accounts
+            </TabsTrigger>
+            <TabsTrigger
+              value="privacy"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/20 data-[state=active]:to-secondary/20 data-[state=active]:text-white px-6 py-3 rounded-lg"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Privacy
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Account Tab */}
+          <TabsContent value="account">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Email */}
+              <Card className="glass-card border-primary/20 p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Mail className="w-5 h-5 text-primary" />
+                    <h3 className="text-white">Email Address</h3>
+                  </div>
+                  {isEditingEmail ? (
+                    <div className="space-y-3">
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="bg-black/50 border-primary/20 text-white"
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleSaveEmail}
+                          className="gradient-bg flex-1"
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsEditingEmail(false)}
+                          className="border-white/20"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-muted-foreground mb-3">{email}</p>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsEditingEmail(true)}
+                        className="border-primary/30 text-white hover:bg-primary/20"
+                      >
+                        Change Email
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              {/* Password */}
+              <Card className="glass-card border-primary/20 p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Lock className="w-5 h-5 text-primary" />
+                    <h3 className="text-white">Password</h3>
+                  </div>
+                  <p className="text-muted-foreground mb-3">••••••••••••</p>
+                  <Button
+                    variant="outline"
+                    onClick={handleChangePassword}
+                    className="border-primary/30 text-white hover:bg-primary/20"
+                  >
+                    Change Password
                   </Button>
-                  <p className="text-sm text-muted-foreground">
-                    JPG, PNG or GIF (max 2MB)
-                  </p>
                 </div>
-              </div>
+              </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" defaultValue="John" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" defaultValue="Doe" />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  defaultValue="john@example.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Input id="bio" placeholder="Tell us about yourself..." />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notification Settings */}
-          <Card className="premium-card">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Bell className="w-5 h-5 mr-2" />
-                Notification Preferences
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Email Notifications</div>
-                  <div className="text-sm text-muted-foreground">
-                    Receive investment updates via email
-                  </div>
-                </div>
-                <Switch
-                  checked={emailNotifications}
-                  onCheckedChange={setEmailNotifications}
-                />
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Push Notifications</div>
-                  <div className="text-sm text-muted-foreground">
-                    Get instant alerts on your device
-                  </div>
-                </div>
-                <Switch
-                  checked={pushNotifications}
-                  onCheckedChange={setPushNotifications}
-                />
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Marketing Emails</div>
-                  <div className="text-sm text-muted-foreground">
-                    Receive news about new tracks and features
-                  </div>
-                </div>
-                <Switch
-                  checked={marketingEmails}
-                  onCheckedChange={setMarketingEmails}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Security Settings */}
-          <Card className="premium-card">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Shield className="w-5 h-5 mr-2" />
-                Security & Privacy
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword">Current Password</Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  placeholder="Enter current password"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  placeholder="Enter new password"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="Confirm new password"
-                />
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Two-Factor Authentication</div>
-                  <div className="text-sm text-muted-foreground">
-                    Add an extra layer of security to your account
-                  </div>
-                </div>
-                <Switch
-                  checked={twoFactorAuth}
-                  onCheckedChange={setTwoFactorAuth}
-                />
-              </div>
-
-              <Button variant="outline" className="w-full">
-                Change Password
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Payment Settings */}
-          <Card className="premium-card">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <CreditCard className="w-5 h-5 mr-2" />
-                Payment Methods
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-6 bg-gradient-to-r from-blue-600 to-blue-400 rounded flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">VISA</span>
-                  </div>
-                  <div>
-                    <div className="font-medium">•••• •••• •••• 4242</div>
-                    <div className="text-sm text-muted-foreground">
-                      Expires 12/25
+              {/* 2FA */}
+              <Card className="glass-card border-primary/20 p-6 md:col-span-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Shield className="w-5 h-5 text-primary" />
+                    <div>
+                      <h3 className="text-white mb-1">
+                        Two-Factor Authentication
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        {twoFactorEnabled
+                          ? "Extra security is enabled for your account"
+                          : "Add an extra layer of security to your account"}
+                      </p>
                     </div>
                   </div>
+                  <Switch
+                    checked={twoFactorEnabled}
+                    onCheckedChange={handleToggle2FA}
+                    className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-primary data-[state=checked]:to-secondary"
+                  />
                 </div>
-                <Button variant="ghost" size="sm">
-                  <ChevronRight className="w-4 h-4" />
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Notifications Tab */}
+          <TabsContent value="notifications">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="glass-card border-primary/20 p-6">
+                <h3 className="text-white mb-6">Communication Preferences</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between py-3 border-b border-white/5">
+                    <div>
+                      <p className="text-white text-sm">Email Notifications</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">
+                        Receive updates via email
+                      </p>
+                    </div>
+                    <Switch
+                      checked={emailNotifications}
+                      onCheckedChange={setEmailNotifications}
+                      className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-primary data-[state=checked]:to-secondary"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between py-3 border-b border-white/5">
+                    <div>
+                      <p className="text-white text-sm">Push Notifications</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">
+                        Get real-time updates
+                      </p>
+                    </div>
+                    <Switch
+                      checked={pushNotifications}
+                      onCheckedChange={setPushNotifications}
+                      className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-primary data-[state=checked]:to-secondary"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between py-3">
+                    <div>
+                      <p className="text-white text-sm">SMS Notifications</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">
+                        Text message alerts
+                      </p>
+                    </div>
+                    <Switch
+                      checked={smsNotifications}
+                      onCheckedChange={setSmsNotifications}
+                      className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-primary data-[state=checked]:to-secondary"
+                    />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="glass-card border-primary/20 p-6">
+                <h3 className="text-white mb-6">Content Preferences</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between py-3 border-b border-white/5">
+                    <div>
+                      <p className="text-white text-sm">Weekly Digest</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">
+                        Summary of your portfolio
+                      </p>
+                    </div>
+                    <Switch
+                      checked={weeklyDigest}
+                      onCheckedChange={setWeeklyDigest}
+                      className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-primary data-[state=checked]:to-secondary"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between py-3 border-b border-white/5">
+                    <div>
+                      <p className="text-white text-sm">Draft Reminders</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">
+                        Don't miss draft deadlines
+                      </p>
+                    </div>
+                    <Switch
+                      checked={draftReminders}
+                      onCheckedChange={setDraftReminders}
+                      className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-primary data-[state=checked]:to-secondary"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between py-3">
+                    <div>
+                      <p className="text-white text-sm">Price Alerts</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">
+                        Artist value changes
+                      </p>
+                    </div>
+                    <Switch
+                      checked={priceAlerts}
+                      onCheckedChange={setPriceAlerts}
+                      className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-primary data-[state=checked]:to-secondary"
+                    />
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Payments Tab */}
+          <TabsContent value="payments">
+            <Card className="glass-card border-primary/20 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-white">Payment Methods</h3>
+                <Button
+                  onClick={handleAddPaymentMethod}
+                  className="gradient-bg"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Payment Method
                 </Button>
               </div>
 
-              <Button variant="outline" className="w-full">
-                Add Payment Method
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Preferences */}
-          <Card className="premium-card">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Palette className="w-5 h-5 mr-2" />
-                Preferences
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="language">Language</Label>
-                <Select defaultValue="en">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es">Spanish</SelectItem>
-                    <SelectItem value="fr">French</SelectItem>
-                    <SelectItem value="de">German</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-3">
+                {paymentMethods.map((method) => (
+                  <div
+                    key={method.id}
+                    className="glass-card border-white/5 rounded-xl p-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 flex-1">
+                        {getPaymentIcon(method.type)}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-white">
+                              {method.type === "card"
+                                ? `${method.brand} •••• ${method.last4}`
+                                : method.type === "apple-pay"
+                                  ? "Apple Pay"
+                                  : "PayPal"}
+                            </p>
+                            {method.isDefault && (
+                              <Badge className="bg-gradient-to-r from-primary to-secondary text-white text-xs">
+                                Default
+                              </Badge>
+                            )}
+                          </div>
+                          {!method.isDefault && (
+                            <button
+                              onClick={() => handleSetDefaultPayment(method.id)}
+                              className="text-xs text-primary hover:text-secondary transition-colors duration-300 mt-1"
+                            >
+                              Set as default
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {!method.isDefault && (
+                        <button
+                          onClick={() => handleRemovePaymentMethod(method.id)}
+                          className="p-2 text-muted-foreground hover:text-red-500 transition-colors duration-300"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
+            </Card>
+          </TabsContent>
 
-              <div className="space-y-2">
-                <Label htmlFor="timezone">Time Zone</Label>
-                <Select defaultValue="utc-5">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="utc-8">Pacific Time (UTC-8)</SelectItem>
-                    <SelectItem value="utc-7">Mountain Time (UTC-7)</SelectItem>
-                    <SelectItem value="utc-6">Central Time (UTC-6)</SelectItem>
-                    <SelectItem value="utc-5">Eastern Time (UTC-5)</SelectItem>
-                  </SelectContent>
-                </Select>
+          {/* Linked Accounts Tab */}
+          <TabsContent value="accounts">
+            <Card className="glass-card border-primary/20 p-6">
+              <h3 className="text-white mb-6">Music Platform Connections</h3>
+              <p className="text-muted-foreground mb-6">
+                Connect your music accounts to sync listening data and improve
+                recommendations.
+              </p>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                {linkedAccounts.map((account) => (
+                  <div
+                    key={account.id}
+                    className="glass-card border-white/5 rounded-xl p-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {getPlatformIcon(account.platform)}
+                        <div>
+                          <p className="text-white capitalize">
+                            {account.platform.replace("-", " ")}
+                          </p>
+                          {account.isConnected && (
+                            <p className="text-muted-foreground text-sm mt-0.5">
+                              @{account.username}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => handleToggleLinkedAccount(account.id)}
+                        variant={account.isConnected ? "outline" : "default"}
+                        className={
+                          account.isConnected
+                            ? "border-white/20 hover:bg-white/10"
+                            : "gradient-bg"
+                        }
+                      >
+                        {account.isConnected ? "Disconnect" : "Connect"}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
+            </Card>
+          </TabsContent>
 
-              <div className="space-y-2">
-                <Label htmlFor="currency">Default Currency</Label>
-                <Select defaultValue="usd">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="usd">USD ($)</SelectItem>
-                    <SelectItem value="eur">EUR (€)</SelectItem>
-                    <SelectItem value="gbp">GBP (£)</SelectItem>
-                    <SelectItem value="jpy">JPY (¥)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Privacy Tab */}
+          <TabsContent value="privacy">
+            <div className="space-y-6">
+              <Card className="glass-card border-primary/20 p-6">
+                <h3 className="text-white mb-6">Profile Visibility</h3>
+                <div className="flex gap-3 mb-6">
+                  {(["public", "friends", "private"] as const).map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => setProfileVisibility(option)}
+                      className={`flex-1 px-6 py-4 rounded-xl transition-all duration-300 ${
+                        profileVisibility === option
+                          ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg"
+                          : "glass-card border-white/10 text-muted-foreground hover:bg-white/5 hover:text-white"
+                      }`}
+                    >
+                      {option.charAt(0).toUpperCase() + option.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  {profileVisibility === "public" &&
+                    "Your profile and portfolio are visible to everyone"}
+                  {profileVisibility === "friends" &&
+                    "Only your friends can see your profile and portfolio"}
+                  {profileVisibility === "private" &&
+                    "Your profile and portfolio are only visible to you"}
+                </p>
+              </Card>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button className="flex-1 fintech-gradient text-white border-0 hover:opacity-90">
-              Save Changes
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => onPageChange("portfolio")}
-            >
-              Cancel
-            </Button>
-          </div>
+              <Card className="glass-card border-primary/20 p-6">
+                <h3 className="text-white mb-6">Data & Privacy Preferences</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between py-3 border-b border-white/5">
+                    <div>
+                      <p className="text-white">Show Portfolio Stats</p>
+                      <p className="text-muted-foreground text-sm mt-0.5">
+                        Let others see your performance and earnings
+                      </p>
+                    </div>
+                    <Switch
+                      checked={showStats}
+                      onCheckedChange={setShowStats}
+                      className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-primary data-[state=checked]:to-secondary"
+                    />
+                  </div>
 
-          {/* Danger Zone */}
-          <Card className="premium-card border-destructive/50">
-            <CardHeader>
-              <CardTitle className="text-destructive">Danger Zone</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Delete Account</div>
-                  <div className="text-sm text-muted-foreground">
-                    Permanently remove your account and all data
+                  <div className="flex items-center justify-between py-3 border-b border-white/5">
+                    <div>
+                      <p className="text-white">Anonymous Data Sharing</p>
+                      <p className="text-muted-foreground text-sm mt-0.5">
+                        Help improve Fholio with anonymous usage data
+                      </p>
+                    </div>
+                    <Switch
+                      checked={dataSharing}
+                      onCheckedChange={setDataSharing}
+                      className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-primary data-[state=checked]:to-secondary"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between py-3">
+                    <div>
+                      <p className="text-white">Marketing Emails</p>
+                      <p className="text-muted-foreground text-sm mt-0.5">
+                        Receive promotions and platform updates
+                      </p>
+                    </div>
+                    <Switch
+                      checked={marketingEmails}
+                      onCheckedChange={setMarketingEmails}
+                      className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-primary data-[state=checked]:to-secondary"
+                    />
                   </div>
                 </div>
-                <Button variant="destructive">Delete Account</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </Card>
+
+              {/* Danger Zone */}
+              <Card className="glass-card border-red-500/20 p-6">
+                <h3 className="text-white mb-6">Danger Zone</h3>
+                <div className="space-y-3">
+                  <Button
+                    variant="outline"
+                    className="w-full border-red-500/30 text-red-500 hover:bg-red-500/10"
+                    onClick={() =>
+                      toast.error("Account logout", {
+                        description: "Logging out...",
+                      })
+                    }
+                  >
+                    Log Out
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full border-red-500/40 text-red-400 hover:bg-red-500/20"
+                    onClick={() =>
+                      toast.error("Delete account", {
+                        description: "This action cannot be undone",
+                      })
+                    }
+                  >
+                    Delete Account
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

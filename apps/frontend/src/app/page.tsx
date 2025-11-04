@@ -1,4 +1,4 @@
-import { AppClient } from "../components/AppClient";
+import AppClient from "@/components/AppClient";
 
 // This could be used for server-side data fetching
 async function getInitialData() {
@@ -19,7 +19,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppClient initialPage={initialData.initialPage} />
+      <AppClient />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "../styles/globals.css";
+import { SWRProvider } from "@/providers/SWRProvider";
 
 export const metadata: Metadata = {
   title: "Fholio - Music Investment Platform",
@@ -34,9 +35,10 @@ export default async function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
+
       <body className="antialiased">
         {/* Any server-side providers or wrappers */}
-        {children}
+        <SWRProvider>{children}</SWRProvider>
       </body>
     </html>
   );
