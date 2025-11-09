@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 3, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
-    {"offset": {"line": 15, "column": 0}, "map": {"version":3,"sources":["file:///Users/amittal/Documents/fholio-project/fholio-monorepo/apps/frontend/src/app/page.tsx"],"sourcesContent":["// This could be used for server-side data fetching\nasync function getInitialData() {\n  // Example: fetch user preferences, initial tracks, etc.\n  // const userPreferences = await fetchUserPreferences();\n  // const featuredTracks = await fetchFeaturedTracks();\n\n  return {\n    // userPreferences,\n    // featuredTracks,\n    initialPage: \"landing\" as const,\n  };\n}\n\nexport default async function HomePage() {\n  // Server-side data fetching\n  const initialData = await getInitialData();\n\n  return (\n    <div className=\"min-h-screen bg-background\">\n      <AppClient initialPage={initialData.initialPage} />\n    </div>\n  );\n}\n"],"names":[],"mappings":"AAAA,mDAAmD;;;;;;;AACnD,eAAe;IACb,wDAAwD;IACxD,wDAAwD;IACxD,sDAAsD;IAEtD,OAAO;QACL,mBAAmB;QACnB,kBAAkB;QAClB,aAAa;IACf;AACF;AAEe,eAAe;IAC5B,4BAA4B;IAC5B,MAAM,cAAc,MAAM;IAE1B,qBACE,2YAAC;QAAI,WAAU;kBACb,cAAA,2YAAC;YAAU,aAAa,YAAY,WAAW;;;;;;;;;;;AAGrD","debugId":null}}]
-}

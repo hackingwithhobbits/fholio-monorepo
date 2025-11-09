@@ -1,6 +1,8 @@
 var R=require("../../chunks/[turbopack]_runtime.js")("server/app/favicon.ico/route.js")
-R.c("server/chunks/eda6c_next_bd191479._.js")
-R.c("server/chunks/[root-of-the-server]__f1bc7f4b._.js")
-R.m("[project]/Documents/fholio-project/fholio-monorepo/apps/frontend/.next-internal/server/app/favicon.ico/route/actions.js [app-rsc] (server actions loader, ecmascript)")
-R.m("[project]/Documents/fholio-project/fholio-monorepo/node_modules/.pnpm/next@15.5.2_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/Documents/fholio-project/fholio-monorepo/apps/frontend/src/app/favicon--route-entry.js [app-rsc] (ecmascript)\" } [app-rsc] (ecmascript)")
-module.exports=R.m("[project]/Documents/fholio-project/fholio-monorepo/node_modules/.pnpm/next@15.5.2_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/Documents/fholio-project/fholio-monorepo/apps/frontend/src/app/favicon--route-entry.js [app-rsc] (ecmascript)\" } [app-rsc] (ecmascript)").exports
+R.c("server/chunks/[root-of-the-server]__8c9a4b2f._.js")
+R.c("server/chunks/eda6c_next_dist_346d43f1._.js")
+R.c("server/chunks/[root-of-the-server]__8d6bf89b._.js")
+R.c("server/chunks/eda6c_next_dist_b3c0d40b._.js")
+R.m(96772)
+R.m(31896)
+module.exports=R.m(31896).exports

@@ -1,39 +1,25 @@
 {
   "pages": {
+    "/_not-found/page": [
+      "static/chunks/97e61fb585df3c5a.js",
+      "static/chunks/8cfdee71dcddb160.css",
+      "static/chunks/7ed10a8af05e7c7c.css",
+      "static/chunks/fec098a75914b684.js",
+      "static/chunks/d4cb5bf60f32235e.js",
+      "static/chunks/131eee6a42867c47.js",
+      "static/chunks/3effbf21ad7c53e8.js",
+      "static/chunks/turbopack-f9ec6d4bd5868ded.js"
+    ],
     "/page": [
-      "static/chunks/eda6c_next_dist_2c2dd2ab._.js",
-      "static/chunks/80b94_fholio-project_fholio-monorepo_apps_frontend_src_app_favicon_ico_mjs_9e72e8ca._.js",
-      "static/chunks/Documents_fholio-project_fholio-monorepo_apps_frontend_src_bab201df._.css",
-      "static/chunks/1c246__pnpm_41db6179._.js",
-      "static/chunks/0f59d_fholio-monorepo_apps_frontend_src_providers_SWRProvider_tsx_b0a87e68._.js",
-      "static/chunks/80b94_fholio-project_fholio-monorepo_apps_frontend_src_app_layout_tsx_fceef7a9._.js",
-      "static/chunks/eda6c_next_dist_client_components_builtin_global-error_4500e8e2.js",
-      "static/chunks/80b94_fholio-project_fholio-monorepo_apps_frontend_src_components_ui_5bc10f29._.js",
-      "static/chunks/0f59d_fholio-monorepo_apps_frontend_src_components_HomePageComplete_tsx_925134ca._.js",
-      "static/chunks/0f59d_fholio-monorepo_apps_frontend_src_components_DashboardV2_tsx_46b51833._.js",
-      "static/chunks/0f59d_fholio-monorepo_apps_frontend_src_components_LeaderboardPage_tsx_34350386._.js",
-      "static/chunks/0f59d_fholio-monorepo_apps_frontend_src_components_ArtistDashboardV2_tsx_10ff0055._.js",
-      "static/chunks/0f59d_fholio-monorepo_apps_frontend_src_components_FanProfilePage_tsx_83277e46._.js",
-      "static/chunks/0f59d_fholio-monorepo_apps_frontend_src_components_ArtistProfilePage_tsx_0e186ed4._.js",
-      "static/chunks/0f59d_fholio-monorepo_apps_frontend_src_components_AboutPage_tsx_13c44320._.js",
-      "static/chunks/Documents_fholio-project_fholio-monorepo_apps_frontend_src_components_1e370073._.js",
-      "static/chunks/Documents_fholio-project_fholio-monorepo_apps_frontend_src_data_31f841e3._.js",
-      "static/chunks/60c8e_motion-dom_dist_es_7aa4432d._.js",
-      "static/chunks/e82ae_framer-motion_dist_es_a4f844fe._.js",
-      "static/chunks/55301_lucide-react_dist_esm_1d2f9d42._.js",
-      "static/chunks/9dd0a_tailwind-merge_dist_bundle-mjs_mjs_51737933._.js",
-      "static/chunks/57b6c_@radix-ui_react-select_dist_index_mjs_a2a0bcbe._.js",
-      "static/chunks/1c246__pnpm_0baf4149._.js",
-      "static/chunks/Documents_fholio-project_fholio-monorepo_apps_frontend_src_app_page_tsx_4500e8e2._.js",
-      "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_b68e9b9a._.js",
-      "static/chunks/eda6c_next_dist_compiled_react-dom_0c0ce77e._.js",
-      "static/chunks/eda6c_next_dist_compiled_next-devtools_index_338b2410.js",
-      "static/chunks/eda6c_next_dist_compiled_780c9f26._.js",
-      "static/chunks/eda6c_next_dist_client_cfc73c3c._.js",
-      "static/chunks/eda6c_next_dist_fd2f0ea4._.js",
-      "static/chunks/efb18_@swc_helpers_cjs_6b7ddab5._.js",
-      "static/chunks/Documents_fholio-project_fholio-monorepo_apps_frontend_a0ff3932._.js",
-      "static/chunks/turbopack-Documents_fholio-project_fholio-monorepo_apps_frontend_17a8207d._.js"
+      "static/chunks/97e61fb585df3c5a.js",
+      "static/chunks/8cfdee71dcddb160.css",
+      "static/chunks/7ed10a8af05e7c7c.css",
+      "static/chunks/fec098a75914b684.js",
+      "static/chunks/5c3fc7a5c0ee0a3e.js",
+      "static/chunks/d4cb5bf60f32235e.js",
+      "static/chunks/131eee6a42867c47.js",
+      "static/chunks/3effbf21ad7c53e8.js",
+      "static/chunks/turbopack-f9ec6d4bd5868ded.js"
     ]
   }
 }

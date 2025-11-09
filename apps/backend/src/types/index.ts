@@ -35,3 +35,25 @@ export type AsyncRequestHandler = (
   res: Response,
   next: NextFunction
 ) => Promise<void>;
+
+export interface Sponsor {
+  id: string;
+  name: string;
+  logo: string;
+  type: string;
+  tier: 'Platinum' | 'Gold' | 'Silver';
+  website_url?: string;
+  created_at: string;
+}
+
+export interface Challenge {
+  id: string;
+  name: string;
+  sponsor_id: string;
+  sponsor_name: string;
+  prize_amount: number;
+  description: string;
+  starts_at: string;
+  ends_at: string;
+  is_active: boolean;
+}

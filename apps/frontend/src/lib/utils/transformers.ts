@@ -21,7 +21,7 @@ export function transformArtist(backend: BackendArtist): FrontendArtist {
     instagramFollowers: backend.instagram_followers,
     location: backend.location || "",
     status: backend.status,
-    weeklyTrack: backend.weekly_track,
+    weeklyTrack: backend.weekly_track || undefined,
     socialLinks: backend.social_links,
   };
 }

@@ -1,8 +1,8 @@
 var R=require("../chunks/ssr/[turbopack]_runtime.js")("server/pages/_error.js")
-R.c("server/chunks/ssr/1c246__pnpm_d542d0c0._.js")
-R.c("server/chunks/ssr/[root-of-the-server]__e6a4d965._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__fcb27b11._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__ac05f115._.js")
 R.c("server/chunks/ssr/eda6c_next_b0c8ed3c._.js")
-R.c("server/chunks/ssr/1c246__pnpm_b2bb511f._.js")
 R.c("server/chunks/ssr/[externals]_next_dist_shared_lib_no-fallback-error_external_59b92b38.js")
-R.m("[project]/Documents/fholio-project/fholio-monorepo/node_modules/.pnpm/next@15.5.2_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/esm/build/templates/pages.js { INNER_PAGE => \"[project]/Documents/fholio-project/fholio-monorepo/node_modules/.pnpm/next@15.5.2_react-dom@18.3.1_react@18.3.1/node_modules/next/error.js [ssr] (ecmascript)\", INNER_DOCUMENT => \"[project]/Documents/fholio-project/fholio-monorepo/node_modules/.pnpm/next@15.5.2_react-dom@18.3.1_react@18.3.1/node_modules/next/document.js [ssr] (ecmascript)\", INNER_APP => \"[project]/Documents/fholio-project/fholio-monorepo/node_modules/.pnpm/next@15.5.2_react-dom@18.3.1_react@18.3.1/node_modules/next/app.js [ssr] (ecmascript)\" } [ssr] (ecmascript)")
-module.exports=R.m("[project]/Documents/fholio-project/fholio-monorepo/node_modules/.pnpm/next@15.5.2_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/esm/build/templates/pages.js { INNER_PAGE => \"[project]/Documents/fholio-project/fholio-monorepo/node_modules/.pnpm/next@15.5.2_react-dom@18.3.1_react@18.3.1/node_modules/next/error.js [ssr] (ecmascript)\", INNER_DOCUMENT => \"[project]/Documents/fholio-project/fholio-monorepo/node_modules/.pnpm/next@15.5.2_react-dom@18.3.1_react@18.3.1/node_modules/next/document.js [ssr] (ecmascript)\", INNER_APP => \"[project]/Documents/fholio-project/fholio-monorepo/node_modules/.pnpm/next@15.5.2_react-dom@18.3.1_react@18.3.1/node_modules/next/app.js [ssr] (ecmascript)\" } [ssr] (ecmascript)").exports
+R.c("server/chunks/ssr/1c246__pnpm_7fe7ae46._.js")
+R.m(37339)
+module.exports=R.m(37339).exports
