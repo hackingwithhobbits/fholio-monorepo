@@ -1,3 +1,0 @@
-module.exports=[53675,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(52522);a.n(d("[project]/Documents/fholio-project/fholio-monorepo/node_modules/.pnpm/next@15.5.2_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/client/components/builtin/global-error.js <module evaluation>"))},18358,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(52522);a.n(d("[project]/Documents/fholio-project/fholio-monorepo/node_modules/.pnpm/next@15.5.2_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/client/components/builtin/global-error.js"))},83307,a=>{"use strict";a.i(53675);var b=a.i(18358);a.n(b)}];
-
-//# sourceMappingURL=eda6c_next_dist_client_components_builtin_global-error_5054a5fa.js.map
