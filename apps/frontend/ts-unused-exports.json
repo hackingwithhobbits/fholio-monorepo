@@ -1,0 +1,9 @@
+{
+  "excludeFiles": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "next.config.js",
+    "postcss.config.js"
+  ],
+  "ignoreFiles": ["pages/_app.tsx", "pages/_document.tsx"]
+}
