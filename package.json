@@ -2,15 +2,14 @@
   "name": "fholio-monorepo",
   "private": true,
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/*"
   ],
   "engines": {
     "node": "20.x",
     "npm": ">=10.0.0"
   },
   "scripts": {
-    "dev:backend": "npm run dev --workspace=@fholio/backend",
+    "dev:backend": "npm run dev --workspace=apps/backend",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev": "npm run dev --workspaces",
     "build": "npm run build --workspaces",

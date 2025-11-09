@@ -35,3 +35,4 @@ Thumbs.db
 .next/
 *.next/
 .next/
+supabase/
