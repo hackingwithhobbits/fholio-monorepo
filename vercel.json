@@ -1,4 +1,5 @@
 {
-  "installCommand": "pnpm install --no-frozen-lockfile",
-  "buildCommand": "cd apps/frontend && pnpm build"
+  "installCommand": "npm install -g pnpm@8.15.9 && pnpm install --filter=fholio-web --no-frozen-lockfile",
+  "buildCommand": "cd apps/frontend && pnpm build",
+  "framework": "nextjs"
 }
