@@ -1,4 +1,5 @@
-import { useState } from "react";
+"use client";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -35,12 +36,24 @@ import {
 interface HomePageCompleteProps {
   onNavigate: (page: string) => void;
 }
+const PARTICLES = Array.from({ length: 30 }, (_, i) => ({
+  id: i,
+  left: `${Math.random() * 100}%`,
+  animationDelay: `${Math.random() * 10}s`,
+  animationDuration: `${20 + Math.random() * 10}s`,
+}));
 
 export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
   const [selectedTimelineNode, setSelectedTimelineNode] = useState<
     number | null
   >(null);
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
   // Ticker content
   const tickerItems = [
     "🔥 WEEK 44 LIVE SHOW THURSDAY 7PM",
@@ -239,9 +252,9 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
 
         {/* Particles */}
         <div className="particles">
-          {Array.from({ length: 30 }).map((_, i) => (
+          {PARTICLES.map((particle) => (
             <div
-              key={i}
+              key={particle.id}
               className="particle"
               style={{
                 left: `${Math.random() * 100}%`,
