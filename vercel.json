@@ -1,6 +1,5 @@
 {
-  "buildCommand": "cd apps/frontend && pnpm install && pnpm run build",
-  "devCommand": "cd apps/frontend && pnpm run dev",
-  "installCommand": "pnpm install --filter=frontend --no-frozen-lockfile",
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "buildCommand": "pnpm --filter ./apps/frontend... build",
   "outputDirectory": "apps/frontend/.next"
 }

@@ -4,10 +4,11 @@
   "engines": {
     "node": "20.x"
   },
+  "packageManager": "pnpm@9",
   "scripts": {
     "dev:backend": "pnpm --filter @fholio/backend dev",
     "dev:cron": "pnpm --filter @fholio/cron-jobs dev",
-    "dev:frontend": "pnpm --filter @fholio/frontend dev",
+    "dev:frontend": "pnpm --filter ./apps/frontend... dev",
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
