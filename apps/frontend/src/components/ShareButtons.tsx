@@ -15,9 +15,7 @@ export function ShareButtons({
   compact = false,
 }: ShareButtonsProps) {
   const handleShare = (platform: string) => {
-    const text = `${title}${
-      description ? ` - ${description}` : ""
-    } #MyFholio #FansFuelMusic`;
+    const text = `${title}${description ? ` - ${description}` : ""} #MyFholio #FansFuelMusic`;
 
     toast.success(`Share to ${platform} clicked!`, {
       description: "In a live app, this would open the share dialog.",

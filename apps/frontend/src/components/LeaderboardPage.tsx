@@ -3,14 +3,12 @@ import {
   Trophy,
   TrendingUp,
   TrendingDown,
-  Music,
   Users,
-  ArrowRight,
   Sparkles,
   MapPin,
   Crown,
   Award,
-  Zap,
+  ArrowRight,
 } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
@@ -39,16 +37,6 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
 
   const currentArtists =
     selectedLeague === "Major" ? majorLeagueArtists : minorLeagueArtists;
-
-  // City leaderboards
-  const cities = [
-    { name: "Los Angeles", artists: 15, topScore: 98.7, fans: 2847 },
-    { name: "New York", artists: 12, topScore: 94.3, fans: 2234 },
-    { name: "Atlanta", artists: 10, topScore: 89.2, fans: 1876 },
-    { name: "Chicago", artists: 7, topScore: 85.1, fans: 1543 },
-    { name: "Miami", artists: 6, topScore: 82.9, fans: 1298 },
-    { name: "London", artists: 9, topScore: 87.5, fans: 1987 },
-  ];
 
   return (
     <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8 relative">
@@ -86,22 +74,26 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
           </div>
         </motion.div>
 
-        {/* Main Tabs: Top Artists, Top Fans, City Leagues */}
+        {/* Main Tabs: Top Artists, Top Fans */}
         <Tabs defaultValue="artists" className="w-full">
-          <TabsList className="glass-card mb-8 grid w-full md:grid-cols-3 gap-2 p-2">
-            <TabsTrigger value="artists">
-              <Trophy className="w-4 h-4 mr-2" />
-              Top Artists
-            </TabsTrigger>
-            <TabsTrigger value="fans">
-              <Users className="w-4 h-4 mr-2" />
-              Top Fans
-            </TabsTrigger>
-            <TabsTrigger value="cities">
-              <MapPin className="w-4 h-4 mr-2" />
-              City Leagues
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex justify-center mb-8">
+            <TabsList className="glass-card grid grid-cols-2 gap-2 p-2 inline-flex rounded-2xl">
+              <TabsTrigger
+                value="artists"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all duration-200 ease-in-out rounded-xl px-8 py-3"
+              >
+                <Trophy className="w-4 h-4 mr-2" />
+                Top Artists
+              </TabsTrigger>
+              <TabsTrigger
+                value="fans"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all duration-200 ease-in-out rounded-xl px-8 py-3"
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Top Fans
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* TOP ARTISTS TAB */}
           <TabsContent value="artists">
@@ -161,7 +153,9 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
                     initial={{ opacity: 0, y: 40 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: delays[index] }}
-                    className={`glass-card rounded-2xl overflow-hidden neon-glow cursor-pointer hover:scale-105 transition-all ${heights[actualPosition]}`}
+                    className={`glass-card rounded-2xl overflow-hidden neon-glow cursor-pointer hover:scale-105 transition-all ${
+                      heights[actualPosition]
+                    }`}
                     onClick={() => onNavigate("artist", artist.id)}
                     style={{ order: positions[index] }}
                   >
@@ -228,11 +222,7 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
                           </span>
                           <span>•</span>
                           <span
-                            className={`flex items-center gap-1 ${
-                              artist.change >= 0
-                                ? "text-accent"
-                                : "text-secondary"
-                            }`}
+                            className={`flex items-center gap-1 ${artist.change >= 0 ? "text-accent" : "text-secondary"}`}
                           >
                             {artist.change >= 0 ? (
                               <TrendingUp className="w-3 h-3" />
@@ -319,9 +309,7 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
                         {/* Animated glow for climbing/dropping artists */}
                         {Math.abs(rankChange) > 3 && (
                           <motion.div
-                            className={`absolute inset-0 ${
-                              rankChange > 0 ? "bg-accent/5" : "bg-secondary/5"
-                            }`}
+                            className={`absolute inset-0 ${rankChange > 0 ? "bg-accent/5" : "bg-secondary/5"}`}
                             animate={{ opacity: [0.3, 0, 0.3] }}
                             transition={{ duration: 2, repeat: Infinity }}
                           />
@@ -428,9 +416,7 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
                           <div onClick={(e) => e.stopPropagation()}>
                             <ShareButtons
                               title={`Check out ${artist.name} on Fholio!`}
-                              description={`Rank #${
-                                index + 1
-                              } | Score: ${artist.score.toFixed(1)}`}
+                              description={`Rank #${index + 1} | Score: ${artist.score.toFixed(1)}`}
                               compact
                             />
                           </div>
@@ -571,79 +557,6 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
                           Earnings
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </TabsContent>
-
-          {/* CITY LEAGUES TAB */}
-          <TabsContent value="cities">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-8"
-            >
-              <div className="text-center mb-8">
-                <h2 className="text-3xl text-white tracking-tight mb-2">
-                  City Leagues
-                </h2>
-                <p className="text-muted-foreground">
-                  Competition by location. Represent your city.
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                {cities.map((city, index) => (
-                  <motion.div
-                    key={city.name}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="glass-card rounded-2xl p-6 neon-glow hover:scale-105 transition-all cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <MapPin className="w-5 h-5 text-accent" />
-                          <h3 className="text-2xl text-white tracking-tight">
-                            {city.name}
-                          </h3>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground/70">
-                          <span className="flex items-center gap-1">
-                            <Music className="w-3 h-3" />
-                            {city.artists} artists
-                          </span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            {city.fans.toLocaleString()} fans
-                          </span>
-                        </div>
-                      </div>
-                      <Badge className="bg-primary/20 text-primary border-primary/30">
-                        #{index + 1}
-                      </Badge>
-                    </div>
-
-                    <div className="glass-card rounded-xl p-4 mt-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          Top Score
-                        </span>
-                        <div className="text-2xl gradient-text tracking-tight">
-                          {city.topScore}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 text-center">
-                      <button className="text-sm text-accent hover:text-accent/80 flex items-center gap-1 mx-auto">
-                        View {city.name} Artists
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
                     </div>
                   </motion.div>
                 ))}

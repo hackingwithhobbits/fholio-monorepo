@@ -123,6 +123,25 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                 Discover Artists
               </Button>
             </div>
+
+            {/* Weekly Cycle Prototype Banner */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="mt-8"
+            >
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => onNavigate("prototype")}
+                className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent neon-glow text-base px-8 py-6 rounded-xl transition-all group"
+              >
+                <Sparkles className="mr-2 w-5 h-5 group-hover:animate-pulse" />
+                View Interactive Weekly Cycle
+                <Sparkles className="ml-2 w-5 h-5 group-hover:animate-pulse" />
+              </Button>
+            </motion.div>
           </motion.div>
 
           {/* Live Stats Ticker */}
@@ -204,33 +223,34 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               How It Works
             </h2>
             <p className="text-xl text-muted-foreground/80 tracking-tight">
-              Monday Draft → Friday Reveal → Saturday Payouts → Sunday Reset
+              Friday Reveal and Vote → Monday Draft → Thursday Live Show and
+              Winners Announced
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                icon: Trophy,
-                title: "Build Your Fholio",
+                icon: Target,
+                title: "Friday: Vote on Top 100",
                 description:
-                  "Pick 5 artists. Mix rising stars and proven hits. Strategy beats luck.",
+                  "Every Friday, vote on your favorites from 100 hot tracks. Your votes help determine the Top 50.",
                 gradient: "from-primary to-purple-600",
                 step: "1",
               },
               {
-                icon: TrendingUp,
-                title: "Watch the Leaderboard",
+                icon: Trophy,
+                title: "Monday: Draft Your Team",
                 description:
-                  "Track weekly performance. See who's rising. Real-time scores, no spoilers.",
+                  "Pick 5 artists from the Top 50. Mix rising stars and proven hits. Strategy beats luck.",
                 gradient: "from-purple-600 to-accent",
                 step: "2",
               },
               {
                 icon: DollarSign,
-                title: "Earn Rewards",
+                title: "Thursday: Live Show",
                 description:
-                  "When your artists chart, you win. Fan shares distributed automatically every Saturday.",
+                  "Watch the Top 10 revealed live. Winners share 30% with fans who picked them.",
                 gradient: "from-accent to-secondary",
                 step: "3",
               },
@@ -286,9 +306,9 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               The Power of the Fan Pool
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Every member's monthly fee fuels the weekly prize pool. Top 100
-              artists win—and each winning artist shares 15% of their rewards
-              with fans who picked them.
+              Every week, top 100 artists are selected to vote on, 50 artists
+              are selected to draft on their team, 10 artists are selected as
+              winners and each winning artist shares 30% with fans.
             </p>
           </motion.div>
 
@@ -302,13 +322,13 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               {[
                 {
                   label: "Artist Pool",
-                  value: "60%",
+                  value: "40%",
                   color: "primary",
-                  description: "Direct to top 100 artists",
+                  description: "Direct to top 10 artists that week",
                 },
                 {
                   label: "Fan Share",
-                  value: "15%",
+                  value: "30%",
                   color: "accent",
                   description: "Distributed to winning lineups",
                 },
@@ -320,7 +340,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                 },
                 {
                   label: "Bonus Events",
-                  value: "5%",
+                  value: "10%",
                   color: "purple-500",
                   description: "Jackpots & special prizes",
                 },
@@ -377,7 +397,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-secondary" />
                   <span className="text-sm text-muted-foreground">
-                    Top 100 artists share prize pool
+                    Top 10 artists share prize pool
                   </span>
                 </div>
               </div>

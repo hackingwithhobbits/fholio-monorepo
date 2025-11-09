@@ -1,3 +1,5 @@
+// Mock data for Fholio platform
+
 import {
   Artist,
   FanPoolData,
@@ -7,7 +9,6 @@ import {
   SocialStats,
   Sponsor,
   TopFan,
-  UserPortfolio,
 } from "./data-types";
 
 // Helper to determine league tier

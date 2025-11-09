@@ -103,9 +103,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 My Fholio
               </h1>
               <div
-                className={`px-4 py-2 rounded-xl bg-gradient-to-r ${
-                  tierBadgeColor[userPortfolio.tier]
-                } flex items-center gap-2 neon-glow`}
+                className={`px-4 py-2 rounded-xl bg-gradient-to-r ${tierBadgeColor[userPortfolio.tier]} flex items-center gap-2 neon-glow`}
               >
                 <Star className="w-5 h-5 text-white" />
                 <span className="text-white tracking-tight">
@@ -199,16 +197,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                         </p>
                         <div className="flex items-center gap-4 text-sm">
                           <div
-                            className={`flex items-center gap-1 ${
-                              artist.change >= 0
-                                ? "text-accent"
-                                : "text-secondary"
-                            }`}
+                            className={`flex items-center gap-1 ${artist.change >= 0 ? "text-accent" : "text-secondary"}`}
                           >
                             <TrendingUp
-                              className={`w-3 h-3 ${
-                                artist.change < 0 ? "rotate-180" : ""
-                              }`}
+                              className={`w-3 h-3 ${artist.change < 0 ? "rotate-180" : ""}`}
                             />
                             <span>
                               {artist.change >= 0 ? "+" : ""}
@@ -488,9 +480,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className={`w-10 h-10 rounded-lg bg-gradient-to-br ${
-                        tierBadgeColor[fan.tier as keyof typeof tierBadgeColor]
-                      } flex items-center justify-center`}
+                      className={`w-10 h-10 rounded-lg bg-gradient-to-br ${tierBadgeColor[fan.tier as keyof typeof tierBadgeColor]} flex items-center justify-center`}
                     >
                       <span className="text-white">#{fan.rank}</span>
                     </div>

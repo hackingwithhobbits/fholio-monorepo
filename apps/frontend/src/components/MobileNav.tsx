@@ -40,9 +40,7 @@ export function MobileNav({ currentPage, onNavigate }: MobileNavProps) {
                 <div className="absolute inset-0 mx-3 gradient-bg rounded-xl opacity-20 neon-glow" />
               )}
               <Icon
-                className={`w-5 h-5 relative z-10 ${
-                  isActive ? "text-primary" : ""
-                }`}
+                className={`w-5 h-5 relative z-10 ${isActive ? "text-primary" : ""}`}
               />
               <span className="text-xs relative z-10 tracking-tight">
                 {item.label}

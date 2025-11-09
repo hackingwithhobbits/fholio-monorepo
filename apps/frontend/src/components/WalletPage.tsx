@@ -306,9 +306,7 @@ export function WalletPage({ onNavigate }: WalletPageProps) {
             Show off your earnings and lineup
           </p>
           <ShareButtons
-            title={`Just earned $${userPortfolio.weeklyEarnings.toFixed(
-              2
-            )} this week on Fholio!`}
+            title={`Just earned $${userPortfolio.weeklyEarnings.toFixed(2)} this week on Fholio!`}
             description="Building the future of music through fan power"
           />
         </motion.div>

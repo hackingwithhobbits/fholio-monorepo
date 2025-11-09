@@ -198,9 +198,7 @@ export function ResultsReveal({ onNavigate }: ResultsRevealProps) {
                   <div className="w-16 text-center">
                     {winner.rank <= 3 ? (
                       <Medal
-                        className={`w-10 h-10 mx-auto ${getMedalColor(
-                          winner.rank
-                        )}`}
+                        className={`w-10 h-10 mx-auto ${getMedalColor(winner.rank)}`}
                       />
                     ) : (
                       <div className="text-2xl text-primary">

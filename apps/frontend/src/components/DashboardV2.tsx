@@ -296,9 +296,7 @@ export function DashboardV2({ onNavigate }: DashboardV2Props) {
               <Reorder.Item
                 key={artist.id}
                 value={artist}
-                className={`glass-card rounded-2xl p-6 neon-glow ${
-                  isEditing ? "cursor-grab active:cursor-grabbing" : ""
-                }`}
+                className={`glass-card rounded-2xl p-6 neon-glow ${isEditing ? "cursor-grab active:cursor-grabbing" : ""}`}
               >
                 <div className="flex items-center gap-6">
                   {/* Rank */}
@@ -370,9 +368,7 @@ export function DashboardV2({ onNavigate }: DashboardV2Props) {
                     </div>
                     <div className="text-center">
                       <div
-                        className={`text-2xl tracking-tight ${
-                          artist.change >= 0 ? "text-accent" : "text-secondary"
-                        }`}
+                        className={`text-2xl tracking-tight ${artist.change >= 0 ? "text-accent" : "text-secondary"}`}
                       >
                         {artist.change >= 0 ? "+" : ""}
                         {artist.change.toFixed(1)}%
@@ -528,9 +524,7 @@ export function DashboardV2({ onNavigate }: DashboardV2Props) {
           </p>
           <ShareButtons
             title="Check out my Fholio lineup this week!"
-            description={`Backing ${lineup
-              .map((a) => a.name)
-              .join(", ")} | Total Score: ${totalScore.toFixed(1)}`}
+            description={`Backing ${lineup.map((a) => a.name).join(", ")} | Total Score: ${totalScore.toFixed(1)}`}
           />
         </motion.div>
       </div>

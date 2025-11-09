@@ -310,12 +310,8 @@ export function ChartsPage({ onNavigate }: ChartsPageProps) {
                               </Button>
                               <div onClick={(e) => e.stopPropagation()}>
                                 <ShareButtons
-                                  title={`${artist.name} is #${
-                                    index + 1
-                                  } on Fholio Charts!`}
-                                  description={`Score: ${artist.score.toFixed(
-                                    1
-                                  )} | ${artist.genre}`}
+                                  title={`${artist.name} is #${index + 1} on Fholio Charts!`}
+                                  description={`Score: ${artist.score.toFixed(1)} | ${artist.genre}`}
                                   compact
                                 />
                               </div>

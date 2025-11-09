@@ -106,9 +106,7 @@ export function ArtistSignupPage({ onNavigate }: ArtistSignupPageProps) {
                         <CheckCircle2 className="w-6 h-6 text-white" />
                       ) : (
                         <Icon
-                          className={`w-6 h-6 ${
-                            isActive ? "text-primary" : "text-muted-foreground"
-                          }`}
+                          className={`w-6 h-6 ${isActive ? "text-primary" : "text-muted-foreground"}`}
                         />
                       )}
                     </div>
@@ -122,9 +120,7 @@ export function ArtistSignupPage({ onNavigate }: ArtistSignupPageProps) {
                   </div>
                   {index < steps.length - 1 && (
                     <div
-                      className={`h-0.5 flex-1 mx-2 ${
-                        isComplete ? "bg-primary" : "bg-white/10"
-                      }`}
+                      className={`h-0.5 flex-1 mx-2 ${isComplete ? "bg-primary" : "bg-white/10"}`}
                     />
                   )}
                 </div>

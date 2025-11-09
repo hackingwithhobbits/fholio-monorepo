@@ -38,6 +38,7 @@ export interface UserPortfolio {
   referralCount: number;
   referralBonus: number;
 }
+
 export interface FanPoolData {
   totalPool: number;
   artistPool: number;
@@ -45,21 +46,25 @@ export interface FanPoolData {
   platform: number;
   bonusEvents: number;
 }
+
 export interface PayoutHistory {
   week: string;
   amount: number;
   artists: string[];
 }
+
 export interface FAQ {
   question: string;
   answer: string;
 }
+
 export interface SocialStats {
   artistsJoinedThisWeek: number;
   fanLineupsCreated: number;
   moneyDistributed: number;
   totalMembers: number;
 }
+
 export interface TopFan {
   id: string;
   name: string;

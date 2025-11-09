@@ -9,17 +9,14 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import { sponsors } from "../data/mockData";
 import { Logo } from "./Logo";
-import { useSponsors, useActiveChallenges } from "../lib/hooks";
 
 interface SponsorsPageProps {
   onNavigate: (page: string) => void;
 }
 
 export function SponsorsPage({ onNavigate }: SponsorsPageProps) {
-  const { sponsors, isLoading: sponsorsLoading } = useSponsors();
-  //const { challenges, isLoading: challengesLoading } = useActiveChallenges();
-
   const challenges = [
     {
       id: "1",

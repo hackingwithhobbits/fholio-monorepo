@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
+import { artists } from "../data/mockData";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import {
   LineChart,
@@ -24,7 +25,6 @@ import {
   PolarAngleAxis,
   Radar,
 } from "recharts";
-import { useArtist } from "../lib/hooks";
 
 interface ArtistProfileProps {
   artistId?: string;
@@ -32,13 +32,11 @@ interface ArtistProfileProps {
 }
 
 export function ArtistProfile({
-  artistId = "17fa9d7f-04b6-46f7-b877-39606b1d0a0c",
+  artistId = "1",
   onNavigate,
 }: ArtistProfileProps) {
-  const { artist, isLoading, isError } = useArtist(artistId);
-  if (!artist) {
-    return null;
-  }
+  const artist = artists.find((a) => a.id === artistId) || artists[0];
+
   const performanceBreakdown = [
     { category: "Streams", value: 92 },
     { category: "Engagement", value: artist.engagement },
@@ -47,7 +45,7 @@ export function ArtistProfile({
     { category: "Social", value: 88 },
   ];
 
-  const weeklyData = artist.weekly_history.map((score, index) => ({
+  const weeklyData = artist.weeklyHistory.map((score, index) => ({
     week: `W${index + 1}`,
     score,
   }));
@@ -57,7 +55,7 @@ export function ArtistProfile({
       {/* Hero Banner */}
       <div className="relative h-96 overflow-hidden">
         <ImageWithFallback
-          src={artist.image_url}
+          src={artist.imageUrl}
           alt={artist.name}
           className="w-full h-full object-cover"
         />
@@ -85,9 +83,7 @@ export function ArtistProfile({
                       {artist.name}
                     </h1>
                     <div
-                      className={`px-4 py-1.5 rounded-full ${
-                        artist.change >= 0 ? "bg-accent/20" : "bg-secondary/20"
-                      }`}
+                      className={`px-4 py-1.5 rounded-full ${artist.change >= 0 ? "bg-accent/20" : "bg-secondary/20"}`}
                     >
                       <span
                         className={
@@ -106,7 +102,7 @@ export function ArtistProfile({
                     </div>
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
-                      <span>{artist.fan_backers.toLocaleString()} backers</span>
+                      <span>{artist.fanBackers.toLocaleString()} backers</span>
                     </div>
                   </div>
                 </div>
@@ -233,11 +229,7 @@ export function ArtistProfile({
             <h2 className="text-2xl text-white">Performance History</h2>
             <div className="flex items-center gap-2">
               <TrendingUp
-                className={`w-5 h-5 ${
-                  artist.change >= 0
-                    ? "text-accent"
-                    : "text-secondary rotate-180"
-                }`}
+                className={`w-5 h-5 ${artist.change >= 0 ? "text-accent" : "text-secondary rotate-180"}`}
               />
               <span
                 className={
@@ -290,7 +282,7 @@ export function ArtistProfile({
             <div className="grid sm:grid-cols-3 gap-4">
               <div className="glass-card p-4 rounded-xl text-center">
                 <div className="text-3xl gradient-text mb-1">
-                  {artist.fan_backers.toLocaleString()}
+                  {artist.fanBackers.toLocaleString()}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Total Backers
@@ -298,12 +290,14 @@ export function ArtistProfile({
               </div>
               <div className="glass-card p-4 rounded-xl text-center">
                 <div className="text-3xl text-accent mb-1">
-                  +{(artist.fan_backers * 0.12).toFixed(0)}
+                  +{(artist.fanBackers * 0.12).toFixed(0)}
                 </div>
                 <div className="text-sm text-muted-foreground">This Week</div>
               </div>
               <div className="glass-card p-4 rounded-xl text-center">
-                <div className="text-3xl text-primary mb-1">#{artist.id}</div>
+                <div className="text-3xl text-primary mb-1">
+                  #{artists.findIndex((a) => a.id === artist.id) + 1}
+                </div>
                 <div className="text-sm text-muted-foreground">Global Rank</div>
               </div>
             </div>
@@ -317,9 +311,9 @@ export function ArtistProfile({
           >
             <h2 className="text-2xl text-white mb-6">Listen Now</h2>
             <div className="space-y-3">
-              {artist.social_links.spotify && (
+              {artist.socialLinks.spotify && (
                 <a
-                  href={artist.social_links.spotify}
+                  href={artist.socialLinks.spotify}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between glass-card p-4 rounded-lg hover:bg-white/5 transition-all group"
@@ -333,9 +327,9 @@ export function ArtistProfile({
                   <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-white" />
                 </a>
               )}
-              {artist.social_links.apple && (
+              {artist.socialLinks.apple && (
                 <a
-                  href={artist.social_links.apple}
+                  href={artist.socialLinks.apple}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between glass-card p-4 rounded-lg hover:bg-white/5 transition-all group"
@@ -349,9 +343,9 @@ export function ArtistProfile({
                   <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-white" />
                 </a>
               )}
-              {artist.social_links.tiktok && (
+              {artist.socialLinks.tiktok && (
                 <a
-                  href={artist.social_links.tiktok}
+                  href={artist.socialLinks.tiktok}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between glass-card p-4 rounded-lg hover:bg-white/5 transition-all group"
@@ -365,9 +359,9 @@ export function ArtistProfile({
                   <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-white" />
                 </a>
               )}
-              {artist.social_links.instagram && (
+              {artist.socialLinks.instagram && (
                 <a
-                  href={artist.social_links.instagram}
+                  href={artist.socialLinks.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between glass-card p-4 rounded-lg hover:bg-white/5 transition-all group"

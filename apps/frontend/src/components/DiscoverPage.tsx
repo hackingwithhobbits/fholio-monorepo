@@ -232,9 +232,7 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
                 <ChevronDown
-                  className={`w-4 h-4 ml-2 transition-transform ${
-                    showFilters ? "rotate-180" : ""
-                  }`}
+                  className={`w-4 h-4 ml-2 transition-transform ${showFilters ? "rotate-180" : ""}`}
                 />
               </Button>
             </div>
@@ -384,16 +382,10 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
                             {(artist.fanBackers / 1000).toFixed(1)}K
                           </div>
                           <div
-                            className={`flex items-center gap-1 ${
-                              artist.change >= 0
-                                ? "text-accent"
-                                : "text-secondary"
-                            }`}
+                            className={`flex items-center gap-1 ${artist.change >= 0 ? "text-accent" : "text-secondary"}`}
                           >
                             <TrendingUp
-                              className={`w-3 h-3 ${
-                                artist.change < 0 ? "rotate-180" : ""
-                              }`}
+                              className={`w-3 h-3 ${artist.change < 0 ? "rotate-180" : ""}`}
                             />
                             {artist.change >= 0 ? "+" : ""}
                             {artist.change.toFixed(1)}%
@@ -457,11 +449,7 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
                               Growth
                             </div>
                             <div
-                              className={`text-2xl ${
-                                artist.growth >= 0
-                                  ? "text-accent"
-                                  : "text-secondary"
-                              }`}
+                              className={`text-2xl ${artist.growth >= 0 ? "text-accent" : "text-secondary"}`}
                             >
                               {artist.growth >= 0 ? "+" : ""}
                               {artist.growth}%
@@ -620,11 +608,7 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
                     </div>
                     <div className="glass-card p-4 rounded-xl text-center">
                       <div
-                        className={`text-3xl mb-1 ${
-                          selectedArtistData.growth >= 0
-                            ? "text-accent"
-                            : "text-secondary"
-                        }`}
+                        className={`text-3xl mb-1 ${selectedArtistData.growth >= 0 ? "text-accent" : "text-secondary"}`}
                       >
                         {selectedArtistData.growth >= 0 ? "+" : ""}
                         {selectedArtistData.growth}%

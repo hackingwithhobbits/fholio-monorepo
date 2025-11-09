@@ -14,11 +14,9 @@ export function Logo({ size = "md", className = "", glow = false }: LogoProps) {
 
   return (
     <img
-      src={null}
+      src="/logo.png"
       alt="Fholio"
-      className={`${sizeClasses[size]} w-auto ${
-        glow ? "glow-pulse" : ""
-      } ${className}`}
+      className={`${sizeClasses[size]} w-auto ${glow ? "glow-pulse" : ""} ${className}`}
       style={
         glow
           ? {

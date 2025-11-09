@@ -14,24 +14,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Textarea } from "./ui/textarea";
 import { Avatar } from "./ui/avatar";
 import { Badge } from "./ui/badge";
+import { artists, topFans, socialStats } from "../data/mockData";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Logo } from "./Logo";
 import { ShareButtons } from "./ShareButtons";
-import {
-  useTrendingArtists,
-  useSocialStats,
-  useGlobalLeaderboard,
-} from "../lib/hooks";
 
 interface CommunityPageProps {
   onNavigate: (page: string, artistId?: string) => void;
 }
 
 export function CommunityPage({ onNavigate }: CommunityPageProps) {
-  const { artists, isLoading: artistsLoading } = useTrendingArtists(5);
-  const { stats, isLoading: statsLoading } = useSocialStats();
-  const { topFans, isLoading: fansLoading } = useGlobalLeaderboard(5);
-
   // Mock community posts
   const posts = [
     {
@@ -74,7 +66,7 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
       hashtags: ["LiveMusic", "FholioFam"],
     },
   ];
-  if (!stats) return null;
+
   return (
     <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8 relative">
       {/* Background Logo Watermark */}
@@ -109,7 +101,7 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
         >
           <div className="glass-card rounded-2xl p-6 text-center neon-glow">
             <div className="text-3xl gradient-text tracking-tight mb-1">
-              {stats.total_members.toLocaleString()}
+              {socialStats.totalMembers.toLocaleString()}
             </div>
             <div className="text-sm text-muted-foreground/70 tracking-tight">
               Total Members
@@ -117,7 +109,7 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
           </div>
           <div className="glass-card rounded-2xl p-6 text-center neon-glow">
             <div className="text-3xl text-accent tracking-tight mb-1">
-              {stats.artists_joined_this_week}
+              {socialStats.artistsJoinedThisWeek}
             </div>
             <div className="text-sm text-muted-foreground/70 tracking-tight">
               Artists This Week
@@ -125,7 +117,7 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
           </div>
           <div className="glass-card rounded-2xl p-6 text-center neon-glow">
             <div className="text-3xl text-primary tracking-tight mb-1">
-              {stats.fan_lineups_created.toLocaleString()}
+              {socialStats.fanLineupsCreated.toLocaleString()}
             </div>
             <div className="text-sm text-muted-foreground/70 tracking-tight">
               Lineups Created
@@ -133,7 +125,7 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
           </div>
           <div className="glass-card rounded-2xl p-6 text-center neon-glow">
             <div className="text-3xl text-secondary tracking-tight mb-1">
-              ${(stats.money_distributed / 1000).toFixed(0)}K
+              ${(socialStats.moneyDistributed / 1000).toFixed(0)}K
             </div>
             <div className="text-sm text-muted-foreground/70 tracking-tight">
               Distributed
@@ -341,7 +333,7 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
                     className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-all group"
                   >
                     <ImageWithFallback
-                      src={artist.image_url}
+                      src={artist.imageUrl}
                       alt={artist.name}
                       className="w-10 h-10 rounded-lg object-cover group-hover:scale-110 transition-transform"
                     />

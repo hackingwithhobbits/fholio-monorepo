@@ -2,6 +2,7 @@ module.exports = [
 "[project]/Documents/fholio-project/fholio-monorepo/apps/frontend/src/data/mockData.ts [app-ssr] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
+// Mock data for Fholio platform
 __turbopack_context__.s([
     "artists",
     ()=>artists,

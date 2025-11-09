@@ -50,9 +50,7 @@ export function ArtistCard({
               )}
             </div>
             <p
-              className={`text-sm ${
-                isPositive ? "text-accent" : "text-secondary"
-              }`}
+              className={`text-sm ${isPositive ? "text-accent" : "text-secondary"}`}
             >
               {isPositive ? "+" : ""}
               {artist.change.toFixed(1)}%
@@ -72,9 +70,7 @@ export function ArtistCard({
       <div
         className="absolute inset-0 rounded-2xl opacity-30 group-hover:opacity-100 transition-opacity duration-500"
         style={{
-          background: `conic-gradient(from 0deg, ${
-            isPositive ? "#00ffd5" : "#ff1f70"
-          } ${artist.score}%, transparent ${artist.score}%)`,
+          background: `conic-gradient(from 0deg, ${isPositive ? "#00ffd5" : "#ff1f70"} ${artist.score}%, transparent ${artist.score}%)`,
           padding: "2px",
           WebkitMask:
             "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
@@ -117,9 +113,7 @@ export function ArtistCard({
               <TrendingDown className="w-4 h-4 text-secondary" />
             )}
             <span
-              className={`tracking-tight ${
-                isPositive ? "text-accent" : "text-secondary"
-              }`}
+              className={`tracking-tight ${isPositive ? "text-accent" : "text-secondary"}`}
             >
               {isPositive ? "+" : ""}
               {artist.change.toFixed(1)}%

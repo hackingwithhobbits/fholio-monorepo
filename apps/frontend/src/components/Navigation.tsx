@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Settings,
   Music,
+  Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
@@ -39,12 +40,14 @@ export function Navigation({
         { id: "leaderboard", label: "Leaderboard", icon: Trophy },
         { id: "community", label: "Community", icon: Users },
         { id: "wallet", label: "Wallet", icon: Wallet },
+        { id: "prototype", label: "Weekly Cycle", icon: Sparkles },
       ]
     : [
         { id: "home", label: "Home", icon: Home },
         { id: "discover", label: "Discover", icon: Compass },
         { id: "leaderboard", label: "Leaderboard", icon: Trophy },
         { id: "artist-signup", label: "For Artists", icon: Music },
+        { id: "prototype", label: "Weekly Cycle", icon: Sparkles },
       ];
 
   return (
@@ -64,7 +67,7 @@ export function Navigation({
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentPage === item.id;
@@ -72,7 +75,7 @@ export function Navigation({
                 <button
                   key={item.id}
                   onClick={() => onNavigate(item.id)}
-                  className={`relative flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all group ${
+                  className={`relative flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-200 ease-in-out group ${
                     isActive
                       ? "text-white"
                       : "text-muted-foreground hover:text-white"
@@ -81,12 +84,13 @@ export function Navigation({
                   {isActive && (
                     <div className="absolute inset-0 gradient-bg rounded-xl opacity-20 neon-glow" />
                   )}
+                  {!isActive && (
+                    <div className="absolute inset-0 gradient-bg rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-200 ease-in-out" />
+                  )}
                   <Icon
-                    className={`w-4 h-4 relative z-10 ${
-                      isActive ? "text-primary" : ""
-                    }`}
+                    className={`w-4 h-4 relative z-10 ${isActive ? "text-primary" : ""}`}
                   />
-                  <span className="relative z-10 tracking-tight">
+                  <span className="relative z-10 tracking-tight text-sm whitespace-nowrap">
                     {item.label}
                   </span>
                 </button>
@@ -100,14 +104,14 @@ export function Navigation({
               <>
                 <Button
                   variant="ghost"
-                  onClick={() => onNavigate("dashboard")}
-                  className="text-white hover:bg-white/5 rounded-xl"
+                  onClick={() => onNavigate("auth")}
+                  className="text-white hover:bg-white/5 rounded-xl transition-all duration-200 ease-in-out"
                 >
                   Sign In
                 </Button>
                 <Button
-                  onClick={() => onNavigate("dashboard")}
-                  className="gradient-bg hover:opacity-90 neon-glow holo-button rounded-xl px-6"
+                  onClick={() => onNavigate("auth")}
+                  className="gradient-bg hover:opacity-90 neon-glow holo-button rounded-xl px-6 transition-all duration-200 ease-in-out"
                 >
                   Join the League
                 </Button>
@@ -177,7 +181,7 @@ export function Navigation({
                   variant="outline"
                   className="w-full border-primary/40"
                   onClick={() => {
-                    onNavigate("dashboard");
+                    onNavigate("auth");
                     setMobileMenuOpen(false);
                   }}
                 >
@@ -186,7 +190,7 @@ export function Navigation({
                 <Button
                   className="w-full gradient-bg"
                   onClick={() => {
-                    onNavigate("dashboard");
+                    onNavigate("auth");
                     setMobileMenuOpen(false);
                   }}
                 >
