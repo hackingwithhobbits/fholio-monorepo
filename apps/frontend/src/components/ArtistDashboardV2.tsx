@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Upload,
@@ -33,7 +33,7 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 import { LeaderboardPage } from "./LeaderboardPage";
-
+import { authUtils, UserSession } from "@/lib/auth";
 interface ArtistDashboardV2Props {
   onNavigate: (page: string) => void;
   onLogout: () => void;
@@ -47,6 +47,7 @@ export function ArtistDashboardV2({
     "submit" | "tracks" | "leaderboard" | "profile"
   >("submit");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [userSession, setUserSession] = useState<UserSession | null>(null);
 
   // Form state
   const [artistName, setArtistName] = useState("");
@@ -54,6 +55,24 @@ export function ArtistDashboardV2({
   const [genre, setGenre] = useState("");
   const [description, setDescription] = useState("");
 
+  // Load user session on mount
+  useEffect(() => {
+    const session = authUtils.getSession();
+    if (session) {
+      setUserSession(session);
+    }
+  }, []);
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      });
+    } catch {
+      return "Recently";
+    }
+  };
   const tabs = [
     { id: "submit" as const, label: "Submit Music", icon: Upload },
     { id: "tracks" as const, label: "My Tracks", icon: Music },
@@ -378,36 +397,78 @@ export function ArtistDashboardV2({
         return (
           <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8">
             <div className="max-w-2xl mx-auto">
-              <div className="glass-card rounded-2xl p-8 text-center">
-                <User className="w-16 h-16 mx-auto mb-4 text-accent" />
-                <h2 className="text-2xl text-white mb-2">Artist Profile</h2>
-                <p className="text-muted-foreground mb-6">
-                  Manage your artist account
-                </p>
-                <div className="space-y-4">
-                  <div className="text-left">
-                    <label className="text-sm text-muted-foreground">
-                      Artist Name
-                    </label>
-                    <div className="text-white">Nova Wave</div>
+              <div className="glass-card rounded-2xl p-8">
+                {/* Profile Header */}
+                <div className="text-center mb-8">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-accent to-pink-600 rounded-full flex items-center justify-center">
+                    <User className="w-10 h-10 text-white" />
                   </div>
-                  <div className="text-left">
-                    <label className="text-sm text-muted-foreground">
-                      Email
-                    </label>
-                    <div className="text-white">artist@fholio.com</div>
+                  <h2 className="text-2xl text-white mb-2">
+                    {userSession?.artistName || "Artist"}
+                  </h2>
+                  <p className="text-muted-foreground">Fholio Artist</p>
+                </div>
+
+                {/* Profile Details */}
+                <div className="space-y-6">
+                  <div className="border-t border-white/10 pt-6">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm text-muted-foreground">
+                          Artist Name
+                        </label>
+                        <div className="text-white mt-1 text-lg">
+                          {userSession?.artistName || "Loading..."}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm text-muted-foreground">
+                          Email
+                        </label>
+                        <div className="text-white mt-1">
+                          {userSession?.email || "Loading..."}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm text-muted-foreground">
+                          Member Since
+                        </label>
+                        <div className="text-white mt-1">
+                          {userSession?.createdAt
+                            ? formatDate(userSession.createdAt)
+                            : "Loading..."}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm text-muted-foreground">
+                          Account Type
+                        </label>
+                        <div className="text-white mt-1 flex items-center gap-2">
+                          <span className="px-3 py-1 bg-accent/20 text-accent rounded-full text-sm">
+                            Beta Artist
+                          </span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm text-muted-foreground">
+                          Total Submissions
+                        </label>
+                        <div className="text-white mt-1">
+                          {submissions.length} tracks
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <label className="text-sm text-muted-foreground">
-                      Member Since
-                    </label>
-                    <div className="text-white">November 2025</div>
-                  </div>
-                  <div className="text-left">
-                    <label className="text-sm text-muted-foreground">
-                      Total Submissions
-                    </label>
-                    <div className="text-white">3 tracks</div>
+
+                  {/* Beta Notice */}
+                  <div className="bg-accent/10 border border-accent/30 rounded-xl p-4">
+                    <p className="text-sm text-accent">
+                      🎵 You're part of our Beta! More features coming soon.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -471,14 +532,28 @@ export function ArtistDashboardV2({
             </div>
 
             {/* Logout Button */}
-            <Button
-              variant="ghost"
-              onClick={onLogout}
-              className="text-white hover:bg-white/5 rounded-xl transition-all duration-200 ease-in-out"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+            <div className="flex items-center gap-4">
+              {/* Show artist name on desktop */}
+              {userSession && (
+                <div className="hidden lg:block text-right">
+                  <div className="text-white text-sm font-medium">
+                    {userSession.artistName}
+                  </div>
+                  <div className="text-muted-foreground text-xs">
+                    {userSession.email}
+                  </div>
+                </div>
+              )}
+
+              <Button
+                variant="ghost"
+                onClick={onLogout}
+                className="text-white hover:bg-white/5 rounded-xl transition-all duration-200 ease-in-out"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
 

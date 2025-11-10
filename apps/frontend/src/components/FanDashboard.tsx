@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Wallet, User, LogOut, Music } from "lucide-react";
 import { Button } from "./ui/button";
@@ -7,6 +7,7 @@ import { DashboardV2 } from "./DashboardV2";
 import { LeaderboardPage } from "./LeaderboardPage";
 import { WalletPage } from "./WalletPage";
 import { toast } from "sonner";
+import { authUtils, UserSession } from "@/lib/auth";
 
 interface FanDashboardProps {
   onNavigate: (page: string) => void;
@@ -17,6 +18,28 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
   const [activeTab, setActiveTab] = useState<
     "my-picks" | "leaderboard" | "wallet" | "profile"
   >("my-picks");
+  const [userSession, setUserSession] = useState<UserSession | null>(null);
+
+  // Load user session on mount
+  useEffect(() => {
+    const session = authUtils.getSession();
+    if (session) {
+      setUserSession(session);
+    }
+  }, []);
+
+  // Format date nicely
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      });
+    } catch {
+      return "Recently";
+    }
+  };
 
   const tabs = [
     { id: "my-picks" as const, label: "My Picks", icon: Music },
@@ -37,30 +60,69 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
         return (
           <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8">
             <div className="max-w-2xl mx-auto">
-              <div className="glass-card rounded-2xl p-8 text-center">
-                <User className="w-16 h-16 mx-auto mb-4 text-primary" />
-                <h2 className="text-2xl text-white mb-2">Profile Settings</h2>
-                <p className="text-muted-foreground mb-6">
-                  Manage your account preferences
-                </p>
-                <div className="space-y-4">
-                  <div className="text-left">
-                    <label className="text-sm text-muted-foreground">
-                      Email
-                    </label>
-                    <div className="text-white">fan@fholio.com</div>
+              <div className="glass-card rounded-2xl p-8">
+                {/* Profile Header */}
+                <div className="text-center mb-8">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center">
+                    <User className="w-10 h-10 text-white" />
                   </div>
-                  <div className="text-left">
-                    <label className="text-sm text-muted-foreground">
-                      Member Since
-                    </label>
-                    <div className="text-white">November 2025</div>
+                  <h2 className="text-2xl text-white mb-2">
+                    {userSession?.username || "Fan"}
+                  </h2>
+                  <p className="text-muted-foreground">Fholio Fan</p>
+                </div>
+
+                {/* Profile Details */}
+                <div className="space-y-6">
+                  <div className="border-t border-white/10 pt-6">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm text-muted-foreground">
+                          Username
+                        </label>
+                        <div className="text-white mt-1 text-lg">
+                          {userSession?.username || "Loading..."}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm text-muted-foreground">
+                          Email
+                        </label>
+                        <div className="text-white mt-1">
+                          {userSession?.email || "Loading..."}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm text-muted-foreground">
+                          Member Since
+                        </label>
+                        <div className="text-white mt-1">
+                          {userSession?.createdAt
+                            ? formatDate(userSession.createdAt)
+                            : "Loading..."}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm text-muted-foreground">
+                          Account Type
+                        </label>
+                        <div className="text-white mt-1 flex items-center gap-2">
+                          <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm">
+                            Beta Fan
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <label className="text-sm text-muted-foreground">
-                      Membership Tier
-                    </label>
-                    <div className="text-white">Premium ($20/month)</div>
+
+                  {/* Beta Notice */}
+                  <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
+                    <p className="text-sm text-primary">
+                      🎉 You're part of our Beta! More features coming soon.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -122,15 +184,29 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
               })}
             </div>
 
-            {/* Logout Button */}
-            <Button
-              variant="ghost"
-              onClick={onLogout}
-              className="text-white hover:bg-white/5 rounded-xl transition-all duration-200 ease-in-out"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+            {/* User Info & Logout */}
+            <div className="flex items-center gap-4">
+              {/* Show username on desktop */}
+              {userSession && (
+                <div className="hidden lg:block text-right">
+                  <div className="text-white text-sm font-medium">
+                    {userSession.username}
+                  </div>
+                  <div className="text-muted-foreground text-xs">
+                    {userSession.email}
+                  </div>
+                </div>
+              )}
+
+              <Button
+                variant="ghost"
+                onClick={onLogout}
+                className="text-white hover:bg-white/5 rounded-xl transition-all duration-200 ease-in-out"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
 

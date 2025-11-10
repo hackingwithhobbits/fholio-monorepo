@@ -1,29 +1,21 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Home,
-  Music,
-  Trophy,
-  Tv,
-  Wallet,
-  User,
-  Menu,
-  X,
-  Info,
-} from "lucide-react";
+import { Home, Music, Trophy, Tv, User, Menu, X, LogOut } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
 
 interface MobileNavigationBarProps {
   currentPage: string;
   onNavigate: (page: string) => void;
+  onLogout?: () => void;
   isLoggedIn?: boolean;
-  userType?: "fan" | "artist" | null;
+  userType?: "guest" | "fan" | "artist" | null;
 }
 
 export function MobileNavigationBar({
   currentPage,
   onNavigate,
+  onLogout,
   isLoggedIn = false,
   userType = null,
 }: MobileNavigationBarProps) {
@@ -65,6 +57,13 @@ export function MobileNavigationBar({
   const handleNavigate = (page: string) => {
     onNavigate(page);
     setMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    setMenuOpen(false);
+    if (onLogout) {
+      onLogout();
+    }
   };
 
   return (
@@ -115,23 +114,37 @@ export function MobileNavigationBar({
                 </motion.button>
               ))}
 
-              {!isLoggedIn && (
-                <div className="pt-6 space-y-2">
+              {/* Auth Buttons */}
+              <div className="pt-6 space-y-2">
+                {isLoggedIn ? (
+                  // Logout Button for logged-in users
                   <Button
-                    onClick={() => handleNavigate("fan-signin")}
-                    className="w-full gradient-bg h-12"
-                  >
-                    Join as Fan
-                  </Button>
-                  <Button
-                    onClick={() => handleNavigate("artist-signin")}
+                    onClick={handleLogout}
                     variant="outline"
-                    className="w-full border-accent/50 text-accent hover:bg-accent/20 h-12"
+                    className="w-full border-red-500/50 text-red-500 hover:bg-red-500/20 h-12 flex items-center justify-center gap-2"
                   >
-                    Join as Artist
+                    <LogOut className="w-5 h-5" />
+                    Log Out
                   </Button>
-                </div>
-              )}
+                ) : (
+                  // Join Buttons for guests
+                  <>
+                    <Button
+                      onClick={() => handleNavigate("fan-signin")}
+                      className="w-full gradient-bg h-12"
+                    >
+                      Join as Fan
+                    </Button>
+                    <Button
+                      onClick={() => handleNavigate("artist-signin")}
+                      variant="outline"
+                      className="w-full border-accent/50 text-accent hover:bg-accent/20 h-12"
+                    >
+                      Join as Artist
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

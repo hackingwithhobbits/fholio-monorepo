@@ -1,39 +1,105 @@
 import { motion } from "framer-motion";
-import { Mail, Lock, ArrowLeft, Sparkles, Chrome } from "lucide-react";
+import { Mail, User, ArrowLeft, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Logo } from "./Logo";
+import { supabase } from "@/lib/supabase";
+import { authUtils } from "@/lib/auth";
 
 interface FanSignInProps {
   onNavigate: (page: string) => void;
-  onSuccess: () => void;
+  onSuccess: (isNewUser: boolean) => void;
 }
 
 export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
+    setSuccess("");
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      onSuccess();
-    }, 1500);
-  };
+    try {
+      if (isSignUp) {
+        // Sign Up - Create new fan account
+        const { data, error } = await supabase
+          .from("beta_fans")
+          .insert([
+            {
+              email: email.toLowerCase().trim(),
+              username: username.trim(),
+            },
+          ])
+          .select();
 
-  const handleSocialSignIn = (provider: string) => {
-    setIsLoading(true);
-    setTimeout(() => {
+        if (error) {
+          if (error.code === "23505") {
+            setError("This email or username is already registered!");
+          } else {
+            console.error("Sign-up error:", error);
+            setError("Sign-up failed. Please try again.");
+          }
+          setIsLoading(false);
+          return;
+        }
+
+        if (data && data[0]) {
+          authUtils.setSession({
+            id: data[0].id,
+            email: data[0].email,
+            username: data[0].username,
+            userType: "fan",
+            createdAt: data[0].created_at,
+          });
+
+          setSuccess("Account created! Redirecting...");
+
+          setTimeout(() => {
+            onSuccess(true); // true = new user, go to onboarding
+          }, 1000);
+        }
+      } else {
+        // Sign In - Check if fan exists
+        const { data, error } = await supabase
+          .from("beta_fans")
+          .select("*")
+          .eq("email", email.toLowerCase().trim())
+          .single();
+
+        if (error || !data) {
+          setError("No account found with this email. Please sign up first!");
+          setIsLoading(false);
+          return;
+        }
+
+        authUtils.setSession({
+          id: data.id,
+          email: data.email,
+          username: data.username,
+          userType: "fan",
+          createdAt: data.created_at,
+        });
+
+        setSuccess("Welcome back! Redirecting...");
+
+        setTimeout(() => {
+          onSuccess(false); // false = existing user, go to dashboard
+        }, 1000);
+      }
+
       setIsLoading(false);
-      onSuccess();
-    }, 1500);
+    } catch (error: any) {
+      console.error("Error:", error);
+      setError(error.message || "Something went wrong. Please try again.");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -50,11 +116,11 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          onClick={() => onNavigate("auth")}
+          onClick={() => onNavigate("home")}
           className="flex items-center gap-2 text-muted-foreground hover:text-white transition-colors duration-200 mb-8 group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-200" />
-          Back to options
+          Back to home
         </motion.button>
 
         {/* Logo and Header */}
@@ -68,7 +134,7 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
             <Logo size="md" glow />
           </div>
           <h1 className="text-4xl mb-3 text-white tracking-tighter">
-            {isSignUp ? "Create Fan Account" : "Welcome Back, Fan"}
+            {isSignUp ? "Join as a Fan" : "Welcome Back, Fan"}
           </h1>
           <p className="text-muted-foreground/80">
             {isSignUp
@@ -84,28 +150,48 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="glass-card rounded-2xl p-8 neon-glow"
         >
+          {/* Success Message */}
+          {success && (
+            <div className="mb-4 p-4 bg-green-500/20 border border-green-500/50 rounded-xl text-green-400 text-sm">
+              {success}
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {isSignUp && (
               <div>
                 <label className="block text-sm text-muted-foreground mb-2">
-                  Username
+                  Username *
                 </label>
                 <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Choose a username"
+                    placeholder="Choose a unique username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="bg-black/40 border-primary/30 focus:border-primary text-white pl-4 pr-4 py-6 rounded-xl transition-all duration-200"
+                    className="bg-black/40 border-primary/30 focus:border-primary text-white pl-12 pr-4 py-6 rounded-xl transition-all duration-200"
                     required
+                    minLength={3}
+                    maxLength={20}
                   />
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  3-20 characters, will be visible to others
+                </p>
               </div>
             )}
 
             <div>
               <label className="block text-sm text-muted-foreground mb-2">
-                Email
+                Email *
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -120,34 +206,6 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm text-muted-foreground mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-black/40 border-primary/30 focus:border-primary text-white pl-12 pr-4 py-6 rounded-xl transition-all duration-200"
-                  required
-                />
-              </div>
-            </div>
-
-            {!isSignUp && (
-              <div className="flex items-center justify-end">
-                <button
-                  type="button"
-                  className="text-sm text-primary hover:text-primary/80 transition-colors duration-200"
-                >
-                  Forgot password?
-                </button>
-              </div>
-            )}
-
             <Button
               type="submit"
               disabled={isLoading}
@@ -160,38 +218,12 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
                   {isSignUp ? "Creating Account..." : "Signing In..."}
                 </span>
               ) : isSignUp ? (
-                "Create Account"
+                "Create Fan Account"
               ) : (
                 "Sign In"
               )}
             </Button>
           </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-black/80 px-4 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          {/* Social Sign In */}
-          <div className="space-y-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleSocialSignIn("google")}
-              disabled={isLoading}
-              className="w-full border-white/20 hover:bg-white/5 hover:border-white/40 text-white py-6 rounded-xl transition-all duration-200"
-            >
-              <Chrome className="w-5 h-5 mr-2" />
-              Continue with Google
-            </Button>
-          </div>
 
           {/* Toggle Sign Up/Sign In */}
           <div className="mt-6 text-center text-sm">
@@ -200,7 +232,11 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
             </span>{" "}
             <button
               type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError("");
+                setSuccess("");
+              }}
               className="text-primary hover:text-primary/80 transition-colors duration-200"
             >
               {isSignUp ? "Sign in" : "Create account"}
@@ -215,7 +251,7 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
           transition={{ delay: 0.4 }}
           className="text-center mt-8 text-xs text-muted-foreground/60"
         >
-          <p>Protected by industry-standard encryption</p>
+          <p>Beta Version - Simplified authentication for testing</p>
         </motion.div>
       </div>
     </div>

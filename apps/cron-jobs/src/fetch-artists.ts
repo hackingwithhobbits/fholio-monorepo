@@ -201,7 +201,8 @@ async function fetchArtistsList(
       limit: CONFIG.BATCH_SIZE,
       offset,
       code2: "US",
-      "sp_ml[]": [20000, 50000], // Spotify monthly listeners
+      "sp_ml[]": [30000, 60000], // Spotify monthly listeners
+      "career_trend[]": ["steady", "growth", "explosive growth"],
     });
 
     // The response structure is: { obj: { obj: [...artists], offset: X, total: Y } }

@@ -12,6 +12,7 @@
     "dev:backend": "npm run dev --workspace=apps/backend",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev": "npm run dev --workspaces",
+    "build:frontend": "npm run build --workspace=apps/frontend",
     "build": "npm run build --workspaces",
     "lint": "npm run lint --workspaces",
     "clean": "npm run clean --workspaces"
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "eslint-plugin-unused-imports": "^4.3.0",
     "typescript": "^5.2.0"
   }
 }

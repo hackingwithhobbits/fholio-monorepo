@@ -20,6 +20,7 @@ import { WalletPage } from "./WalletPage";
 import { AboutPage } from "./AboutPage";
 import { Toaster } from "./ui/sonner";
 import { toast } from "sonner";
+import { authUtils } from "@/lib/auth";
 
 type Page =
   | "home"
@@ -43,6 +44,32 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("home");
   const [userType, setUserType] = useState<UserType>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false); // Add this
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    if (!isClient) return; // Don't run on server
+
+    const checkSession = () => {
+      const session = authUtils.getSession();
+      if (session) {
+        setUserType(session.userType);
+        // If user is logged in, redirect to appropriate dashboard
+        if (session.userType === "fan") {
+          setCurrentPage("fan-dashboard");
+        } else if (session.userType === "artist") {
+          setCurrentPage("artist-dashboard");
+        }
+      }
+      setIsLoading(false);
+    };
+
+    checkSession();
+  }, [isClient]);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -71,22 +98,50 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleAuthSuccess = (type: "fan" | "artist") => {
+  const handleAuthSuccess = (type: "fan" | "artist", isNewUser: boolean) => {
     setUserType(type);
-    if (type === "fan") {
-      setCurrentPage("fan-onboarding");
+
+    if (isNewUser) {
+      // New user - show onboarding
+      if (type === "fan") {
+        setCurrentPage("fan-onboarding");
+      } else {
+        setCurrentPage("artist-onboarding");
+      }
     } else {
-      setCurrentPage("artist-onboarding");
+      // Existing user - go straight to dashboard
+      if (type === "fan") {
+        setCurrentPage("fan-dashboard");
+      } else {
+        setCurrentPage("artist-dashboard");
+      }
     }
   };
 
   const handleLogout = () => {
+    // Clear session
+    authUtils.clearSession();
+
+    // Reset state
     setUserType(null);
     setCurrentPage("home");
+
     toast.success("Logged out successfully");
   };
 
   const isLoggedIn = userType === "fan" || userType === "artist";
+
+  // Show loading state while checking session
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const renderPage = () => {
     switch (currentPage) {
@@ -96,14 +151,18 @@ export default function App() {
         return (
           <FanSignIn
             onNavigate={handleNavigate}
-            onSuccess={() => handleAuthSuccess("fan")}
+            onSuccess={(isNewUser: boolean) =>
+              handleAuthSuccess("fan", isNewUser)
+            }
           />
         );
       case "artist-signin":
         return (
           <ArtistSignIn
             onNavigate={handleNavigate}
-            onSuccess={() => handleAuthSuccess("artist")}
+            onSuccess={(isNewUser: boolean) =>
+              handleAuthSuccess("artist", isNewUser)
+            }
           />
         );
       case "fan-onboarding":

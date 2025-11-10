@@ -207,6 +207,7 @@ export default function App() {
             onNavigate={handleNavigate}
             isLoggedIn={isLoggedIn}
             userType={userType}
+            onLogout={handleLogout}
           />
         </div>
       )}
