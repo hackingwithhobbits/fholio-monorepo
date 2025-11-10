@@ -26,11 +26,13 @@ A revolutionary platform connecting music fans with artists through investment o
 ## **🎵 About**
 
 Fholio is the world's first music stock exchange where:
+
 - **Fans** invest in tracks they believe in and earn returns from streaming royalties
 - **Artists** raise funding for their music while maintaining creative control
 - **Everyone wins** when tracks succeed on streaming platforms
 
 ### **Core Concept**
+
 Instead of just streaming music, fans can become stakeholders. When a track performs well on Spotify, Apple Music, and other platforms, investors receive dividends proportional to their shares.
 
 ---
@@ -71,6 +73,7 @@ Fholio uses a **monorepo architecture** with separate applications for different
 ```
 
 **Design Principles:**
+
 - **Separation of Concerns**: Frontend, API, and background jobs are isolated
 - **Shared Code**: Common utilities and types are shared via workspace packages
 - **Type Safety**: End-to-end TypeScript for fewer bugs
@@ -81,6 +84,7 @@ Fholio uses a **monorepo architecture** with separate applications for different
 ## **🛠️ Tech Stack**
 
 ### **Frontend**
+
 - **Framework**: Next.js 15 (App Router, React Server Components)
 - **UI Library**: React 18 with TypeScript
 - **Styling**: Tailwind CSS 4 + shadcn/ui components
@@ -90,6 +94,7 @@ Fholio uses a **monorepo architecture** with separate applications for different
 - **Forms**: React Hook Form
 
 ### **Backend**
+
 - **Runtime**: Node.js 20+ with TypeScript
 - **Framework**: Express.js
 - **Database Client**: Supabase JS SDK
@@ -98,12 +103,14 @@ Fholio uses a **monorepo architecture** with separate applications for different
 - **API Documentation**: OpenAPI/Swagger (planned)
 
 ### **Background Jobs**
+
 - **Scheduler**: node-cron (for nightly sync jobs)
 - **Rate Limiting**: Bottleneck + p-limit
 - **HTTP Client**: Axios
 - **API Integration**: Chartmetric REST API
 
 ### **Database & Infrastructure**
+
 - **Database**: PostgreSQL (via Supabase)
 - **Real-time**: Supabase Realtime subscriptions
 - **Storage**: Supabase Storage (for track uploads, cover art)
@@ -111,6 +118,7 @@ Fholio uses a **monorepo architecture** with separate applications for different
 - **Row Level Security**: PostgreSQL RLS policies
 
 ### **Development Tools**
+
 - **Monorepo**: pnpm workspaces
 - **TypeScript**: Shared types across all workspaces
 - **Code Quality**: ESLint + Prettier
@@ -245,6 +253,7 @@ pnpm install
 ```
 
 This will install dependencies for:
+
 - Frontend (Next.js, React, Radix UI, etc.)
 - Backend (Express, Supabase client)
 - Cron Jobs (node-cron, Chartmetric client)
@@ -350,18 +359,19 @@ FRONTEND_URL=http://localhost:3000
 
 ### **Environment Variables by Service**
 
-| Variable | Used By | Purpose |
-|----------|---------|---------|
-| `SUPABASE_URL` | All | Database connection |
-| `SUPABASE_ANON_KEY` | Frontend | Client-side queries |
+| Variable               | Used By       | Purpose                  |
+| ---------------------- | ------------- | ------------------------ |
+| `SUPABASE_URL`         | All           | Database connection      |
+| `SUPABASE_ANON_KEY`    | Frontend      | Client-side queries      |
 | `SUPABASE_SERVICE_KEY` | Backend, Cron | Server-side admin access |
-| `CHARTMETRIC_API_KEY` | Cron Jobs | Music analytics data |
-| `PORT` | Backend | API server port |
-| `FRONTEND_URL` | Backend | CORS configuration |
+| `CHARTMETRIC_API_KEY`  | Cron Jobs     | Music analytics data     |
+| `PORT`                 | Backend       | API server port          |
+| `FRONTEND_URL`         | Backend       | CORS configurations      |
 
 ### **Getting Your Credentials**
 
 #### **Supabase:**
+
 1. Go to [Supabase Dashboard](https://app.supabase.com)
 2. Select your project (or create new)
 3. Go to **Settings** → **API**
@@ -371,6 +381,7 @@ FRONTEND_URL=http://localhost:3000
    - `service_role` key → `SUPABASE_SERVICE_KEY` ⚠️ **Keep secret!**
 
 #### **Chartmetric:**
+
 1. Go to [Chartmetric API](https://api.chartmetric.com)
 2. Sign up for an account
 3. Navigate to API settings
@@ -467,27 +478,32 @@ For rapid prototyping or if you prefer a GUI:
 The platform uses the following core tables:
 
 #### **User & Artist Management**
+
 - `profiles` - User profiles (extends Supabase auth.users)
 - `artists` - Artist profiles with streaming stats
 - `artist_verifications` - Artist verification status
 
 #### **Music Catalog**
+
 - `tracks` - Individual songs/tracks
 - `campaigns` - Fundraising campaigns for tracks
 - `track_analytics` - Daily streaming analytics per track
 
 #### **Investment & Trading**
+
 - `investments` - User investments in tracks
 - `transactions` - All buy/sell transactions
 - `dividends` - Dividend payment records
 - `dividend_payments` - Individual dividend distributions
 
 #### **Analytics & Performance**
+
 - `chartmetric_snapshots` - Daily cache of Chartmetric data
 - `price_history` - Historical share prices
 - `streaming_revenue` - Revenue per platform
 
 #### **Supporting Tables**
+
 - `follows` - User follows artists
 - `favorites` - User favorites tracks
 - `notifications` - User notifications
@@ -597,18 +613,18 @@ pnpm --filter @fholio/frontend add -D package-name
 export async function getArtistById(artistId: string) {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
-    .from('artists')
-    .select('*')
-    .eq('id', artistId)
+    .from("artists")
+    .select("*")
+    .eq("id", artistId)
     .single();
   if (error) throw error;
   return data;
 }
 
 // apps/backend/src/routes/artists.ts
-import { getArtistById } from '@fholio/database';
+import { getArtistById } from "@fholio/database";
 
-router.get('/:id', async (req, res) => {
+router.get("/:id", async (req, res) => {
   const artist = await getArtistById(req.params.id);
   res.json(artist);
 });
@@ -622,25 +638,25 @@ router.get('/:id', async (req, res) => {
 
 ```typescript
 // apps/backend/src/routes/trending.ts
-import { Router } from 'express';
-import { getTrendingTracks } from '@fholio/database';
+import { Router } from "express";
+import { getTrendingTracks } from "@fholio/database";
 
 const router = Router();
 
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const tracks = await getTrendingTracks();
     res.json(tracks);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch trending tracks' });
+    res.status(500).json({ error: "Failed to fetch trending tracks" });
   }
 });
 
 export default router;
 
 // apps/backend/src/index.ts
-import trendingRoutes from './routes/trending';
-app.use('/api/trending', trendingRoutes);
+import trendingRoutes from "./routes/trending";
+app.use("/api/trending", trendingRoutes);
 ```
 
 ### **Running Manual Sync**
@@ -657,13 +673,13 @@ pnpm sync:manual
 
 ```sql
 -- Query sync logs in Supabase
-SELECT * FROM sync_logs 
-ORDER BY completed_at DESC 
+SELECT * FROM sync_logs
+ORDER BY completed_at DESC
 LIMIT 10;
 
 -- Check for failed syncs
-SELECT * FROM sync_logs 
-WHERE status = 'failed' 
+SELECT * FROM sync_logs
+WHERE status = 'failed'
 ORDER BY completed_at DESC;
 ```
 
@@ -686,6 +702,7 @@ supabase db reset
 ## **✨ Key Features**
 
 ### **For Investors/Fans**
+
 - 🔍 **Browse & Discover** - Explore tracks by genre, trending, rising artists
 - 💰 **Invest in Music** - Buy shares in tracks you believe in
 - 📊 **Track Portfolio** - Real-time portfolio value and ROI tracking
@@ -694,6 +711,7 @@ supabase db reset
 - 🔔 **Notifications** - Get alerted on investments, dividends, price changes
 
 ### **For Artists**
+
 - 🚀 **Launch Campaigns** - Raise funding by offering shares in tracks
 - 📊 **Analytics Dashboard** - Detailed streaming and earnings analytics
 - 👥 **Backer Management** - See who invested and engage with fans
@@ -702,6 +720,7 @@ supabase db reset
 - 📢 **Campaign Updates** - Post updates to your investors
 
 ### **Platform Features**
+
 - 🔒 **Secure Authentication** - Supabase Auth with email & OAuth
 - 💳 **Payment Processing** - Stripe integration (planned)
 - 📱 **Responsive Design** - Works on desktop, tablet, and mobile
@@ -713,12 +732,14 @@ supabase db reset
 ## **📚 API Documentation**
 
 ### **Base URL**
+
 ```
 Development: http://localhost:3001/api
 Production: https://api.fholio.com/api
 ```
 
 ### **Authentication**
+
 All authenticated endpoints require a JWT token from Supabase Auth:
 
 ```bash
@@ -728,6 +749,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ### **Core Endpoints**
 
 #### **Artists**
+
 ```
 GET    /api/artists           # List all artists
 GET    /api/artists/:id       # Get artist details with stats
@@ -736,6 +758,7 @@ PUT    /api/artists/:id       # Update artist (auth required)
 ```
 
 #### **Tracks**
+
 ```
 GET    /api/tracks            # List all tracks
 GET    /api/tracks/:id        # Get track details
@@ -744,6 +767,7 @@ POST   /api/tracks            # Upload new track (auth required)
 ```
 
 #### **Campaigns**
+
 ```
 GET    /api/campaigns         # List active campaigns
 GET    /api/campaigns/:id     # Get campaign details
@@ -752,6 +776,7 @@ PUT    /api/campaigns/:id     # Update campaign (artist only)
 ```
 
 #### **Investments**
+
 ```
 GET    /api/investments       # Get user's investments (auth required)
 POST   /api/investments       # Make new investment (auth required)
@@ -761,6 +786,7 @@ GET    /api/portfolio         # Get portfolio summary (auth required)
 ### **Response Format**
 
 Success:
+
 ```json
 {
   "data": { ... },
@@ -771,6 +797,7 @@ Success:
 ```
 
 Error:
+
 ```json
 {
   "error": "Error message",
@@ -797,16 +824,20 @@ vercel
 ```
 
 **Environment Variables on Vercel:**
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_API_URL`
 
-
 # Using Render
+
 # Connect GitHub repo via dashboard
+
 # Set build command: pnpm --filter @fholio/backend build
+
 # Set start command: pnpm --filter @fholio/backend start
-```
+
+````
 
 **Environment Variables:**
 - `SUPABASE_URL`
@@ -824,7 +855,7 @@ Deploy cron jobs separately as a background service:
 worker: pnpm --filter @fholio/cron-jobs start
 
 # Or use managed cron (GitHub Actions, Render Cron Jobs)
-```
+````
 
 ### **Database (Supabase - Already Hosted)**
 
@@ -843,6 +874,7 @@ supabase db push
 We welcome contributions! Please follow these guidelines:
 
 ### **Development Setup**
+
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
 3. Make your changes
@@ -852,12 +884,14 @@ We welcome contributions! Please follow these guidelines:
 7. Open a Pull Request
 
 ### **Code Style**
+
 - Follow existing code conventions
 - Use TypeScript for type safety
 - Write meaningful commit messages
 - Add comments for complex logic
 
 ### **Testing**
+
 ```bash
 # Run tests (when implemented)
 pnpm test
@@ -866,12 +900,12 @@ pnpm test
 pnpm lint
 ```
 
-
 ## **🆘 Support**
 
 ### **Common Issues**
 
 **Database connection fails:**
+
 ```bash
 # Check your SUPABASE_URL and keys in .env
 # Verify Supabase project is running
@@ -879,6 +913,7 @@ supabase status
 ```
 
 **Chartmetric API rate limit:**
+
 ```bash
 # The sync job is designed to respect rate limits
 # Check sync_logs table for errors
@@ -886,6 +921,7 @@ supabase status
 ```
 
 **Port already in use:**
+
 ```bash
 # Change PORT in .env
 # Or kill the process:
@@ -893,8 +929,10 @@ lsof -ti:3001 | xargs kill -9
 ```
 
 ### **Get Help**
+
 - 📧 Email: dev@fholio.com
 - 🐛 Issues: [GitHub Issues](https://github.com/yourusername/fholio/issues)
+
 ---
 
 **Built with ❤️ by the Fholio Team**
