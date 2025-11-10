@@ -19,7 +19,7 @@ export function ArtistSignIn({ onNavigate, onSuccess }: ArtistSignInProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
+  const supabase = getSupabase();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -28,7 +28,6 @@ export function ArtistSignIn({ onNavigate, onSuccess }: ArtistSignInProps) {
 
     try {
       if (isSignUp) {
-        const supabase = getSupabase();
         // Sign Up - Create new artist account
         const { data, error } = await supabase
           .from("beta_artists")

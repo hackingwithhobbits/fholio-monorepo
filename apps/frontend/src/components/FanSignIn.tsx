@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Logo } from "./Logo";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabase, supabase } from "@/lib/supabase";
 import { authUtils } from "@/lib/auth";
 
 interface FanSignInProps {
@@ -19,7 +19,7 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
+  const supabase = getSupabase();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -29,7 +29,6 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
     try {
       if (isSignUp) {
         // Sign Up - Create new fan account
-        const supabase = getSupabase();
 
         const { data, error } = await supabase
           .from("beta_fans")
