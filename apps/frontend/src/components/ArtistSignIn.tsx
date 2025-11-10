@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Logo } from "./Logo";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import { authUtils } from "@/lib/auth";
 
 interface ArtistSignInProps {
@@ -28,6 +28,7 @@ export function ArtistSignIn({ onNavigate, onSuccess }: ArtistSignInProps) {
 
     try {
       if (isSignUp) {
+        const supabase = getSupabase();
         // Sign Up - Create new artist account
         const { data, error } = await supabase
           .from("beta_artists")

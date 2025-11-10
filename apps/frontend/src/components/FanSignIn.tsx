@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Logo } from "./Logo";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import { authUtils } from "@/lib/auth";
 
 interface FanSignInProps {
@@ -29,6 +29,8 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
     try {
       if (isSignUp) {
         // Sign Up - Create new fan account
+        const supabase = getSupabase();
+
         const { data, error } = await supabase
           .from("beta_fans")
           .insert([
