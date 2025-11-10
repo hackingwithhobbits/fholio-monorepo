@@ -111,10 +111,10 @@ export function WeeklyGamesPage({ onNavigate }: WeeklyGamesPageProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-5xl md:text-6xl mb-4 gradient-text tracking-tighter">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 lg:mb-4 gradient-text tracking-tighter">
               Weekly Games
             </h1>
-            <p className="text-xl text-muted-foreground mb-8">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground mb-6 lg:mb-8">
               Pick your top 5 tracks and compete for prizes
             </p>
 
@@ -166,9 +166,11 @@ export function WeeklyGamesPage({ onNavigate }: WeeklyGamesPageProps) {
                 <Button
                   onClick={handleLockPicks}
                   disabled={selectedTracks.length !== 5}
-                  className="gradient-bg hover:opacity-90 disabled:opacity-50"
+                  className="gradient-bg hover:opacity-90 disabled:opacity-50 h-11"
+                  size="sm"
                 >
-                  Lock My Picks
+                  <span className="hidden sm:inline">Lock My Picks</span>
+                  <span className="sm:hidden">Lock Picks</span>
                 </Button>
               </div>
             </div>

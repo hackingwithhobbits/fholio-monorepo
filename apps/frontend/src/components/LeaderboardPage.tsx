@@ -42,7 +42,7 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
     <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8 relative">
       {/* Background Logo Watermark */}
       <div className="logo-watermark">
-        <Logo size="xl" className="opacity-100" />
+        <Logo size="xl" className="opacity-100" style={{ height: "400px" }} />
       </div>
 
       <div className="max-w-7xl mx-auto space-y-8 relative z-10">
@@ -80,17 +80,17 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
             <TabsList className="glass-card grid grid-cols-2 gap-2 p-2 inline-flex rounded-2xl">
               <TabsTrigger
                 value="artists"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all duration-200 ease-in-out rounded-xl px-8 py-3"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all duration-200 ease-in-out rounded-xl px-4 sm:px-8 py-3 min-h-[44px]"
               >
-                <Trophy className="w-4 h-4 mr-2" />
-                Top Artists
+                <Trophy className="w-4 h-4 mr-1 sm:mr-2" />
+                <span className="text-sm sm:text-base">Top Artists</span>
               </TabsTrigger>
               <TabsTrigger
                 value="fans"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all duration-200 ease-in-out rounded-xl px-8 py-3"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all duration-200 ease-in-out rounded-xl px-4 sm:px-8 py-3 min-h-[44px]"
               >
-                <Users className="w-4 h-4 mr-2" />
-                Top Fans
+                <Users className="w-4 h-4 mr-1 sm:mr-2" />
+                <span className="text-sm sm:text-base">Top Fans</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -107,28 +107,30 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
               <div className="glass-card rounded-2xl p-2 inline-flex gap-2">
                 <button
                   onClick={() => setSelectedLeague("Major")}
-                  className={`px-8 py-3 rounded-xl transition-all tracking-tight ${
+                  className={`px-4 sm:px-8 py-3 rounded-xl transition-all tracking-tight min-h-[44px] ${
                     selectedLeague === "Major"
                       ? "gradient-bg neon-glow text-white"
                       : "text-muted-foreground hover:text-white hover:bg-white/5"
                   }`}
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
                     <Trophy className="w-4 h-4" />
-                    Major League
+                    <span className="hidden sm:inline">Major League</span>
+                    <span className="sm:hidden">Major</span>
                   </span>
                 </button>
                 <button
                   onClick={() => setSelectedLeague("Minor")}
-                  className={`px-8 py-3 rounded-xl transition-all tracking-tight ${
+                  className={`px-4 sm:px-8 py-3 rounded-xl transition-all tracking-tight min-h-[44px] ${
                     selectedLeague === "Minor"
                       ? "gradient-bg neon-glow text-white"
                       : "text-muted-foreground hover:text-white hover:bg-white/5"
                   }`}
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
                     <Sparkles className="w-4 h-4" />
-                    Minor League
+                    <span className="hidden sm:inline">Minor League</span>
+                    <span className="sm:hidden">Minor</span>
                   </span>
                 </button>
               </div>

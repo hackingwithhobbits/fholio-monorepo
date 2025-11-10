@@ -42,7 +42,7 @@ export function SponsorsPage({ onNavigate }: SponsorsPageProps) {
     <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8 relative">
       {/* Background Logo Watermark */}
       <div className="logo-watermark">
-        <Logo size="xl" className="opacity-100" />
+        <Logo size="xl" className="opacity-100" style={{ height: "400px" }} />
       </div>
 
       <div className="max-w-6xl mx-auto space-y-12 relative z-10">

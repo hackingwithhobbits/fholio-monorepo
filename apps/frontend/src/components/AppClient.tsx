@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { HomePageComplete } from "./HomePageComplete";
 import { GlobalNavigation } from "./GlobalNavigation";
 import { GlobalFooter } from "./GlobalFooter";
+import { MobileNavigationBar } from "./MobileNavigationBar";
 import { HelpButton } from "./HelpButton";
 import { FanSignIn } from "./FanSignIn";
 import { ArtistSignIn } from "./ArtistSignIn";
@@ -17,7 +18,6 @@ import { LiveShowPage } from "./LiveShowPage";
 import { WeeklyGamesPage } from "./WeeklyGamesPage";
 import { WalletPage } from "./WalletPage";
 import { AboutPage } from "./AboutPage";
-import { Logo } from "./Logo";
 import { Toaster } from "./ui/sonner";
 import { toast } from "sonner";
 
@@ -178,25 +178,57 @@ export default function App() {
     "artist-onboarding",
   ].includes(currentPage);
 
+  // Show mobile navigation on public pages
+  const showMobileNav = ![
+    "fan-signin",
+    "artist-signin",
+    "fan-onboarding",
+    "artist-onboarding",
+  ].includes(currentPage);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Global Navigation */}
+      {/* Desktop Navigation */}
       {!hideNav && (
-        <GlobalNavigation
-          currentPage={currentPage}
-          onNavigate={handleNavigate}
-          isLoggedIn={isLoggedIn}
-          userType={userType}
-        />
+        <div className="hidden lg:block">
+          <GlobalNavigation
+            currentPage={currentPage}
+            onNavigate={handleNavigate}
+            isLoggedIn={isLoggedIn}
+            userType={userType}
+          />
+        </div>
       )}
 
-      <main>{renderPage()}</main>
+      {/* Mobile Navigation */}
+      {showMobileNav && (
+        <div className="lg:hidden">
+          <MobileNavigationBar
+            currentPage={currentPage}
+            onNavigate={handleNavigate}
+            isLoggedIn={isLoggedIn}
+            userType={userType}
+          />
+        </div>
+      )}
 
-      {/* Global Footer */}
-      {showFooter && <GlobalFooter onNavigate={handleNavigate} />}
+      <main className={showMobileNav ? "lg:pt-0 pt-16 pb-20" : ""}>
+        {renderPage()}
+      </main>
 
-      {/* Help Button */}
-      {showHelp && <HelpButton onNavigate={handleNavigate} />}
+      {/* Global Footer - Desktop Only */}
+      {showFooter && (
+        <div className="hidden lg:block">
+          <GlobalFooter onNavigate={handleNavigate} />
+        </div>
+      )}
+
+      {/* Help Button - Desktop Only */}
+      {showHelp && (
+        <div className="hidden lg:block">
+          <HelpButton onNavigate={handleNavigate} />
+        </div>
+      )}
 
       {/* Toast Notifications */}
       <Toaster position={isMobile ? "top-center" : "top-right"} />

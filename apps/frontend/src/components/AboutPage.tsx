@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Music,
@@ -25,6 +26,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "./ui/accordion";
+import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 interface AboutPageProps {
   onNavigate: (page: string) => void;
@@ -32,9 +34,9 @@ interface AboutPageProps {
 
 export function AboutPage({ onNavigate }: AboutPageProps) {
   return (
-    <div className="min-h-screen bg-black pt-16">
+    <div className="min-h-screen bg-black lg:pt-16">
       {/* Hero Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <section className="py-12 lg:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20" />
         </div>
@@ -52,11 +54,11 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
               </span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl mb-6 gradient-text tracking-tighter leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl mb-4 lg:mb-6 gradient-text tracking-tighter leading-tight">
               The Fantasy League for Music.
             </h1>
 
-            <p className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg lg:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
               Fholio turns music discovery into a weekly competition. Fans pick
               the artists they think will perform best, earn points based on
               streams and votes, and share cash payouts when their lineup wins.

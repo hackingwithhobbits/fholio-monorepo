@@ -201,7 +201,6 @@ async function fetchArtistsList(
       limit: CONFIG.BATCH_SIZE,
       offset,
       code2: "US",
-      career_stage: "undiscovered",
       "sp_ml[]": [20000, 50000], // Spotify monthly listeners
     });
 
@@ -248,7 +247,7 @@ async function fetchArtistDetails(
  */
 async function upsertArtist(artistData: any): Promise<boolean> {
   try {
-    const { data: existing, error } = await supabase
+    const { data, error } = await supabase
       .from("artists")
       .upsert(artistData, {
         onConflict: "id",
@@ -256,10 +255,6 @@ async function upsertArtist(artistData: any): Promise<boolean> {
       })
       .select();
 
-    if (existing) {
-      console.log(`⏭️  Skipping artist ${artistData.id} - already exists`);
-      return true; // Return true to count as "processed"
-    }
     if (error) {
       console.error(`❌ Supabase error for artist ${artistData.id}:`, {
         message: error.message,
@@ -409,7 +404,6 @@ async function main() {
         await updateProgress(currentOffset, totalSaved, "completed");
         break;
       }
-
       // Process batch
       const savedCount = await processBatch(artists);
 

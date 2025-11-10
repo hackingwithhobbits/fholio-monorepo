@@ -4,9 +4,9 @@ import "../styles/globals.css";
 import { SWRProvider } from "@/providers/SWRProvider";
 
 export const metadata: Metadata = {
-  title: "Fholio - Music Investment Platform",
-  description: "Discover, invest, and support emerging artists",
-  keywords: ["music", "investment", "artists", "streaming"],
+  title: "Fholio - Fantasy League for Music",
+  description: "Discover, play, invest, and support emerging artists",
+  keywords: ["music", "dicover", "artists", "streaming"],
 };
 
 // This could include server-side theme detection, user agent parsing, etc.

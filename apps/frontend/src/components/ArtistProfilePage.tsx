@@ -127,9 +127,9 @@ export function ArtistProfilePage({
   };
 
   return (
-    <div className="min-h-screen bg-black pt-16">
+    <div className="min-h-screen bg-black lg:pt-16">
       {/* Banner */}
-      <div className="relative h-64 overflow-hidden">
+      <div className="relative h-40 sm:h-48 lg:h-64 overflow-hidden">
         <ImageWithFallback
           src={artistData.banner}
           alt="Artist banner"

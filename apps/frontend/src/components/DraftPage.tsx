@@ -20,8 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Input } from "./ui/input";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { toast } from "sonner";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 interface DraftTrack {
   id: string;

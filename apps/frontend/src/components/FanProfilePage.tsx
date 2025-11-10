@@ -130,18 +130,18 @@ export function FanProfilePage({ onNavigate, onLogout }: FanProfilePageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-black pt-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen bg-black lg:pt-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12">
         {/* Profile Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-2xl p-8 mb-8 neon-glow"
+          className="glass-card rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 lg:mb-8 neon-glow"
         >
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-4 lg:gap-6">
             {/* Avatar */}
             <div className="relative">
-              <Avatar className="w-32 h-32 border-4 border-primary/30">
+              <Avatar className="w-24 sm:w-28 lg:w-32 h-24 sm:h-28 lg:h-32 border-4 border-primary/30">
                 <AvatarImage src={userData.avatar} alt={userData.displayName} />
                 <AvatarFallback className="text-3xl">
                   {userData.displayName.charAt(0)}
@@ -154,11 +154,13 @@ export function FanProfilePage({ onNavigate, onLogout }: FanProfilePageProps) {
 
             {/* User Info */}
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl text-white mb-1">
+              <h1 className="text-2xl sm:text-3xl text-white mb-1">
                 {userData.displayName}
               </h1>
-              <p className="text-lg text-accent mb-3">{userData.username}</p>
-              <p className="text-sm text-muted-foreground mb-4 max-w-2xl">
+              <p className="text-base sm:text-lg text-accent mb-2 sm:mb-3">
+                {userData.username}
+              </p>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 max-w-2xl">
                 {userData.bio}
               </p>
 

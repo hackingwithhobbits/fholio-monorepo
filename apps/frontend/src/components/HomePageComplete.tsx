@@ -36,6 +36,7 @@ import {
 interface HomePageCompleteProps {
   onNavigate: (page: string) => void;
 }
+
 const PARTICLES = Array.from({ length: 30 }, (_, i) => ({
   id: i,
   left: `${Math.random() * 100}%`,
@@ -44,9 +45,6 @@ const PARTICLES = Array.from({ length: 30 }, (_, i) => ({
 }));
 
 export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
-  const [selectedTimelineNode, setSelectedTimelineNode] = useState<
-    number | null
-  >(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -54,6 +52,7 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
   }, []);
 
   if (!mounted) return null;
+
   // Ticker content
   const tickerItems = [
     "🔥 WEEK 44 LIVE SHOW THURSDAY 7PM",
@@ -238,7 +237,7 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
   return (
     <div className="min-h-screen bg-black">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden lg:pt-16">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
           <ImageWithFallback
@@ -266,47 +265,55 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
+        <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 lg:py-20">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="space-y-8"
+            className="flex flex-col items-center justify-center"
           >
-            <h1 className="text-6xl md:text-8xl mb-6 tracking-tighter leading-[0.9]">
-              <span className="gradient-text">Stock Up on Sound.</span>
+            {/* Headline - Responsive sizing */}
+            <h1 className="w-full text-4xl sm:text-5xl md:text-6xl lg:text-8xl mb-6 tracking-tighter leading-tight lg:leading-[0.9] break-words">
+              <span className="gradient-text inline-block">
+                Stock Up on Sound.
+              </span>
             </h1>
 
-            <p className="text-2xl md:text-3xl text-white/90 mb-8 max-w-3xl mx-auto tracking-tight">
+            {/* Subheadline */}
+            <p className="w-full text-lg sm:text-xl md:text-2xl lg:text-3xl text-white/90 mb-6 max-w-3xl mx-auto tracking-tight px-2">
               The world's first fantasy league for music.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            {/* Buttons - 24px gap on mobile */}
+            <div className="w-full flex flex-col sm:flex-row gap-6 justify-center mb-6 px-4 sm:px-0">
               <Button
                 size="lg"
                 onClick={() => onNavigate("fan-signin")}
-                className="gradient-bg hover:opacity-90 neon-glow holo-button px-10 py-7 rounded-xl"
+                className="gradient-bg hover:opacity-90 neon-glow holo-button px-8 lg:px-10 py-6 lg:py-7 rounded-xl w-full sm:w-auto min-h-[56px]"
               >
-                Join the League
+                <span className="text-base lg:text-lg">Join the League</span>
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button
                 size="lg"
                 variant="outline"
                 onClick={() => onNavigate("artist-signin")}
-                className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent hover:text-white neon-glow px-10 py-7 rounded-xl transition-all"
+                className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent hover:text-white neon-glow px-8 lg:px-10 py-6 lg:py-7 rounded-xl transition-all w-full sm:w-auto min-h-[56px]"
               >
-                Submit Your Track
+                <span className="text-base lg:text-lg">Submit Your Track</span>
               </Button>
             </div>
 
             {/* Animated Ticker */}
-            <div className="glass-card rounded-2xl p-4 overflow-hidden neon-glow">
+            <div className="w-full glass-card rounded-2xl p-3 lg:p-4 overflow-hidden neon-glow mb-6 max-w-4xl">
               <div className="relative overflow-hidden">
-                <div className="flex gap-6 ticker-animation whitespace-nowrap">
+                <div className="flex gap-4 lg:gap-6 ticker-animation whitespace-nowrap">
                   {[...tickerItems, ...tickerItems, ...tickerItems].map(
                     (item, index) => (
-                      <span key={index} className="text-sm text-white/80">
+                      <span
+                        key={index}
+                        className="text-xs lg:text-sm text-white/80"
+                      >
                         {item} •
                       </span>
                     )
@@ -316,7 +323,7 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
             </div>
 
             {/* Short Explainer */}
-            <p className="text-lg text-white/70 tracking-tight">
+            <p className="text-base lg:text-lg text-white/70 tracking-tight">
               Pick artists. Compete. Earn.
             </p>
           </motion.div>
@@ -324,18 +331,18 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
       </section>
 
       {/* Weekly Timeline */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
+      <section className="py-12 lg:py-20 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-8 lg:mb-16"
           >
-            <h2 className="text-5xl md:text-6xl mb-4 gradient-text tracking-tighter">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 lg:mb-4 gradient-text tracking-tighter">
               The Weekly Cycle
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground">
               7 days. 100 tracks. Infinite possibilities.
             </p>
           </motion.div>
@@ -480,18 +487,18 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
       </section>
 
       {/* Prize Pool Breakdown */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
+      <section className="py-12 lg:py-20 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-8 lg:mb-16"
           >
-            <h2 className="text-5xl md:text-6xl mb-4 gradient-text tracking-tighter">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 lg:mb-4 gradient-text tracking-tighter">
               Prize Pool Distribution
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground">
               Transparent. Fair. Weekly.
             </p>
           </motion.div>
@@ -709,18 +716,18 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
       </section>
 
       {/* Bonus Rounds */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
+      <section className="py-12 lg:py-20 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-8 lg:mb-12"
           >
-            <h2 className="text-5xl md:text-6xl mb-4 gradient-text tracking-tighter">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 lg:mb-4 gradient-text tracking-tighter">
               Bonus Rounds
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground">
               Tuesday specials for extra rewards
             </p>
           </motion.div>
@@ -772,18 +779,18 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
       </section>
 
       {/* Daily Mini-Games */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
+      <section className="py-12 lg:py-20 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-8 lg:mb-12"
           >
-            <h2 className="text-5xl md:text-6xl mb-4 gradient-text tracking-tighter">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 lg:mb-4 gradient-text tracking-tighter">
               Daily Mini-Games
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground">
               Stay engaged. Earn XP. Climb the ranks.
             </p>
           </motion.div>
@@ -827,7 +834,7 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-5xl md:text-6xl mb-4 gradient-text tracking-tighter">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 lg:mb-4 gradient-text tracking-tighter">
               Why Join the League?
             </h2>
           </motion.div>
@@ -930,24 +937,24 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
+      <section className="py-12 lg:py-20 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl md:text-5xl mb-6 gradient-text">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl mb-4 lg:mb-6 gradient-text">
               Ready to Join the League?
             </h2>
-            <p className="text-xl text-muted-foreground mb-8">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground mb-6 lg:mb-8">
               Start free. Compete weekly. Earn rewards.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 onClick={() => onNavigate("fan-signin")}
-                className="gradient-bg hover:opacity-90 glow-pulse px-12 py-6"
+                className="gradient-bg hover:opacity-90 glow-pulse px-8 lg:px-12 py-5 lg:py-6 min-h-[56px]"
               >
                 Join Now
               </Button>

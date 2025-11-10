@@ -1,10 +1,10 @@
-import React from "react";
+import React from 'react';
 
 interface WorldMapProps {
   className?: string;
 }
 
-export const WorldMap: React.FC<WorldMapProps> = ({ className = "" }) => {
+export const WorldMap: React.FC<WorldMapProps> = ({ className = '' }) => {
   return (
     <svg
       viewBox="0 0 1000 500"
@@ -81,36 +81,9 @@ export const WorldMap: React.FC<WorldMapProps> = ({ className = "" }) => {
       <circle cx="800" cy="380" r="2" fill="rgba(255, 31, 112, 0.4)" />
 
       {/* Connection lines between major regions */}
-      <line
-        x1="200"
-        y1="150"
-        x2="450"
-        y2="120"
-        stroke="rgba(126, 31, 255, 0.1)"
-        strokeWidth="1"
-        strokeDasharray="5,5"
-        opacity="0.3"
-      />
-      <line
-        x1="490"
-        y1="125"
-        x2="620"
-        y2="120"
-        stroke="rgba(0, 255, 213, 0.1)"
-        strokeWidth="1"
-        strokeDasharray="5,5"
-        opacity="0.3"
-      />
-      <line
-        x1="500"
-        y1="190"
-        x2="230"
-        y2="300"
-        stroke="rgba(255, 31, 112, 0.1)"
-        strokeWidth="1"
-        strokeDasharray="5,5"
-        opacity="0.3"
-      />
+      <line x1="200" y1="150" x2="450" y2="120" stroke="rgba(126, 31, 255, 0.1)" strokeWidth="1" strokeDasharray="5,5" opacity="0.3" />
+      <line x1="490" y1="125" x2="620" y2="120" stroke="rgba(0, 255, 213, 0.1)" strokeWidth="1" strokeDasharray="5,5" opacity="0.3" />
+      <line x1="500" y1="190" x2="230" y2="300" stroke="rgba(255, 31, 112, 0.1)" strokeWidth="1" strokeDasharray="5,5" opacity="0.3" />
     </svg>
   );
 };

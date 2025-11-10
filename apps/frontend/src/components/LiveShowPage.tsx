@@ -119,9 +119,9 @@ export function LiveShowPage({ onNavigate }: LiveShowPageProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-black pt-16">
+    <div className="min-h-screen bg-black lg:pt-16">
       {/* Hero Banner */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <section className="relative py-12 lg:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute inset-0">
           <ImageWithFallback
             src="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1920&h=600&fit=crop"
@@ -143,34 +143,48 @@ export function LiveShowPage({ onNavigate }: LiveShowPageProps) {
               </span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl mb-6 gradient-text tracking-tighter leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl mb-4 lg:mb-6 gradient-text tracking-tighter leading-tight">
               Fholio Live Showdown
             </h1>
 
-            <p className="text-2xl text-white/90 mb-8 max-w-2xl">
+            <p className="text-lg sm:text-xl lg:text-2xl text-white/90 mb-6 lg:mb-8 max-w-2xl">
               Every Thursday 7 PM ET
             </p>
 
             {/* Countdown Timer */}
-            <div className="glass-card inline-block p-6 rounded-2xl mb-8 neon-glow">
-              <p className="text-sm text-muted-foreground mb-4 text-center">
+            <div className="glass-card inline-block p-4 lg:p-6 rounded-2xl mb-6 lg:mb-8 neon-glow w-full sm:w-auto">
+              <p className="text-sm text-muted-foreground mb-3 lg:mb-4 text-center">
                 Next show starts in:
               </p>
-              <div className="flex gap-4">
+              <div className="flex gap-2 sm:gap-4 justify-center">
                 {[
                   { value: timeUntilShow.days, label: "Days" },
                   { value: timeUntilShow.hours, label: "Hours" },
-                  { value: timeUntilShow.minutes, label: "Minutes" },
-                  { value: timeUntilShow.seconds, label: "Seconds" },
+                  {
+                    value: timeUntilShow.minutes,
+                    label: "Mins",
+                    labelShort: "Min",
+                  },
+                  {
+                    value: timeUntilShow.seconds,
+                    label: "Secs",
+                    labelShort: "Sec",
+                  },
                 ].map((item, index) => (
-                  <div key={index} className="text-center">
-                    <div className="glass-card px-4 py-3 rounded-xl min-w-[80px]">
-                      <div className="text-3xl gradient-text">
+                  <div
+                    key={index}
+                    className="text-center flex-1 sm:flex-initial"
+                  >
+                    <div className="glass-card px-2 sm:px-4 py-2 sm:py-3 rounded-xl sm:min-w-[80px]">
+                      <div className="text-xl sm:text-2xl lg:text-3xl gradient-text">
                         {item.value.toString().padStart(2, "0")}
                       </div>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-2">
-                      {item.label}
+                    <div className="text-xs text-muted-foreground mt-1 sm:mt-2">
+                      <span className="hidden sm:inline">{item.label}</span>
+                      <span className="sm:hidden">
+                        {item.labelShort || item.label}
+                      </span>
                     </div>
                   </div>
                 ))}

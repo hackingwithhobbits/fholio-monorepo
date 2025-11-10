@@ -1,6 +1,6 @@
-import { TrendingUp, TrendingDown, Users } from "lucide-react";
-import { Artist } from "../data/data-types";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { TrendingUp, TrendingDown, Users } from 'lucide-react';
+import { Artist } from '../data/mockData';
+import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface ArtistCardProps {
   artist: Artist;
@@ -10,13 +10,7 @@ interface ArtistCardProps {
   compact?: boolean;
 }
 
-export function ArtistCard({
-  artist,
-  onClick,
-  showAddButton,
-  onAdd,
-  compact = false,
-}: ArtistCardProps) {
+export function ArtistCard({ artist, onClick, showAddButton, onAdd, compact = false }: ArtistCardProps) {
   const isPositive = artist.change >= 0;
 
   if (compact) {
@@ -49,11 +43,8 @@ export function ArtistCard({
                 <TrendingDown className="w-4 h-4 text-secondary" />
               )}
             </div>
-            <p
-              className={`text-sm ${isPositive ? "text-accent" : "text-secondary"}`}
-            >
-              {isPositive ? "+" : ""}
-              {artist.change.toFixed(1)}%
+            <p className={`text-sm ${isPositive ? 'text-accent' : 'text-secondary'}`}>
+              {isPositive ? '+' : ''}{artist.change.toFixed(1)}%
             </p>
           </div>
         </div>
@@ -70,12 +61,11 @@ export function ArtistCard({
       <div
         className="absolute inset-0 rounded-2xl opacity-30 group-hover:opacity-100 transition-opacity duration-500"
         style={{
-          background: `conic-gradient(from 0deg, ${isPositive ? "#00ffd5" : "#ff1f70"} ${artist.score}%, transparent ${artist.score}%)`,
-          padding: "2px",
-          WebkitMask:
-            "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-          WebkitMaskComposite: "xor",
-          maskComposite: "exclude",
+          background: `conic-gradient(from 0deg, ${isPositive ? '#00ffd5' : '#ff1f70'} ${artist.score}%, transparent ${artist.score}%)`,
+          padding: '2px',
+          WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+          WebkitMaskComposite: 'xor',
+          maskComposite: 'exclude'
         }}
       />
 
@@ -88,35 +78,26 @@ export function ArtistCard({
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
-
+          
           {/* Shimmer effect on hover */}
           <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity" />
-
+          
           {/* Score Badge */}
           <div className="absolute top-4 right-4 glass-card px-4 py-2 rounded-xl backdrop-blur-xl border-primary/20 neon-glow">
-            <span className="gradient-text text-lg tracking-tight">
-              {artist.score.toFixed(1)}
-            </span>
+            <span className="gradient-text text-lg tracking-tight">{artist.score.toFixed(1)}</span>
           </div>
 
           {/* Change Indicator */}
-          <div
-            className={`absolute top-4 left-4 px-4 py-2 rounded-xl flex items-center gap-2 backdrop-blur-xl ${
-              isPositive
-                ? "bg-accent/10 border border-accent/30"
-                : "bg-secondary/10 border border-secondary/30"
-            }`}
-          >
+          <div className={`absolute top-4 left-4 px-4 py-2 rounded-xl flex items-center gap-2 backdrop-blur-xl ${
+            isPositive ? 'bg-accent/10 border border-accent/30' : 'bg-secondary/10 border border-secondary/30'
+          }`}>
             {isPositive ? (
               <TrendingUp className="w-4 h-4 text-accent" />
             ) : (
               <TrendingDown className="w-4 h-4 text-secondary" />
             )}
-            <span
-              className={`tracking-tight ${isPositive ? "text-accent" : "text-secondary"}`}
-            >
-              {isPositive ? "+" : ""}
-              {artist.change.toFixed(1)}%
+            <span className={`tracking-tight ${isPositive ? 'text-accent' : 'text-secondary'}`}>
+              {isPositive ? '+' : ''}{artist.change.toFixed(1)}%
             </span>
           </div>
         </div>
@@ -124,18 +105,14 @@ export function ArtistCard({
         {/* Content */}
         <div className="p-6 space-y-4">
           <div>
-            <h3 className="text-white group-hover:gradient-text transition-all text-xl tracking-tight">
-              {artist.name}
-            </h3>
+            <h3 className="text-white group-hover:gradient-text transition-all text-xl tracking-tight">{artist.name}</h3>
             <p className="text-sm text-muted-foreground/80">{artist.genre}</p>
           </div>
 
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2 text-muted-foreground/70">
               <Users className="w-4 h-4" />
-              <span className="tracking-tight">
-                {artist.fanBackers.toLocaleString()} backers
-              </span>
+              <span className="tracking-tight">{artist.fanBackers.toLocaleString()} backers</span>
             </div>
           </div>
 

@@ -8,7 +8,7 @@ interface GlobalNavigationProps {
   currentPage: string;
   onNavigate: (page: string) => void;
   isLoggedIn?: boolean;
-  userType?: "guest" | "fan" | "artist" | null;
+  userType?: "fan" | "artist" | null;
 }
 
 export function GlobalNavigation({

@@ -1,11 +1,4 @@
-import {
-  Home,
-  Compass,
-  BarChart3,
-  Trophy,
-  Wallet,
-  ThumbsUp,
-} from "lucide-react";
+import { Home, Compass, BarChart3, Trophy, Wallet, ThumbsUp } from 'lucide-react';
 
 interface MobileNavProps {
   currentPage: string;
@@ -14,11 +7,11 @@ interface MobileNavProps {
 
 export function MobileNav({ currentPage, onNavigate }: MobileNavProps) {
   const navItems = [
-    { id: "home", label: "Home", icon: Home },
-    { id: "vote", label: "Vote", icon: ThumbsUp },
-    { id: "draft", label: "Draft", icon: Trophy },
-    { id: "dashboard", label: "My Fholio", icon: BarChart3 },
-    { id: "wallet", label: "Wallet", icon: Wallet },
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'vote', label: 'Vote', icon: ThumbsUp },
+    { id: 'draft', label: 'Draft', icon: Trophy },
+    { id: 'dashboard', label: 'My Fholio', icon: BarChart3 },
+    { id: 'wallet', label: 'Wallet', icon: Wallet },
   ];
 
   return (
@@ -27,24 +20,20 @@ export function MobileNav({ currentPage, onNavigate }: MobileNavProps) {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
-
+          
           return (
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
               className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all ${
-                isActive ? "text-white" : "text-muted-foreground"
+                isActive ? 'text-white' : 'text-muted-foreground'
               }`}
             >
               {isActive && (
                 <div className="absolute inset-0 mx-3 gradient-bg rounded-xl opacity-20 neon-glow" />
               )}
-              <Icon
-                className={`w-5 h-5 relative z-10 ${isActive ? "text-primary" : ""}`}
-              />
-              <span className="text-xs relative z-10 tracking-tight">
-                {item.label}
-              </span>
+              <Icon className={`w-5 h-5 relative z-10 ${isActive ? 'text-primary' : ''}`} />
+              <span className="text-xs relative z-10 tracking-tight">{item.label}</span>
             </button>
           );
         })}

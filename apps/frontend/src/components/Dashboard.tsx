@@ -35,7 +35,6 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Artist } from "@/data/data-types";
 
 interface DashboardProps {
   onNavigate: (page: string, artistId?: string) => void;
@@ -68,30 +67,27 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     Gold: "from-yellow-500 to-yellow-300",
     Platinum: "from-purple-500 to-pink-400",
   };
-  type TierType = keyof typeof tierBadgeColor;
 
   const handleAddArtist = (artistId: string) => {
     const artist = artists.find((a) => a.id === artistId);
     if (
       artist &&
       selectedArtists.length < 5 &&
-      !selectedArtists.find((a: Artist) => a.id === artistId)
+      !selectedArtists.find((a) => a.id === artistId)
     ) {
       setSelectedArtists([...selectedArtists, artist]);
     }
   };
 
   const handleRemoveArtist = (artistId: string) => {
-    setSelectedArtists(
-      selectedArtists.filter((a: Artist) => a.id !== artistId)
-    );
+    setSelectedArtists(selectedArtists.filter((a) => a.id !== artistId));
   };
 
   return (
     <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 relative">
       {/* Background Logo Watermark */}
       <div className="logo-watermark">
-        <Logo size="xl" className="opacity-100" />
+        <Logo size="xl" className="opacity-100" style={{ height: "400px" }} />
       </div>
 
       <div className="max-w-7xl mx-auto space-y-8 relative z-10">
@@ -107,7 +103,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 My Fholio
               </h1>
               <div
-                className={`px-4 py-2 rounded-xl bg-gradient-to-r ${tierBadgeColor[userPortfolio.tier as TierType]} flex items-center gap-2 neon-glow`}
+                className={`px-4 py-2 rounded-xl bg-gradient-to-r ${tierBadgeColor[userPortfolio.tier]} flex items-center gap-2 neon-glow`}
               >
                 <Star className="w-5 h-5 text-white" />
                 <span className="text-white tracking-tight">
@@ -168,7 +164,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               </div>
 
               <div className="space-y-4">
-                {selectedArtists.map((artist: Artist, index: number) => (
+                {selectedArtists.map((artist, index) => (
                   <motion.div
                     key={artist.id}
                     initial={{ opacity: 0, x: -20 }}
@@ -527,10 +523,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <div className="grid md:grid-cols-3 gap-4">
               {artists
-                .filter(
-                  (a: Artist) =>
-                    !selectedArtists.find((sa: Artist) => sa.id === a.id)
-                )
+                .filter((a) => !selectedArtists.find((sa) => sa.id === a.id))
                 .map((artist) => (
                   <ArtistCard
                     key={artist.id}
