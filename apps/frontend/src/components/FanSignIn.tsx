@@ -1,25 +1,24 @@
+"use client";
 import { motion } from "framer-motion";
+
 import { Mail, User, ArrowLeft, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Logo } from "./Logo";
-import { getSupabase, supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { authUtils } from "@/lib/auth";
 
-interface FanSignInProps {
-  onNavigate: (page: string) => void;
-  onSuccess: (isNewUser: boolean) => void;
-}
-
-export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
+export function FanSignIn() {
+  const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const supabase = getSupabase();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -29,7 +28,6 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
     try {
       if (isSignUp) {
         // Sign Up - Create new fan account
-
         const { data, error } = await supabase
           .from("beta_fans")
           .insert([
@@ -52,6 +50,7 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
         }
 
         if (data && data[0]) {
+          // Save session
           authUtils.setSession({
             id: data[0].id,
             email: data[0].email,
@@ -62,8 +61,9 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
 
           setSuccess("Account created! Redirecting...");
 
+          // Redirect to onboarding for new users
           setTimeout(() => {
-            onSuccess(true); // true = new user, go to onboarding
+            router.push("/fan-onboarding");
           }, 1000);
         }
       } else {
@@ -80,6 +80,7 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
           return;
         }
 
+        // Save session
         authUtils.setSession({
           id: data.id,
           email: data.email,
@@ -90,8 +91,9 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
 
         setSuccess("Welcome back! Redirecting...");
 
+        // Redirect to dashboard for existing users
         setTimeout(() => {
-          onSuccess(false); // false = existing user, go to dashboard
+          router.push("/fan-dashboard");
         }, 1000);
       }
 
@@ -117,7 +119,7 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          onClick={() => onNavigate("home")}
+          onClick={() => router.push("/")}
           className="flex items-center gap-2 text-muted-foreground hover:text-white transition-colors duration-200 mb-8 group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-200" />

@@ -1,3 +1,4 @@
+"use client";
 import { motion } from "framer-motion";
 import {
   Music,
@@ -13,11 +14,9 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Logo } from "./Logo";
 
-interface ArtistDashboardProps {
-  onNavigate: (page: string) => void;
-}
+interface ArtistDashboardProps {}
 
-export function ArtistDashboard({ onNavigate }: ArtistDashboardProps) {
+export function ArtistDashboard({}: ArtistDashboardProps) {
   const submissions = [
     {
       id: 1,

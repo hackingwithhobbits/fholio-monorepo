@@ -1,14 +1,13 @@
+"use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, TrendingUp, DollarSign, ArrowRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { Logo } from "./Logo";
 
-interface FanOnboardingV2Props {
-  onNavigate: (page: string) => void;
-}
+interface FanOnboardingV2Props {}
 
-export function FanOnboardingV2({ onNavigate }: FanOnboardingV2Props) {
+export function FanOnboardingV2({}: FanOnboardingV2Props) {
   const [step, setStep] = useState(1);
 
   const steps = [
@@ -44,7 +43,7 @@ export function FanOnboardingV2({ onNavigate }: FanOnboardingV2Props) {
     if (step < 3) {
       setStep(step + 1);
     } else {
-      onNavigate("fan-dashboard");
+      router.push("fan-dashboard");
     }
   };
 

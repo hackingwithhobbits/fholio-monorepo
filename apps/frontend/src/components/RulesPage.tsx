@@ -1,4 +1,7 @@
+"use client";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+
 import {
   BookOpen,
   Users,
@@ -12,11 +15,10 @@ import {
 import { Button } from "./ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
-interface RulesPageProps {
-  onNavigate: (page: string) => void;
-}
+interface RulesPageProps {}
 
-export function RulesPage({ onNavigate }: RulesPageProps) {
+export function RulesPage({}: RulesPageProps) {
+  const router = useRouter();
   return (
     <div className="min-h-screen pb-32">
       {/* Hero Header */}
@@ -424,7 +426,7 @@ export function RulesPage({ onNavigate }: RulesPageProps) {
             className="mt-16 text-center"
           >
             <Button
-              onClick={() => onNavigate("leagues")}
+              onClick={() => router.push("/leagues")}
               className="gradient-bg neon-glow holo-button text-lg px-8 py-6"
             >
               Learn About League Tiers

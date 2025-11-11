@@ -1,4 +1,7 @@
+"use client";
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Heart, X, Play, Pause, Info, Sparkles, Settings } from "lucide-react";
 import { Button } from "./ui/button";
@@ -8,9 +11,7 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Logo } from "./Logo";
 import { artists } from "../data/mockData";
 
-interface MobileVoteRoomProps {
-  onNavigate: (page: string) => void;
-}
+interface MobileVoteRoomProps {}
 
 interface Track {
   id: string;
@@ -24,13 +25,13 @@ interface Track {
   votes?: number;
 }
 
-export function MobileVoteRoom({ onNavigate }: MobileVoteRoomProps) {
+export function MobileVoteRoom({}: MobileVoteRoomProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [votesRemaining, setVotesRemaining] = useState(10);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState<string>("all");
-
+  const router = useRouter();
   // Convert artists to tracks for voting
   const tracks: Track[] = artists.map((artist) => {
     // Generate random duration between 2:30 and 4:30
@@ -122,7 +123,7 @@ export function MobileVoteRoom({ onNavigate }: MobileVoteRoomProps) {
             later for more!
           </p>
           <Button
-            onClick={() => onNavigate("draft")}
+            onClick={() => router.push("/draft")}
             className="w-full gradient-bg py-6 rounded-2xl"
           >
             Continue to Draft
@@ -140,7 +141,7 @@ export function MobileVoteRoom({ onNavigate }: MobileVoteRoomProps) {
           <div className="w-10" /> {/* Spacer for centering */}
           <Logo size="sm" glow />
           <button
-            onClick={() => onNavigate("settings")}
+            onClick={() => router.push("/settings")}
             className="p-2 text-white hover:text-primary transition-colors duration-300"
             aria-label="Settings"
           >
@@ -341,7 +342,7 @@ export function MobileVoteRoom({ onNavigate }: MobileVoteRoomProps) {
             <Heart className="w-10 h-10 text-white" />
           </button>
           <button
-            onClick={() => onNavigate("discover")}
+            onClick={() => router.push("/discover")}
             className="w-16 h-16 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center active:scale-90 transition-transform touch-target"
           >
             <Info className="w-6 h-6 text-white" />

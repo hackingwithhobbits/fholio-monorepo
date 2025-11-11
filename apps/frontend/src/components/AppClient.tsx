@@ -146,63 +146,35 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case "home":
-        return <HomePageComplete onNavigate={handleNavigate} />;
+        return <HomePageComplete />;
       case "fan-signin":
-        return (
-          <FanSignIn
-            onNavigate={handleNavigate}
-            onSuccess={(isNewUser: boolean) =>
-              handleAuthSuccess("fan", isNewUser)
-            }
-          />
-        );
+        return <FanSignIn />;
       case "artist-signin":
-        return (
-          <ArtistSignIn
-            onNavigate={handleNavigate}
-            onSuccess={(isNewUser: boolean) =>
-              handleAuthSuccess("artist", isNewUser)
-            }
-          />
-        );
+        return <ArtistSignIn />;
       case "fan-onboarding":
-        return <FanOnboardingV2 onNavigate={handleNavigate} />;
+        return <FanOnboardingV2 />;
       case "artist-onboarding":
-        return <ArtistOnboardingV2 onNavigate={handleNavigate} />;
+        return <ArtistOnboardingV2 />;
       case "fan-dashboard":
-        return (
-          <FanDashboard onNavigate={handleNavigate} onLogout={handleLogout} />
-        );
+        return <FanDashboard onLogout={handleLogout} />;
       case "artist-dashboard":
-        return (
-          <ArtistDashboardV2
-            onNavigate={handleNavigate}
-            onLogout={handleLogout}
-          />
-        );
+        return <ArtistDashboardV2 onLogout={handleLogout} />;
       case "fan-profile":
-        return (
-          <FanProfilePage onNavigate={handleNavigate} onLogout={handleLogout} />
-        );
+        return <FanProfilePage onLogout={handleLogout} />;
       case "artist-profile":
-        return (
-          <ArtistProfilePage
-            onNavigate={handleNavigate}
-            onLogout={handleLogout}
-          />
-        );
+        return <ArtistProfilePage onLogout={handleLogout} />;
       case "leaderboard":
-        return <LeaderboardPage onNavigate={handleNavigate} />;
+        return <LeaderboardPage />;
       case "live-show":
-        return <LiveShowPage onNavigate={handleNavigate} />;
+        return <LiveShowPage />;
       case "weekly-games":
-        return <WeeklyGamesPage onNavigate={handleNavigate} />;
+        return <WeeklyGamesPage />;
       case "wallet":
-        return <WalletPage onNavigate={handleNavigate} />;
+        return <WalletPage />;
       case "about":
-        return <AboutPage onNavigate={handleNavigate} />;
+        return <AboutPage />;
       default:
-        return <HomePageComplete onNavigate={handleNavigate} />;
+        return <HomePageComplete />;
     }
   };
 
@@ -252,7 +224,6 @@ export default function App() {
         <div className="hidden lg:block">
           <GlobalNavigation
             currentPage={currentPage}
-            onNavigate={handleNavigate}
             isLoggedIn={isLoggedIn}
             userType={userType}
           />
@@ -264,7 +235,6 @@ export default function App() {
         <div className="lg:hidden">
           <MobileNavigationBar
             currentPage={currentPage}
-            onNavigate={handleNavigate}
             isLoggedIn={isLoggedIn}
             userType={userType}
           />
@@ -278,14 +248,14 @@ export default function App() {
       {/* Global Footer - Desktop Only */}
       {showFooter && (
         <div className="hidden lg:block">
-          <GlobalFooter onNavigate={handleNavigate} />
+          <GlobalFooter />
         </div>
       )}
 
       {/* Help Button - Desktop Only */}
       {showHelp && (
         <div className="hidden lg:block">
-          <HelpButton onNavigate={handleNavigate} />
+          <HelpButton />
         </div>
       )}
 

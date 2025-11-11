@@ -1,4 +1,6 @@
+"use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Music,
@@ -30,14 +32,11 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { toast } from "sonner";
 
 interface ArtistProfilePageProps {
-  onNavigate: (page: string) => void;
   onLogout: () => void;
 }
 
-export function ArtistProfilePage({
-  onNavigate,
-  onLogout,
-}: ArtistProfilePageProps) {
+export function ArtistProfilePage({ onLogout }: ArtistProfilePageProps) {
+  const router = useRouter();
   // Mock artist data - realistic stats
   const artistData = {
     name: "Neon Dreams",
@@ -209,7 +208,7 @@ export function ArtistProfilePage({
                 <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                   <Button
                     size="sm"
-                    onClick={() => onNavigate("artist-dashboard")}
+                    onClick={() => router.push("/artist-dashboard")}
                     className="gradient-bg"
                   >
                     <Upload className="w-4 h-4 mr-2" />
@@ -275,7 +274,7 @@ export function ArtistProfilePage({
                 </h3>
                 <Button
                   size="sm"
-                  onClick={() => onNavigate("artist-dashboard")}
+                  onClick={() => router.push("/artist-dashboard")}
                   className="gradient-bg"
                 >
                   <Upload className="w-4 h-4 mr-2" />

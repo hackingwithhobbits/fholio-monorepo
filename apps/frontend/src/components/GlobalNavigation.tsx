@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "./Logo";
@@ -6,20 +8,19 @@ import { Button } from "./ui/button";
 
 interface GlobalNavigationProps {
   currentPage: string;
-  onNavigate: (page: string) => void;
+
   isLoggedIn?: boolean;
   userType?: "guest" | "fan" | "artist" | null;
 }
 
 export function GlobalNavigation({
   currentPage,
-  onNavigate,
   isLoggedIn = false,
   userType,
 }: GlobalNavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-
+  const router = useRouter();
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -41,7 +42,7 @@ export function GlobalNavigation({
         ? userType === "artist"
           ? "artist-profile"
           : "fan-profile"
-        : "home",
+        : "profile",
     },
     { label: "About", page: "about" },
   ];
@@ -57,7 +58,7 @@ export function GlobalNavigation({
           {/* Logo */}
           <div
             className="flex-shrink-0 cursor-pointer"
-            onClick={() => onNavigate("home")}
+            onClick={() => router.push("/")}
           >
             <Logo size="md" glow />
           </div>
@@ -67,7 +68,7 @@ export function GlobalNavigation({
             {navItems.map((item, index) => (
               <button
                 key={index}
-                onClick={() => onNavigate(item.page)}
+                onClick={() => router.push(item.page)}
                 className={`px-4 py-2 text-sm rounded-lg transition-all ${
                   currentPage === item.page
                     ? "text-white bg-gradient-to-r from-primary/30 to-secondary/30"
@@ -83,7 +84,7 @@ export function GlobalNavigation({
           {!isLoggedIn && (
             <div className="hidden lg:block">
               <Button
-                onClick={() => onNavigate("fan-signin")}
+                onClick={() => router.push("/fan-signin")}
                 className="gradient-bg hover:opacity-90 neon-glow"
               >
                 Join Now
@@ -119,7 +120,7 @@ export function GlobalNavigation({
                 <button
                   key={index}
                   onClick={() => {
-                    onNavigate(item.page);
+                    router.push(item.page);
                     setMobileMenuOpen(false);
                   }}
                   className={`block w-full text-left px-4 py-3 rounded-lg transition-all ${
@@ -134,7 +135,7 @@ export function GlobalNavigation({
               {!isLoggedIn && (
                 <Button
                   onClick={() => {
-                    onNavigate("fan-signin");
+                    router.push("/fan-signin");
                     setMobileMenuOpen(false);
                   }}
                   className="w-full gradient-bg hover:opacity-90 neon-glow mt-4"

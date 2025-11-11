@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "../styles/globals.css";
 import { SWRProvider } from "@/providers/SWRProvider";
+import { ClientLayout } from "@/components/ClientLayout";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Fholio - Fantasy League for Music",
@@ -9,10 +11,9 @@ export const metadata: Metadata = {
   keywords: ["music", "dicover", "artists", "streaming"],
 };
 
-// This could include server-side theme detection, user agent parsing, etc.
 async function getServerSideProps() {
   return {
-    theme: "dark", // Could be determined server-side
+    theme: "dark",
     locale: "en-US",
   };
 }
@@ -27,7 +28,6 @@ export default async function RootLayout({
   return (
     <html lang="en" className={serverProps.theme}>
       <head>
-        {/* Server-side meta tags, fonts, etc. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -37,8 +37,10 @@ export default async function RootLayout({
       </head>
 
       <body className="antialiased">
-        {/* Any server-side providers or wrappers */}
-        <SWRProvider>{children}</SWRProvider>
+        <SWRProvider>
+          <ClientLayout>{children}</ClientLayout>
+          <Toaster />
+        </SWRProvider>
       </body>
     </html>
   );

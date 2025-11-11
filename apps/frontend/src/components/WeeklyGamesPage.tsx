@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -24,14 +25,13 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { weeklyTracks } from "../data/weeklyTracks";
+import { useRouter } from "next/navigation";
+interface WeeklyGamesPageProps {}
 
-interface WeeklyGamesPageProps {
-  onNavigate: (page: string) => void;
-}
-
-export function WeeklyGamesPage({ onNavigate }: WeeklyGamesPageProps) {
+export function WeeklyGamesPage({}: WeeklyGamesPageProps) {
   const [selectedTracks, setSelectedTracks] = useState<number[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
+  const router = useRouter();
   const [timeLeft, setTimeLeft] = useState({
     hours: 46,
     minutes: 12,
@@ -347,7 +347,7 @@ export function WeeklyGamesPage({ onNavigate }: WeeklyGamesPageProps) {
             <Button
               onClick={() => {
                 setShowSuccess(false);
-                onNavigate("fan-dashboard");
+                router.push("/fan-dashboard");
               }}
               className="w-full gradient-bg hover:opacity-90"
             >

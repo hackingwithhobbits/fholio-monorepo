@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -33,9 +35,7 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 
-interface HomePageCompleteProps {
-  onNavigate: (page: string) => void;
-}
+interface HomePageCompleteProps {}
 
 const PARTICLES = Array.from({ length: 30 }, (_, i) => ({
   id: i,
@@ -44,9 +44,9 @@ const PARTICLES = Array.from({ length: 30 }, (_, i) => ({
   animationDuration: `${20 + Math.random() * 10}s`,
 }));
 
-export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
+export function HomePageComplete({}: HomePageCompleteProps) {
   const [mounted, setMounted] = useState(false);
-
+  const router = useRouter();
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -288,7 +288,7 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
             <div className="w-full flex flex-col sm:flex-row gap-6 justify-center mb-6 px-4 sm:px-0">
               <Button
                 size="lg"
-                onClick={() => onNavigate("fan-signin")}
+                onClick={() => router.push("/fan-signin")}
                 className="gradient-bg hover:opacity-90 neon-glow holo-button px-8 lg:px-10 py-6 lg:py-7 rounded-xl w-full sm:w-auto min-h-[56px]"
               >
                 <span className="text-base lg:text-lg">Join the League</span>
@@ -297,7 +297,7 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => onNavigate("artist-signin")}
+                onClick={() => router.push("/artist-signin")}
                 className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent hover:text-white neon-glow px-8 lg:px-10 py-6 lg:py-7 rounded-xl transition-all w-full sm:w-auto min-h-[56px]"
               >
                 <span className="text-base lg:text-lg">Submit Your Track</span>
@@ -475,7 +475,7 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
                 </ul>
 
                 <Button
-                  onClick={() => onNavigate("fan-signin")}
+                  onClick={() => router.push("/fan-signin")}
                   className={`w-full ${tier.popular ? "gradient-bg" : "bg-white/10"} hover:opacity-90`}
                 >
                   {tier.cta}
@@ -764,7 +764,7 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
                     </div>
                     <div className="flip-card-back glass-card rounded-2xl p-6 neon-glow flex items-center justify-center">
                       <Button
-                        onClick={() => onNavigate("weekly-games")}
+                        onClick={() => router.push("/weekly-games")}
                         className="gradient-bg hover:opacity-90"
                       >
                         Enter Now
@@ -806,7 +806,7 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.05 }}
                   className="glass-card p-6 rounded-2xl hover:scale-105 transition-all neon-glow cursor-pointer group"
-                  onClick={() => onNavigate("weekly-games")}
+                  onClick={() => router.push("/weekly-games")}
                 >
                   <Icon className="w-8 h-8 text-accent mx-auto mb-3 group-hover:animate-pulse" />
                   <h4 className="text-sm text-white text-center mb-2">
@@ -953,7 +953,7 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                onClick={() => onNavigate("fan-signin")}
+                onClick={() => router.push("/fan-signin")}
                 className="gradient-bg hover:opacity-90 glow-pulse px-8 lg:px-12 py-5 lg:py-6 min-h-[56px]"
               >
                 Join Now
@@ -961,7 +961,7 @@ export function HomePageComplete({ onNavigate }: HomePageCompleteProps) {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => onNavigate("weekly-games")}
+                onClick={() => router.push("/weekly-games")}
                 className="border-primary/40 text-white hover:bg-primary/20 px-12 py-6"
               >
                 Explore Games

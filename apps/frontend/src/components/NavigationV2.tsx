@@ -6,10 +6,10 @@ import { Logo } from './Logo';
 interface NavigationV2Props {
   currentPage: string;
   userType: 'guest' | 'fan' | 'artist' | null;
-  onNavigate: (page: string, artistId?: string, userType?: 'guest' | 'fan' | 'artist') => void;
+  router.push: (page: string, artistId?: string, userType?: 'guest' | 'fan' | 'artist') => void;
 }
 
-export function NavigationV2({ currentPage, userType, onNavigate }: NavigationV2Props) {
+export function NavigationV2({ currentPage, userType, router.push }: NavigationV2Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Navigation items based on user type
@@ -38,7 +38,7 @@ export function NavigationV2({ currentPage, userType, onNavigate }: NavigationV2
           {/* Logo */}
           <div 
             className="flex items-center gap-3 cursor-pointer group"
-            onClick={() => onNavigate('home')}
+            onClick={() => router.push('home')}
           >
             <Logo size="md" glow className="group-hover:scale-110 transition-transform" />
           </div>
@@ -51,7 +51,7 @@ export function NavigationV2({ currentPage, userType, onNavigate }: NavigationV2
               return (
                 <button
                   key={item.id}
-                  onClick={() => onNavigate(item.id)}
+                  onClick={() => router.push(item.id)}
                   className={`relative flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-200 ease-in-out group ${
                     isActive
                       ? 'text-white'
@@ -75,7 +75,7 @@ export function NavigationV2({ currentPage, userType, onNavigate }: NavigationV2
           <div className="hidden md:flex items-center gap-3">
             {!userType || userType === 'guest' ? (
               <Button
-                onClick={() => onNavigate('auth')}
+                onClick={() => router.push('auth')}
                 className="gradient-bg hover:opacity-90 neon-glow holo-button rounded-xl px-6 transition-all duration-200 ease-in-out"
               >
                 <LogIn className="w-4 h-4 mr-2" />
@@ -112,7 +112,7 @@ export function NavigationV2({ currentPage, userType, onNavigate }: NavigationV2
                 <button
                   key={item.id}
                   onClick={() => {
-                    onNavigate(item.id);
+                    router.push(item.id);
                     setMobileMenuOpen(false);
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
@@ -131,7 +131,7 @@ export function NavigationV2({ currentPage, userType, onNavigate }: NavigationV2
                 <Button
                   className="w-full gradient-bg"
                   onClick={() => {
-                    onNavigate('auth');
+                    router.push('/auth');
                     setMobileMenuOpen(false);
                   }}
                 >

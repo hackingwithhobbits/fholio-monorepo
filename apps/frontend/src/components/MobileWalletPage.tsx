@@ -1,4 +1,7 @@
+"use client";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+
 import {
   Wallet,
   TrendingUp,
@@ -17,16 +20,14 @@ import { Logo } from "./Logo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { toast } from "sonner";
 
-interface MobileWalletPageProps {
-  onNavigate: (page: string) => void;
-}
+interface MobileWalletPageProps {}
 
-export function MobileWalletPage({ onNavigate }: MobileWalletPageProps) {
+export function MobileWalletPage({}: MobileWalletPageProps) {
   const balance = 2847.5;
   const xp = 8450;
   const level = 12;
   const referrals = 8;
-
+  const router = useRouter();
   const payouts = [
     {
       id: "1",
@@ -69,7 +70,7 @@ export function MobileWalletPage({ onNavigate }: MobileWalletPageProps) {
           <div className="w-10" /> {/* Spacer for centering */}
           <Logo size="sm" glow />
           <button
-            onClick={() => onNavigate("settings")}
+            onClick={() => router.push("/settings")}
             className="p-2 text-white hover:text-primary transition-colors duration-300"
             aria-label="Settings"
           >
@@ -179,7 +180,7 @@ export function MobileWalletPage({ onNavigate }: MobileWalletPageProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onNavigate("charts")}
+              onClick={() => router.push("/charts")}
               className="text-accent text-xs"
             >
               View All

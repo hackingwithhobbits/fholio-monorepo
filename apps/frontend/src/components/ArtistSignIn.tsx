@@ -1,4 +1,6 @@
+"use client";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { Mail, Mic, ArrowLeft, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
@@ -20,6 +22,8 @@ export function ArtistSignIn({ onNavigate, onSuccess }: ArtistSignInProps) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const supabase = getSupabase();
+  const router = useRouter();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -28,7 +32,7 @@ export function ArtistSignIn({ onNavigate, onSuccess }: ArtistSignInProps) {
 
     try {
       if (isSignUp) {
-        // Sign Up - Create new artist account
+        // Sign Up
         const { data, error } = await supabase
           .from("beta_artists")
           .insert([
@@ -60,13 +64,12 @@ export function ArtistSignIn({ onNavigate, onSuccess }: ArtistSignInProps) {
           });
 
           setSuccess("Account created! Redirecting...");
-
           setTimeout(() => {
-            onSuccess(true); // true = new user, go to onboarding
+            router.push("/artist-onboarding");
           }, 1000);
         }
       } else {
-        // Sign In - Check if artist exists
+        // Sign In
         const { data, error } = await supabase
           .from("beta_artists")
           .select("*")
@@ -88,9 +91,8 @@ export function ArtistSignIn({ onNavigate, onSuccess }: ArtistSignInProps) {
         });
 
         setSuccess("Welcome back! Redirecting...");
-
         setTimeout(() => {
-          onSuccess(false); // false = existing user, go to dashboard
+          router.push("/artist-dashboard");
         }, 1000);
       }
 
@@ -116,7 +118,7 @@ export function ArtistSignIn({ onNavigate, onSuccess }: ArtistSignInProps) {
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          onClick={() => onNavigate("home")}
+          onClick={() => router.push("/home")}
           className="flex items-center gap-2 text-muted-foreground hover:text-white transition-colors duration-200 mb-8 group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-200" />

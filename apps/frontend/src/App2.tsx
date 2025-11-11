@@ -77,40 +77,23 @@ export default function AppV2() {
   const renderPage = () => {
     switch (currentPage) {
       case "home":
-        return <LandingPageV2 onNavigate={handleNavigate} />;
+        return <LandingPageV2 />;
       case "auth":
-        return <AuthPage onNavigate={handleNavigate} />;
+        return <AuthPage />;
       case "fan-signin":
-        return (
-          <FanSignIn
-            onNavigate={handleNavigate}
-            onSuccess={() => handleAuthSuccess("fan")}
-          />
-        );
+        return <FanSignIn onSuccess={() => handleAuthSuccess("fan")} />;
       case "artist-signin":
-        return (
-          <ArtistSignIn
-            onNavigate={handleNavigate}
-            onSuccess={() => handleAuthSuccess("artist")}
-          />
-        );
+        return <ArtistSignIn onSuccess={() => handleAuthSuccess("artist")} />;
       case "fan-onboarding":
-        return <FanOnboardingV2 onNavigate={handleNavigate} />;
+        return <FanOnboardingV2 />;
       case "artist-onboarding":
-        return <ArtistOnboardingV2 onNavigate={handleNavigate} />;
+        return <ArtistOnboardingV2 />;
       case "fan-dashboard":
-        return (
-          <FanDashboard onNavigate={handleNavigate} onLogout={handleLogout} />
-        );
+        return <FanDashboard onLogout={handleLogout} />;
       case "artist-dashboard":
-        return (
-          <ArtistDashboardV2
-            onNavigate={handleNavigate}
-            onLogout={handleLogout}
-          />
-        );
+        return <ArtistDashboardV2 onLogout={handleLogout} />;
       case "leaderboard":
-        return <LeaderboardPage onNavigate={handleNavigate} />;
+        return <LeaderboardPage />;
       case "about":
         return (
           <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8">
@@ -153,7 +136,7 @@ export default function AppV2() {
           </div>
         );
       default:
-        return <LandingPageV2 onNavigate={handleNavigate} />;
+        return <LandingPageV2 />;
     }
   };
 
@@ -173,11 +156,7 @@ export default function AppV2() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Navigation - Only show on guest pages */}
       {!hideNav && (
-        <NavigationV2
-          currentPage={currentPage}
-          userType={userType}
-          onNavigate={handleNavigate}
-        />
+        <NavigationV2 currentPage={currentPage} userType={userType} />
       )}
 
       <main>{renderPage()}</main>

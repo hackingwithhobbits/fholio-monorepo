@@ -1,4 +1,6 @@
+"use client";
 import { motion, Reorder } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   TrendingUp,
@@ -24,15 +26,13 @@ import { Logo } from "./Logo";
 import { ShareButtons } from "./ShareButtons";
 import { toast } from "sonner";
 
-interface DashboardV2Props {
-  onNavigate: (page: string, artistId?: string) => void;
-}
+interface DashboardV2Props {}
 
-export function DashboardV2({ onNavigate }: DashboardV2Props) {
+export function DashboardV2({}: DashboardV2Props) {
   const [lineup, setLineup] = useState(userPortfolio.artists);
   const [isEditing, setIsEditing] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
-
+  const router = useRouter();
   const maxArtists = 5;
   const lockInDeadline = "Friday 6:00 PM ET";
   const timeUntilLock = "2d 14h";
@@ -278,7 +278,7 @@ export function DashboardV2({ onNavigate }: DashboardV2Props) {
             {lineup.length < maxArtists && !isLocked && (
               <Button
                 variant="outline"
-                onClick={() => onNavigate("discover")}
+                onClick={() => router.push("/discover")}
                 className="border-primary/30 hover:bg-primary/10"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -318,7 +318,7 @@ export function DashboardV2({ onNavigate }: DashboardV2Props) {
                     <div className="flex items-center gap-3 mb-2">
                       <h3
                         className="text-2xl text-white tracking-tight cursor-pointer hover:text-primary transition-colors"
-                        onClick={() => onNavigate("artist", artist.id)}
+                        onClick={() => router.push(`/artist/${artist.id}`)}
                       >
                         {artist.name}
                       </h3>

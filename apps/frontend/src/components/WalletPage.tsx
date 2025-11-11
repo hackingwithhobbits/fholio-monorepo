@@ -1,3 +1,4 @@
+"use client";
 import { motion } from "framer-motion";
 import {
   Wallet,
@@ -16,11 +17,9 @@ import { userPortfolio, payoutHistory, topFans } from "../data/mockData";
 import { Logo } from "./Logo";
 import { ShareButtons } from "./ShareButtons";
 
-interface WalletPageProps {
-  onNavigate: (page: string) => void;
-}
+interface WalletPageProps {}
 
-export function WalletPage({ onNavigate }: WalletPageProps) {
+export function WalletPage({}: WalletPageProps) {
   const weekProgress = 67; // Mock: 67% through the week
 
   return (

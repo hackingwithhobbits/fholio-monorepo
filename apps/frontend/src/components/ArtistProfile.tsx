@@ -1,4 +1,6 @@
+"use client";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   TrendingUp,
@@ -28,13 +30,10 @@ import {
 
 interface ArtistProfileProps {
   artistId?: string;
-  onNavigate: (page: string) => void;
 }
 
-export function ArtistProfile({
-  artistId = "1",
-  onNavigate,
-}: ArtistProfileProps) {
+export function ArtistProfile({ artistId = "1" }: ArtistProfileProps) {
+  const router = useRouter();
   const artist = artists.find((a) => a.id === artistId) || artists[0];
 
   const performanceBreakdown = [
@@ -63,7 +62,7 @@ export function ArtistProfile({
 
         {/* Back Button */}
         <button
-          onClick={() => onNavigate("dashboard")}
+          onClick={() => router.push("/dashboard")}
           className="absolute top-20 left-4 sm:left-8 glass-card p-3 rounded-lg hover:bg-white/10 transition-all z-10"
         >
           <ArrowLeft className="w-5 h-5" />

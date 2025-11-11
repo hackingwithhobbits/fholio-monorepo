@@ -1,4 +1,6 @@
+"use client";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   Brain,
   Shield,
@@ -19,11 +21,10 @@ import { Button } from "./ui/button";
 import { faqs } from "../data/mockData";
 import { Logo } from "./Logo";
 
-interface EducationPageProps {
-  onNavigate: (page: string) => void;
-}
+interface EducationPageProps {}
 
-export function EducationPage({ onNavigate }: EducationPageProps) {
+export function EducationPage({}: EducationPageProps) {
+  const router = useRouter();
   return (
     <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 relative">
       {/* Background Logo Watermark */}
@@ -380,7 +381,7 @@ export function EducationPage({ onNavigate }: EducationPageProps) {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              onClick={() => onNavigate("dashboard")}
+              onClick={() => router.push("/dashboard")}
               className="gradient-bg hover:opacity-90 neon-glow holo-button rounded-xl px-10"
             >
               Join the League
@@ -388,7 +389,7 @@ export function EducationPage({ onNavigate }: EducationPageProps) {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => onNavigate("home")}
+              onClick={() => router.push("/")}
               className="border-primary/30 text-white hover:bg-primary/10 neon-glow rounded-xl px-10"
             >
               Back to Home

@@ -1,14 +1,13 @@
+"use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Music, Upload, Award, ArrowRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { Logo } from "./Logo";
 
-interface ArtistOnboardingV2Props {
-  onNavigate: (page: string) => void;
-}
+interface ArtistOnboardingV2Props {}
 
-export function ArtistOnboardingV2({ onNavigate }: ArtistOnboardingV2Props) {
+export function ArtistOnboardingV2({}: ArtistOnboardingV2Props) {
   const [step, setStep] = useState(1);
 
   const steps = [
@@ -42,7 +41,7 @@ export function ArtistOnboardingV2({ onNavigate }: ArtistOnboardingV2Props) {
     if (step < 3) {
       setStep(step + 1);
     } else {
-      onNavigate("artist-dashboard");
+      router.push("artist-dashboard");
     }
   };
 

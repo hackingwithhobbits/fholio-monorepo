@@ -1,4 +1,6 @@
+"use client";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   TrendingUp,
   Users,
@@ -36,14 +38,12 @@ import {
   Cell,
 } from "recharts";
 
-interface DashboardProps {
-  onNavigate: (page: string, artistId?: string) => void;
-}
+interface DashboardProps {}
 
-export function Dashboard({ onNavigate }: DashboardProps) {
+export function Dashboard({}: DashboardProps) {
   const [selectedArtists, setSelectedArtists] = useState(userPortfolio.artists);
   const [showDraftModal, setShowDraftModal] = useState(false);
-
+  const router = useRouter();
   const pieData = [
     { name: "Artist Pool", value: 60, color: "#8b1fff" },
     { name: "Fan Share", value: 15, color: "#00ffd5" },
@@ -178,7 +178,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                           src={artist.imageUrl}
                           alt={artist.name}
                           className="w-20 h-20 rounded-lg object-cover cursor-pointer"
-                          onClick={() => onNavigate("artist", artist.id)}
+                          onClick={() => router.push("/artist", artist.id)}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-lg" />
                         <div className="absolute bottom-1 right-1 px-2 py-0.5 rounded bg-primary/80 text-xs text-white">
@@ -188,7 +188,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                       <div className="flex-1 min-w-0">
                         <h3
                           className="text-white group-hover:text-primary transition-colors cursor-pointer"
-                          onClick={() => onNavigate("artist", artist.id)}
+                          onClick={() => router.push("/artist", artist.id)}
                         >
                           {artist.name}
                         </h3>
@@ -448,14 +448,14 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 <ArtistCard
                   key={artist.id}
                   artist={artist}
-                  onClick={() => onNavigate("artist", artist.id)}
+                  onClick={() => router.push("/artist", artist.id)}
                   compact
                 />
               ))}
               <Button
                 variant="outline"
                 className="w-full border-primary/40 text-white hover:bg-primary/20"
-                onClick={() => onNavigate("dashboard")}
+                onClick={() => router.push("/dashboard")}
               >
                 View Full Leaderboard
                 <ArrowRight className="ml-2 w-4 h-4" />
@@ -528,7 +528,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   <ArtistCard
                     key={artist.id}
                     artist={artist}
-                    onClick={() => onNavigate("artist", artist.id)}
+                    onClick={() => router.push(`/artist/${artist.id}`)}
                     showAddButton
                     onAdd={() => {
                       handleAddArtist(artist.id);

@@ -1,5 +1,7 @@
+"use client";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Trophy,
   Play,
@@ -23,7 +25,6 @@ import {
 import { Input } from "./ui/input";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { toast } from "sonner";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 interface DraftTrack {
   id: string;
@@ -36,17 +37,15 @@ interface DraftTrack {
   estPrizeRange: string;
 }
 
-interface DraftPageProps {
-  onNavigate: (page: string) => void;
-}
+interface DraftPageProps {}
 
-export function DraftPage({ onNavigate }: DraftPageProps) {
+export function DraftPage({}: DraftPageProps) {
   const [selectedLeague, setSelectedLeague] = useState("all");
   const [selectedGenre, setSelectedGenre] = useState("all");
   const [lineup, setLineup] = useState<DraftTrack[]>([]);
   const [isLocked, setIsLocked] = useState(false);
   const maxPicks = 5;
-
+  const router = useRouter();
   // Mock Top 100 data
   const draftPool: DraftTrack[] = [
     {
@@ -459,7 +458,7 @@ export function DraftPage({ onNavigate }: DraftPageProps) {
                         Track your picks in Live Week
                       </p>
                       <Button
-                        onClick={() => onNavigate("liveweek")}
+                        onClick={() => router.push("/liveweek")}
                         className="mt-4 w-full gradient-bg"
                       >
                         Go to Live Week

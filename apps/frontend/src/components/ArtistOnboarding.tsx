@@ -1,22 +1,22 @@
+"use client";
 import { motion } from "framer-motion";
 import { CheckCircle2, Music, Upload, Award, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "./ui/button";
 import { Logo } from "./Logo";
+import { useRouter } from "next/navigation";
+interface ArtistOnboardingProps {}
 
-interface ArtistOnboardingProps {
-  onNavigate: (page: string) => void;
-}
-
-export function ArtistOnboarding({ onNavigate }: ArtistOnboardingProps) {
+export function ArtistOnboarding({}: ArtistOnboardingProps) {
+  const router = useRouter();
   useEffect(() => {
     // Auto-redirect after 3 seconds
     const timer = setTimeout(() => {
-      onNavigate("artist-dashboard");
+      router.push("artist-dashboard");
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [onNavigate]);
+  }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-20 relative overflow-hidden">
@@ -129,7 +129,7 @@ export function ArtistOnboarding({ onNavigate }: ArtistOnboardingProps) {
           className="text-center space-y-4"
         >
           <Button
-            onClick={() => onNavigate("artist-dashboard")}
+            onClick={() => router.push("/artist-dashboard")}
             className="bg-gradient-to-r from-accent to-pink-600 hover:opacity-90 text-white neon-glow py-6 px-12 rounded-xl transition-all duration-200"
             size="lg"
           >

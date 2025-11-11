@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Plus, Play, Info, Zap, Trophy, Settings } from "lucide-react";
 import { Button } from "./ui/button";
@@ -7,9 +9,7 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Logo } from "./Logo";
 import { toast } from "sonner";
 
-interface MobileDraftPageProps {
-  onNavigate: (page: string) => void;
-}
+interface MobileDraftPageProps {}
 
 interface Artist {
   id: string;
@@ -23,11 +23,11 @@ interface Artist {
   selected?: boolean;
 }
 
-export function MobileDraftPage({ onNavigate }: MobileDraftPageProps) {
+export function MobileDraftPage({}: MobileDraftPageProps) {
   const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [filter, setFilter] = useState<string>("all");
-
+  const router = useRouter();
   const maxSelections = 5;
   const isLineupComplete = selectedArtists.length === maxSelections;
 
@@ -127,7 +127,7 @@ export function MobileDraftPage({ onNavigate }: MobileDraftPageProps) {
       toast.success("Lineup Saved!", {
         description: "Good luck this week!",
       });
-      setTimeout(() => onNavigate("liveweek"), 1500);
+      setTimeout(() => router.push("liveweek"), 1500);
     }
   };
 
@@ -144,7 +144,7 @@ export function MobileDraftPage({ onNavigate }: MobileDraftPageProps) {
           <div className="w-10" /> {/* Spacer for centering */}
           <Logo size="sm" glow />
           <button
-            onClick={() => onNavigate("settings")}
+            onClick={() => router.push("/settings")}
             className="p-2 text-white hover:text-primary transition-colors duration-300"
             aria-label="Settings"
           >

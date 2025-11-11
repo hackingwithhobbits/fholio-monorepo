@@ -1,5 +1,7 @@
+"use client";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Filter,
@@ -30,15 +32,13 @@ import { ShareButtons } from "./ShareButtons";
 import { toast } from "sonner";
 import { WorldMap } from "./WorldMap";
 
-interface DiscoverPageV2Props {
-  onNavigate: (page: string, artistId?: string) => void;
-}
+interface DiscoverPageV2Props {}
 
-export function DiscoverPageV2({ onNavigate }: DiscoverPageV2Props) {
+export function DiscoverPageV2({}: DiscoverPageV2Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLeague, setSelectedLeague] = useState("All");
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-
+  const router = useRouter();
   // Categorized artists
   const lastWeekWinners = [...artists]
     .sort((a, b) => b.score - a.score)
@@ -130,7 +130,7 @@ export function DiscoverPageV2({ onNavigate }: DiscoverPageV2Props) {
               </Select>
 
               <Button
-                onClick={() => onNavigate("charts")}
+                onClick={() => router.push("/charts")}
                 variant="outline"
                 className="h-12 border-primary/30 hover:bg-primary/10 neon-glow whitespace-nowrap"
               >
@@ -223,7 +223,7 @@ export function DiscoverPageV2({ onNavigate }: DiscoverPageV2Props) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                     className="glass-card rounded-2xl overflow-hidden neon-glow hover:scale-[1.02] transition-all group cursor-pointer"
-                    onClick={() => onNavigate("artist", artist.id)}
+                    onClick={() => router.push(`/artist/${artist.id}`)}
                   >
                     <div className="flex items-center gap-4 p-4">
                       {/* Rank Trophy */}
@@ -318,7 +318,7 @@ export function DiscoverPageV2({ onNavigate }: DiscoverPageV2Props) {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.05 }}
                     className="glass-card rounded-2xl overflow-hidden neon-glow hover:scale-105 transition-all group cursor-pointer"
-                    onClick={() => onNavigate("artist", artist.id)}
+                    onClick={() => router.push(`/artist/${artist.id}`)}
                   >
                     <div className="relative h-64">
                       <ImageWithFallback
@@ -483,7 +483,7 @@ export function DiscoverPageV2({ onNavigate }: DiscoverPageV2Props) {
                     {getCityArtists(selectedCity).map((artist, index) => (
                       <div
                         key={artist.id}
-                        onClick={() => onNavigate("artist", artist.id)}
+                        onClick={() => router.push(`/artist/${artist.id}`)}
                         className="glass-card rounded-xl p-4 neon-glow hover:scale-105 transition-all cursor-pointer text-center"
                       >
                         <ImageWithFallback
@@ -518,7 +518,7 @@ export function DiscoverPageV2({ onNavigate }: DiscoverPageV2Props) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    onClick={() => onNavigate("artist", artist.id)}
+                    onClick={() => router.push(`/artist/${artist.id}`)}
                     className="glass-card rounded-2xl p-6 neon-glow hover:scale-105 transition-all cursor-pointer text-center"
                   >
                     <ImageWithFallback
@@ -563,7 +563,7 @@ export function DiscoverPageV2({ onNavigate }: DiscoverPageV2Props) {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.1 }}
-                    onClick={() => onNavigate("artist", artist.id)}
+                    onClick={() => router.push(`/artist/${artist.id}`)}
                     className="glass-card rounded-2xl overflow-hidden neon-glow hover:scale-[1.02] transition-all cursor-pointer"
                   >
                     <div className="relative h-48">

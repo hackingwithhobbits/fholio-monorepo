@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 
 interface MobileNavigationBarProps {
   currentPage: string;
-  onNavigate: (page: string) => void;
+
   onLogout?: () => void;
   isLoggedIn?: boolean;
   userType?: "guest" | "fan" | "artist" | null;
@@ -14,7 +14,7 @@ interface MobileNavigationBarProps {
 
 export function MobileNavigationBar({
   currentPage,
-  onNavigate,
+
   onLogout,
   isLoggedIn = false,
   userType = null,
@@ -55,7 +55,7 @@ export function MobileNavigationBar({
   ];
 
   const handleNavigate = (page: string) => {
-    onNavigate(page);
+    router.push(page);
     setMenuOpen(false);
   };
 

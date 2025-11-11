@@ -1,4 +1,7 @@
+"use client";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+
 import { useState } from "react";
 import {
   Trophy,
@@ -12,13 +15,11 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
-interface ResultsRevealProps {
-  onNavigate: (page: string) => void;
-}
+interface ResultsRevealProps {}
 
-export function ResultsReveal({ onNavigate }: ResultsRevealProps) {
+export function ResultsReveal({}: ResultsRevealProps) {
   const [revealed, setRevealed] = useState(true);
-
+  const router = useRouter();
   const top20Winners = [
     {
       rank: 1,
@@ -269,7 +270,7 @@ export function ResultsReveal({ onNavigate }: ResultsRevealProps) {
             className="mt-8 text-center"
           >
             <Button
-              onClick={() => onNavigate("charts")}
+              onClick={() => router.push("/charts")}
               variant="outline"
               className="glass-card border-primary/30 text-white hover:bg-primary/20 hover:border-primary/50 hover:text-white transition-all"
             >
@@ -326,7 +327,7 @@ export function ResultsReveal({ onNavigate }: ResultsRevealProps) {
                 12,847 fans participated this week • Average payout: $14.32
               </p>
               <Button
-                onClick={() => onNavigate("wallet")}
+                onClick={() => router.push("/wallet")}
                 className="gradient-bg neon-glow holo-button"
               >
                 View Your Earnings
@@ -355,7 +356,7 @@ export function ResultsReveal({ onNavigate }: ResultsRevealProps) {
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Button
-                onClick={() => onNavigate("vote")}
+                onClick={() => router.push("/vote")}
                 className="gradient-bg neon-glow holo-button text-lg px-8 py-6"
               >
                 Start Voting

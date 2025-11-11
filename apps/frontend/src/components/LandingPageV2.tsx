@@ -1,17 +1,13 @@
+"use client";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+
 import { Button } from "./ui/button";
 import { Logo } from "./Logo";
 import { UserCircle, Music as MusicIcon, Eye } from "lucide-react";
 
-interface LandingPageV2Props {
-  onNavigate: (
-    page: string,
-    artistId?: string,
-    userType?: "guest" | "fan" | "artist"
-  ) => void;
-}
-
-export function LandingPageV2({ onNavigate }: LandingPageV2Props) {
+export function LandingPageV2() {
+  const router = useRouter();
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Animated Background Gradient */}
@@ -74,7 +70,7 @@ export function LandingPageV2({ onNavigate }: LandingPageV2Props) {
             {/* I'm a Fan - Sign In */}
             <Button
               size="lg"
-              onClick={() => onNavigate("fan-signin", undefined, undefined)}
+              onClick={() => router.push("/fan-signin")}
               className="gradient-bg hover:opacity-90 neon-glow holo-button text-lg px-10 py-7 rounded-xl group transition-all duration-200"
             >
               <UserCircle className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
@@ -84,7 +80,7 @@ export function LandingPageV2({ onNavigate }: LandingPageV2Props) {
             {/* I'm an Artist - Submit My Music */}
             <Button
               size="lg"
-              onClick={() => onNavigate("artist-signin", undefined, undefined)}
+              onClick={() => router.push("/artist-signin")}
               className="bg-gradient-to-r from-accent to-pink-600 hover:opacity-90 neon-glow text-lg px-10 py-7 rounded-xl group transition-all duration-200"
             >
               <MusicIcon className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
@@ -95,7 +91,7 @@ export function LandingPageV2({ onNavigate }: LandingPageV2Props) {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => onNavigate("leaderboard", undefined, "guest")}
+              onClick={() => router.push("leaderboard", undefined, "guest")}
               className="border-primary/30 text-white hover:bg-primary/20 hover:border-primary/50 hover:text-white neon-glow text-lg px-10 py-7 rounded-xl group transition-all duration-200"
             >
               <Eye className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
