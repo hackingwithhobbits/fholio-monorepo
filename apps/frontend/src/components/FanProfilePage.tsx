@@ -1,4 +1,7 @@
+"use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
 import { motion } from "framer-motion";
 import {
   User,
@@ -32,13 +35,12 @@ import { Separator } from "./ui/separator";
 import { toast } from "sonner";
 
 interface FanProfilePageProps {
-  onNavigate: (page: string) => void;
   onLogout: () => void;
 }
 
-export function FanProfilePage({ onNavigate, onLogout }: FanProfilePageProps) {
+export function FanProfilePage({ onLogout }: FanProfilePageProps) {
   const [referralCopied, setReferralCopied] = useState(false);
-
+  const router = useRouter();
   // Mock user data - realistic stats
   const userData = {
     username: "@JayVibes",
@@ -204,7 +206,7 @@ export function FanProfilePage({ onNavigate, onLogout }: FanProfilePageProps) {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => onNavigate("fan-dashboard")}
+                  onClick={() => router.push("/fan-dashboard")}
                   className="border-accent/40 text-accent hover:bg-accent/20"
                 >
                   View My Lineups

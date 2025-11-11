@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import { HelpCircle, X as XIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,14 +9,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { useRouter } from "next/navigation";
 
-interface HelpButtonProps {
-  onNavigate: (page: string) => void;
-}
+interface HelpButtonProps {}
 
-export function HelpButton({ onNavigate }: HelpButtonProps) {
+export function HelpButton({}: HelpButtonProps) {
   const [showQuickHelp, setShowQuickHelp] = useState(false);
-
+  const router = useRouter();
   const quickLinks = [
     { label: "How It Works", page: "about" },
     { label: "FAQ", page: "about" },
@@ -84,7 +84,7 @@ export function HelpButton({ onNavigate }: HelpButtonProps) {
                 <button
                   key={index}
                   onClick={() => {
-                    onNavigate(link.page);
+                    router.push(link.page);
                     setShowQuickHelp(false);
                   }}
                   className="w-full text-left px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors"
@@ -96,7 +96,7 @@ export function HelpButton({ onNavigate }: HelpButtonProps) {
             <div className="mt-3 pt-3 border-t border-white/10">
               <button
                 onClick={() => {
-                  onNavigate("about");
+                  router.push("/about");
                   setShowQuickHelp(false);
                 }}
                 className="w-full gradient-bg text-white px-3 py-2 rounded-lg text-sm hover:opacity-90 transition-opacity"

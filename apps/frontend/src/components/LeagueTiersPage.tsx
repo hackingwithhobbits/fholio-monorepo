@@ -1,3 +1,5 @@
+"use client";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Trophy,
@@ -11,11 +13,10 @@ import {
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 
-interface LeagueTiersPageProps {
-  onNavigate: (page: string) => void;
-}
+interface LeagueTiersPageProps {}
 
-export function LeagueTiersPage({ onNavigate }: LeagueTiersPageProps) {
+export function LeagueTiersPage({}: LeagueTiersPageProps) {
+  const router = useRouter();
   return (
     <div className="min-h-screen pb-32">
       {/* Hero Header */}
@@ -375,13 +376,13 @@ export function LeagueTiersPage({ onNavigate }: LeagueTiersPageProps) {
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Button
-                onClick={() => onNavigate("draft")}
+                onClick={() => router.push("/draft")}
                 className="gradient-bg neon-glow holo-button text-lg px-8 py-6"
               >
                 Build Lineup
               </Button>
               <Button
-                onClick={() => onNavigate("rules")}
+                onClick={() => router.push("/rules")}
                 variant="outline"
                 className="glass-card border-primary/30 text-lg px-8 py-6"
               >

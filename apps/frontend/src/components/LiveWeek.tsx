@@ -16,11 +16,9 @@ import { Badge } from "./ui/badge";
 import { Progress } from "./ui/progress";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
-interface LiveWeekProps {
-  onNavigate: (page: string) => void;
-}
+interface LiveWeekProps {}
 
-export function LiveWeek({ onNavigate }: LiveWeekProps) {
+export function LiveWeek({}: LiveWeekProps) {
   // Mock lineup data with momentum
   const myLineup = [
     {

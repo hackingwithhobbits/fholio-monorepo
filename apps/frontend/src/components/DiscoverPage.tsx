@@ -1,3 +1,4 @@
+"use client";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -32,9 +33,7 @@ import { Logo } from "./Logo";
 import { ShareButtons } from "./ShareButtons";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 
-interface DiscoverPageProps {
-  onNavigate: (page: string, artistId?: string) => void;
-}
+interface DiscoverPageProps {}
 
 const genres = [
   "All",
@@ -64,7 +63,7 @@ const sortOptions = [
   "Score",
 ];
 
-export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
+export function DiscoverPage({}: DiscoverPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
@@ -460,7 +459,7 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onNavigate("artist", artist.id);
+                          router.push(`/artist/${artist.id}`);
                         }}
                         variant="outline"
                         className="w-full border-primary/40 hover:bg-primary/20"
@@ -501,7 +500,7 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 className="glass-card p-6 rounded-xl hover:scale-105 transition-all cursor-pointer neon-glow"
-                onClick={() => onNavigate("artist", artist.id)}
+                onClick={() => router.push(`/artist/${artist.id}`)}
               >
                 <div className="flex items-center gap-4 mb-4">
                   <ImageWithFallback

@@ -1,4 +1,6 @@
+"use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Music,
@@ -28,11 +30,10 @@ import {
 } from "./ui/accordion";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
-interface AboutPageProps {
-  onNavigate: (page: string) => void;
-}
+interface AboutPageProps {}
 
-export function AboutPage({ onNavigate }: AboutPageProps) {
+export function AboutPage({}: AboutPageProps) {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-black lg:pt-16">
       {/* Hero Section */}
@@ -704,7 +705,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                onClick={() => onNavigate("fan-signin")}
+                onClick={() => router.push("/fan-signin")}
                 className="gradient-bg hover:opacity-90 glow-pulse px-12 py-6"
               >
                 Join as Fan
@@ -712,7 +713,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => onNavigate("artist-signin")}
+                onClick={() => router.push("/artist-signin")}
                 className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent px-12 py-6"
               >
                 Submit as Artist

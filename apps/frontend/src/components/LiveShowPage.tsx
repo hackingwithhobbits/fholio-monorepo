@@ -1,4 +1,7 @@
+"use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 import { motion } from "framer-motion";
 import {
   Play,
@@ -16,11 +19,10 @@ import {
 import { Button } from "./ui/button";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
-interface LiveShowPageProps {
-  onNavigate: (page: string) => void;
-}
+interface LiveShowPageProps {}
 
-export function LiveShowPage({ onNavigate }: LiveShowPageProps) {
+export function LiveShowPage({}: LiveShowPageProps) {
+  const router = useRouter();
   const [timeUntilShow, setTimeUntilShow] = useState({
     days: 3,
     hours: 14,
@@ -202,7 +204,7 @@ export function LiveShowPage({ onNavigate }: LiveShowPageProps) {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => onNavigate("fan-signin")}
+                onClick={() => router.push("/fan-signin")}
                 className="border-accent/50 text-accent hover:bg-accent/20"
               >
                 Join Next Week's League
@@ -389,7 +391,7 @@ export function LiveShowPage({ onNavigate }: LiveShowPageProps) {
             </p>
             <Button
               size="lg"
-              onClick={() => onNavigate("fan-signin")}
+              onClick={() => router.push("/fan-signin")}
               className="gradient-bg hover:opacity-90 glow-pulse px-12 py-6"
             >
               Join Next Week's League

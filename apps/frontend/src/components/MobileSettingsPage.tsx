@@ -1,4 +1,7 @@
+"use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -22,9 +25,7 @@ import { Logo } from "./Logo";
 import { Badge } from "./ui/badge";
 import { toast } from "sonner";
 
-interface MobileSettingsPageProps {
-  onNavigate: (page: string) => void;
-}
+interface MobileSettingsPageProps {}
 
 interface PaymentMethod {
   id: string;
@@ -41,12 +42,12 @@ interface LinkedAccount {
   isConnected: boolean;
 }
 
-export function MobileSettingsPage({ onNavigate }: MobileSettingsPageProps) {
+export function MobileSettingsPage({}: MobileSettingsPageProps) {
   // Account Settings State
   const [email, setEmail] = useState("user@fholio.com");
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
-
+  const router = useRouter();
   // Notification Preferences State
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -153,7 +154,7 @@ export function MobileSettingsPage({ onNavigate }: MobileSettingsPageProps) {
       <div className="sticky top-0 z-40 pt-safe bg-black/90 backdrop-blur-xl border-b border-primary/10">
         <div className="flex items-center justify-between px-6 py-3">
           <button
-            onClick={() => onNavigate("home")}
+            onClick={() => router.push("/")}
             className="p-2 -ml-2 text-white hover:text-primary transition-colors duration-300"
           >
             <ArrowLeft className="w-6 h-6" />

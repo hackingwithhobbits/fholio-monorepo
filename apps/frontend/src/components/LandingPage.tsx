@@ -1,4 +1,7 @@
+"use client";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+
 import {
   ArrowRight,
   TrendingUp,
@@ -16,13 +19,11 @@ import { ArtistCard } from "./ArtistCard";
 import { Logo } from "./Logo";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
-interface LandingPageProps {
-  onNavigate: (page: string) => void;
-}
+interface LandingPageProps {}
 
-export function LandingPage({ onNavigate }: LandingPageProps) {
+export function LandingPage({}: LandingPageProps) {
   const tickerArtists = [...artists, ...artists]; // Duplicate for infinite scroll effect
-
+  const router = useRouter();
   // Prize pool distribution
   const WEEKLY_PRIZE_POOL = 100000; // $100k weekly pool
 
@@ -108,7 +109,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                onClick={() => onNavigate("vote")}
+                onClick={() => router.push("/vote")}
                 className="gradient-bg hover:opacity-90 neon-glow holo-button text-lg px-10 py-7 rounded-xl"
               >
                 Join the League
@@ -117,7 +118,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => onNavigate("discover")}
+                onClick={() => router.push("/discover")}
                 className="border-primary/30 text-white hover:bg-primary/20 hover:border-primary/50 hover:text-white neon-glow text-lg px-10 py-7 rounded-xl transition-all"
               >
                 Discover Artists
@@ -134,7 +135,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => onNavigate("prototype")}
+                onClick={() => router.push("/prototype")}
                 className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent neon-glow text-base px-8 py-6 rounded-xl transition-all group"
               >
                 <Sparkles className="mr-2 w-5 h-5 group-hover:animate-pulse" />
@@ -434,7 +435,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               >
                 <ArtistCard
                   artist={artist}
-                  onClick={() => onNavigate("artist")}
+                  onClick={() => router.push("/artist")}
                 />
               </motion.div>
             ))}
@@ -442,7 +443,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
 
           <div className="text-center mt-8">
             <Button
-              onClick={() => onNavigate("discover")}
+              onClick={() => router.push("/discover")}
               variant="outline"
               className="border-primary/40 text-white hover:bg-primary/20"
             >
@@ -505,7 +506,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => onNavigate("leagues")}
+                  onClick={() => router.push("/leagues")}
                   className="w-full gradient-bg hover:opacity-90 neon-glow"
                 >
                   Get Started
@@ -557,7 +558,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => onNavigate("leagues")}
+                  onClick={() => router.push("/leagues")}
                   className="w-full bg-accent text-black hover:bg-accent/90 neon-glow"
                 >
                   Go Premium
@@ -634,7 +635,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button
                 size="lg"
-                onClick={() => onNavigate("leagues")}
+                onClick={() => router.push("/leagues")}
                 className="gradient-bg hover:opacity-90 glow-pulse text-lg px-12 py-6"
               >
                 Join Now
@@ -642,7 +643,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => onNavigate("discover")}
+                onClick={() => router.push("/discover")}
                 className="border-primary/40 text-white hover:bg-primary/20 text-lg px-12 py-6"
               >
                 Explore Artists

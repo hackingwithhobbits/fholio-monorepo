@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
 import {
   ThumbsUp,
   Play,
@@ -36,17 +38,15 @@ interface Submission {
   previewUrl?: string;
 }
 
-interface VoteRoomProps {
-  onNavigate: (page: string) => void;
-}
+interface VoteRoomProps {}
 
-export function VoteRoom({ onNavigate }: VoteRoomProps) {
+export function VoteRoom({}: VoteRoomProps) {
   const [votesRemaining, setVotesRemaining] = useState(10);
   const [selectedGenre, setSelectedGenre] = useState("all");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const maxVotes = 10;
-
+  const router = useRouter();
   // Mock submissions data
   const submissions: Submission[] = [
     {
@@ -367,7 +367,7 @@ export function VoteRoom({ onNavigate }: VoteRoomProps) {
               support compete for the top spots.
             </p>
             <Button
-              onClick={() => onNavigate("rules")}
+              onClick={() => router.push("/rules")}
               variant="outline"
               className="glass-card border-accent/30"
             >

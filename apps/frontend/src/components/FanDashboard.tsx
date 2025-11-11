@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Wallet, User, LogOut, Music } from "lucide-react";
@@ -8,18 +9,18 @@ import { LeaderboardPage } from "./LeaderboardPage";
 import { WalletPage } from "./WalletPage";
 import { toast } from "sonner";
 import { authUtils, UserSession } from "@/lib/auth";
+import { useRouter } from "next/router";
 
 interface FanDashboardProps {
-  onNavigate: (page: string) => void;
   onLogout: () => void;
 }
 
-export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
+export function FanDashboard({ onLogout }: FanDashboardProps) {
   const [activeTab, setActiveTab] = useState<
     "my-picks" | "leaderboard" | "wallet" | "profile"
   >("my-picks");
   const [userSession, setUserSession] = useState<UserSession | null>(null);
-
+  const router = useRouter();
   // Load user session on mount
   useEffect(() => {
     const session = authUtils.getSession();
@@ -51,11 +52,11 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
   const renderTabContent = () => {
     switch (activeTab) {
       case "my-picks":
-        return <DashboardV2 onNavigate={onNavigate} />;
+        return <DashboardV2 />;
       case "leaderboard":
-        return <LeaderboardPage onNavigate={onNavigate} />;
+        return <LeaderboardPage />;
       case "wallet":
-        return <WalletPage onNavigate={onNavigate} />;
+        return <WalletPage />;
       case "profile":
         return (
           <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8">
@@ -143,7 +144,7 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
             {/* Logo */}
             <div
               className="flex items-center gap-3 cursor-pointer group"
-              onClick={() => onNavigate("home")}
+              onClick={() => router.push("/")}
             >
               <Logo
                 size="md"

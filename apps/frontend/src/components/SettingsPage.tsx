@@ -20,9 +20,7 @@ import { Card } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { toast } from "sonner";
 
-interface SettingsPageProps {
-  onNavigate: (page: string) => void;
-}
+interface SettingsPageProps {}
 
 interface PaymentMethod {
   id: string;
@@ -39,7 +37,7 @@ interface LinkedAccount {
   isConnected: boolean;
 }
 
-export function SettingsPage({ onNavigate }: SettingsPageProps) {
+export function SettingsPage({}: SettingsPageProps) {
   // Account Settings State
   const [email, setEmail] = useState("user@fholio.com");
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);

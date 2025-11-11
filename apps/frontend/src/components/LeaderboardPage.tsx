@@ -1,3 +1,4 @@
+"use client";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy,
@@ -18,16 +19,15 @@ import { artists, topFans } from "../data/mockData";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Logo } from "./Logo";
 import { ShareButtons } from "./ShareButtons";
+import { useRouter } from "next/navigation";
 
-interface LeaderboardPageProps {
-  onNavigate: (page: string, artistId?: string) => void;
-}
+interface LeaderboardPageProps {}
 
-export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
+export function LeaderboardPage({}: LeaderboardPageProps) {
   const [selectedLeague, setSelectedLeague] = useState<"Major" | "Minor">(
     "Major"
   );
-
+  const router = useRouter();
   const majorLeagueArtists = artists
     .filter((a) => a.league === "Major")
     .sort((a, b) => b.score - a.score);
@@ -158,7 +158,7 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
                     className={`glass-card rounded-2xl overflow-hidden neon-glow cursor-pointer hover:scale-105 transition-all ${
                       heights[actualPosition]
                     }`}
-                    onClick={() => onNavigate("artist", artist.id)}
+                    onClick={() => router.push(`/artist/${artist.id}`)}
                     style={{ order: positions[index] }}
                   >
                     <div className="relative h-full">
@@ -306,7 +306,7 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ delay: 0.6 + index * 0.02 }}
                         className="glass-card rounded-2xl p-4 neon-glow hover:scale-[1.01] transition-all group cursor-pointer relative overflow-hidden"
-                        onClick={() => onNavigate("artist", artist.id)}
+                        onClick={() => router.push(`/artist/${artist.id}`)}
                       >
                         {/* Animated glow for climbing/dropping artists */}
                         {Math.abs(rankChange) > 3 && (

@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+
 import { Button } from "./ui/button";
 import {
   ArrowRight,
@@ -15,13 +17,11 @@ import { ArtistCard } from "./ArtistCard";
 import { artists } from "../data/mockData";
 import { useState, useEffect } from "react";
 
-interface MobileHomePageProps {
-  onNavigate: (page: string) => void;
-}
+interface MobileHomePageProps {}
 
-export function MobileHomePage({ onNavigate }: MobileHomePageProps) {
+export function MobileHomePage({}: MobileHomePageProps) {
   const [currentPhase, setCurrentPhase] = useState(0);
-
+  const router = useRouter();
   // Prize pool constants
   const WEEKLY_PRIZE_POOL = 100000;
 
@@ -45,7 +45,7 @@ export function MobileHomePage({ onNavigate }: MobileHomePageProps) {
       subtitle: "Discover & Upvote",
       description: "Shape the Top 100 with your taste",
       color: "from-primary to-purple-600",
-      action: () => onNavigate("vote"),
+      action: () => router.push("/vote"),
     },
     {
       id: "draft",
@@ -54,7 +54,7 @@ export function MobileHomePage({ onNavigate }: MobileHomePageProps) {
       subtitle: "Build Your Lineup",
       description: "Pick 5 artists you believe in",
       color: "from-purple-600 to-secondary",
-      action: () => onNavigate("draft"),
+      action: () => router.push("/draft"),
     },
     {
       id: "live",
@@ -63,7 +63,7 @@ export function MobileHomePage({ onNavigate }: MobileHomePageProps) {
       subtitle: "Watch the Heat",
       description: "Follow momentum all week long",
       color: "from-secondary to-pink-600",
-      action: () => onNavigate("liveweek"),
+      action: () => router.push("/liveweek"),
     },
     {
       id: "results",
@@ -72,7 +72,7 @@ export function MobileHomePage({ onNavigate }: MobileHomePageProps) {
       subtitle: "Winners Crowned",
       description: "Earn rewards when your picks win",
       color: "from-pink-600 to-accent",
-      action: () => onNavigate("results"),
+      action: () => router.push("/results"),
     },
   ];
 
@@ -92,7 +92,7 @@ export function MobileHomePage({ onNavigate }: MobileHomePageProps) {
           <div className="w-10" /> {/* Spacer for centering */}
           <Logo size="md" glow />
           <button
-            onClick={() => onNavigate("settings")}
+            onClick={() => router.push("/settings")}
             className="p-2 text-white hover:text-primary transition-colors duration-300"
             aria-label="Settings"
           >
@@ -156,7 +156,7 @@ export function MobileHomePage({ onNavigate }: MobileHomePageProps) {
             <div className="flex flex-col gap-3 pt-4">
               <Button
                 size="lg"
-                onClick={() => onNavigate("vote")}
+                onClick={() => router.push("/vote")}
                 className="w-full gradient-bg hover:opacity-90 neon-glow text-base py-6 rounded-2xl"
               >
                 Join the League
@@ -165,7 +165,7 @@ export function MobileHomePage({ onNavigate }: MobileHomePageProps) {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => onNavigate("discover")}
+                onClick={() => router.push("/discover")}
                 className="w-full border-primary/30 text-white hover:bg-primary/20 hover:border-primary/50 hover:text-white text-base py-6 rounded-2xl transition-all"
               >
                 Discover Artists
@@ -418,7 +418,7 @@ export function MobileHomePage({ onNavigate }: MobileHomePageProps) {
             >
               <ArtistCard
                 artist={artist}
-                onClick={() => onNavigate("artist")}
+                onClick={() => router.push("/artist")}
               />
             </motion.div>
           ))}
@@ -426,7 +426,7 @@ export function MobileHomePage({ onNavigate }: MobileHomePageProps) {
 
         {/* View More Button */}
         <Button
-          onClick={() => onNavigate("dashboard")}
+          onClick={() => router.push("/dashboard")}
           variant="outline"
           className="w-full border-primary/30 text-white hover:bg-primary/10 py-6 rounded-2xl"
         >
@@ -444,7 +444,7 @@ export function MobileHomePage({ onNavigate }: MobileHomePageProps) {
             rewards.
           </p>
           <Button
-            onClick={() => onNavigate("vote")}
+            onClick={() => router.push("/vote")}
             className="w-full gradient-bg py-6 rounded-2xl"
           >
             Start Voting Now

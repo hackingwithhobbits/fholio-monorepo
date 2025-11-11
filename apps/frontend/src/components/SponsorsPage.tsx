@@ -12,11 +12,9 @@ import { Badge } from "./ui/badge";
 import { sponsors } from "../data/mockData";
 import { Logo } from "./Logo";
 
-interface SponsorsPageProps {
-  onNavigate: (page: string) => void;
-}
+interface SponsorsPageProps {}
 
-export function SponsorsPage({ onNavigate }: SponsorsPageProps) {
+export function SponsorsPage({}: SponsorsPageProps) {
   const challenges = [
     {
       id: "1",

@@ -1,3 +1,4 @@
+"use client";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import {
@@ -20,11 +21,9 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Logo } from "./Logo";
 import { ShareButtons } from "./ShareButtons";
 
-interface ChartsPageProps {
-  onNavigate: (page: string, artistId?: string) => void;
-}
+interface ChartsPageProps {}
 
-export function ChartsPage({ onNavigate }: ChartsPageProps) {
+export function ChartsPage({}: ChartsPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
 
@@ -302,7 +301,7 @@ export function ChartsPage({ onNavigate }: ChartsPageProps) {
                               <Button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onNavigate("artist", artist.id);
+                                  router.push(`/artist/${artist.id}`);
                                 }}
                                 className="gradient-bg neon-glow holo-button rounded-xl"
                               >

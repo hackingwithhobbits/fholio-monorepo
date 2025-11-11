@@ -1,11 +1,11 @@
-import { Logo } from './Logo';
-import { Twitter, Instagram, MessageCircle } from 'lucide-react';
+import { useRouter } from "next/navigation";
+import { Logo } from "./Logo";
+import { Twitter, Instagram, MessageCircle } from "lucide-react";
 
-interface GlobalFooterProps {
-  onNavigate: (page: string) => void;
-}
+interface GlobalFooterProps {}
 
-export function GlobalFooter({ onNavigate }: GlobalFooterProps) {
+export function GlobalFooter({}: GlobalFooterProps) {
+  const router = useRouter();
   return (
     <footer className="border-t border-primary/10 glass-card mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -25,25 +25,25 @@ export function GlobalFooter({ onNavigate }: GlobalFooterProps) {
             <h4 className="text-white mb-4">Product</h4>
             <div className="space-y-2">
               <button
-                onClick={() => onNavigate('weekly-games')}
+                onClick={() => router.push("/weekly-games")}
                 className="block text-sm text-muted-foreground hover:text-white transition-colors"
               >
                 Weekly Games
               </button>
               <button
-                onClick={() => onNavigate('leaderboard')}
+                onClick={() => router.push("/leaderboard")}
                 className="block text-sm text-muted-foreground hover:text-white transition-colors"
               >
                 Leaderboard
               </button>
               <button
-                onClick={() => onNavigate('live-show')}
+                onClick={() => router.push("/live-show")}
                 className="block text-sm text-muted-foreground hover:text-white transition-colors"
               >
                 Live Show
               </button>
               <button
-                onClick={() => onNavigate('about')}
+                onClick={() => router.push("/about")}
                 className="block text-sm text-muted-foreground hover:text-white transition-colors"
               >
                 How It Works
@@ -56,13 +56,13 @@ export function GlobalFooter({ onNavigate }: GlobalFooterProps) {
             <h4 className="text-white mb-4">Join</h4>
             <div className="space-y-2">
               <button
-                onClick={() => onNavigate('fan-signin')}
+                onClick={() => router.push("/fan-signin")}
                 className="block text-sm text-muted-foreground hover:text-white transition-colors"
               >
                 Join as Fan
               </button>
               <button
-                onClick={() => onNavigate('artist-signin')}
+                onClick={() => router.push("/artist-signin")}
                 className="block text-sm text-muted-foreground hover:text-white transition-colors"
               >
                 Join as Artist

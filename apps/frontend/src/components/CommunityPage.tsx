@@ -1,3 +1,4 @@
+"use client";
 import { motion } from "framer-motion";
 import {
   MessageCircle,
@@ -18,12 +19,12 @@ import { artists, topFans, socialStats } from "../data/mockData";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Logo } from "./Logo";
 import { ShareButtons } from "./ShareButtons";
+import { useRouter } from "next/navigation";
 
-interface CommunityPageProps {
-  onNavigate: (page: string, artistId?: string) => void;
-}
+interface CommunityPageProps {}
 
-export function CommunityPage({ onNavigate }: CommunityPageProps) {
+export function CommunityPage({}: CommunityPageProps) {
+  const router = useRouter();
   // Mock community posts
   const posts = [
     {
@@ -329,7 +330,7 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
                 {artists.slice(0, 5).map((artist, i) => (
                   <div
                     key={artist.id}
-                    onClick={() => onNavigate("artist", artist.id)}
+                    onClick={() => router.push("/artist", artist.id)}
                     className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-all group"
                   >
                     <ImageWithFallback

@@ -3,13 +3,9 @@ import { motion } from "framer-motion";
 
 interface BottomNavigationProps {
   currentPage: string;
-  onNavigate: (page: string) => void;
 }
 
-export function BottomNavigation({
-  currentPage,
-  onNavigate,
-}: BottomNavigationProps) {
+export function BottomNavigation({ currentPage }: BottomNavigationProps) {
   const navItems = [
     { id: "home", label: "Home", icon: Home },
     { id: "vote", label: "Vote", icon: Vote },
@@ -38,7 +34,7 @@ export function BottomNavigation({
               return (
                 <button
                   key={item.id}
-                  onClick={() => onNavigate(item.id)}
+                  onClick={() => router.push(item.id)}
                   className="relative flex flex-col items-center justify-center gap-1 px-4 py-2 min-w-[64px] min-h-[56px] rounded-2xl transition-all duration-300 active:scale-95"
                   style={{
                     WebkitTapHighlightColor: "transparent",

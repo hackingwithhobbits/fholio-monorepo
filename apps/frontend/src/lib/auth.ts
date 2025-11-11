@@ -13,12 +13,28 @@ const SESSION_KEY = "fholio_beta_session";
 // Helper to check if we're on client side
 const isClient = typeof window !== "undefined";
 
+// Helper to set cookie
+function setCookie(name: string, value: string, days: number = 7) {
+  if (!isClient) return;
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+}
+
+// Helper to delete cookie
+function deleteCookie(name: string) {
+  if (!isClient) return;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+}
+
 export const authUtils = {
-  // Save session to localStorage
+  // Save session to localStorage AND cookie
   setSession(session: UserSession) {
     if (!isClient) return;
     try {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      const sessionStr = JSON.stringify(session);
+      localStorage.setItem(SESSION_KEY, sessionStr);
+      setCookie("fholio_session", "true", 7); // Cookie for middleware
     } catch (error) {
       console.error("Failed to save session:", error);
     }
@@ -43,6 +59,7 @@ export const authUtils = {
     if (!isClient) return;
     try {
       localStorage.removeItem(SESSION_KEY);
+      deleteCookie("fholio_session");
     } catch (error) {
       console.error("Failed to clear session:", error);
     }

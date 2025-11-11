@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -21,9 +23,7 @@ import {
   CollapsibleTrigger,
 } from "./ui/collapsible";
 
-interface MobileLiveWeekProps {
-  onNavigate: (page: string) => void;
-}
+interface MobileLiveWeekProps {}
 
 interface Artist {
   id: string;
@@ -37,11 +37,11 @@ interface Artist {
   inMyLineup?: boolean;
 }
 
-export function MobileLiveWeek({ onNavigate }: MobileLiveWeekProps) {
+export function MobileLiveWeek({}: MobileLiveWeekProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [showMyLineup, setShowMyLineup] = useState(true);
   const [filter, setFilter] = useState<string>("all");
-
+  const router = useRouter();
   const artists: Artist[] = [
     {
       id: "5",
@@ -200,7 +200,7 @@ export function MobileLiveWeek({ onNavigate }: MobileLiveWeekProps) {
           <div className="w-10" /> {/* Spacer for centering */}
           <Logo size="sm" glow />
           <button
-            onClick={() => onNavigate("settings")}
+            onClick={() => router.push("/settings")}
             className="p-2 text-white hover:text-primary transition-colors duration-300"
             aria-label="Settings"
           >

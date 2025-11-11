@@ -1,4 +1,7 @@
+"use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -23,13 +26,12 @@ import { Logo } from "./Logo";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { weeklyTracks as tracksData } from "../data/weeklyTracks";
 
-interface HomePageProps {
-  onNavigate: (page: string) => void;
-}
+interface HomePageProps {}
 
-export function HomePage({ onNavigate }: HomePageProps) {
+export function HomePage({}: HomePageProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const router = useRouter();
   const [timeLeft, setTimeLeft] = useState({
     days: 2,
     hours: 14,
@@ -107,7 +109,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   ];
 
   const navItems = [
-    { label: "Home", onClick: () => onNavigate("home") },
+    { label: "Home", onClick: () => router.push("/") },
     {
       label: "Weekly Games",
       onClick: () =>
@@ -116,11 +118,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
           behavior: "smooth",
         }),
     },
-    { label: "Leaderboard", onClick: () => onNavigate("leaderboard") },
-    { label: "My Picks", onClick: () => onNavigate("fan-dashboard") },
-    { label: "Submissions", onClick: () => onNavigate("artist-dashboard") },
-    { label: "Wallet", onClick: () => onNavigate("fan-dashboard") },
-    { label: "Profile", onClick: () => onNavigate("fan-dashboard") },
+    { label: "Leaderboard", onClick: () => router.push("/leaderboard") },
+    { label: "My Picks", onClick: () => router.push("/fan-dashboard") },
+    { label: "Submissions", onClick: () => router.push("/artist-dashboard") },
+    { label: "Wallet", onClick: () => router.push("/fan-dashboard") },
+    { label: "Profile", onClick: () => router.push("/fan-dashboard") },
   ];
 
   return (
@@ -138,7 +140,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             {/* Logo */}
             <div
               className="flex-shrink-0 cursor-pointer"
-              onClick={() => onNavigate("home")}
+              onClick={() => router.push("/")}
             >
               <Logo size="md" glow />
             </div>
@@ -241,7 +243,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Button
                 size="lg"
-                onClick={() => onNavigate("fan-signin")}
+                onClick={() => router.push("/fan-signin")}
                 className="gradient-bg hover:opacity-90 neon-glow holo-button px-10 py-7 rounded-xl"
               >
                 Join the League
@@ -250,7 +252,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => onNavigate("artist-signin")}
+                onClick={() => router.push("/artist-signin")}
                 className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent hover:text-white neon-glow px-10 py-7 rounded-xl transition-all"
               >
                 Submit Your Track
@@ -417,7 +419,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
           <div className="text-center">
             <Button
-              onClick={() => onNavigate("fan-dashboard")}
+              onClick={() => router.push("/fan-dashboard")}
               variant="outline"
               className="border-primary/40 text-white hover:bg-primary/20"
             >
@@ -558,7 +560,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   </p>
                   <Button
                     size="lg"
-                    onClick={() => onNavigate("artist-signin")}
+                    onClick={() => router.push("/artist-signin")}
                     className="gradient-bg hover:opacity-90 neon-glow holo-button px-8 py-6"
                   >
                     Submit My Music
@@ -608,25 +610,25 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <h4 className="text-white mb-4">Quick Links</h4>
               <div className="space-y-2">
                 <button
-                  onClick={() => onNavigate("leaderboard")}
+                  onClick={() => router.push("/leaderboard")}
                   className="block text-sm text-muted-foreground hover:text-white transition-colors"
                 >
                   Leaderboard
                 </button>
                 <button
-                  onClick={() => onNavigate("about")}
+                  onClick={() => router.push("/about")}
                   className="block text-sm text-muted-foreground hover:text-white transition-colors"
                 >
                   How It Works
                 </button>
                 <button
-                  onClick={() => onNavigate("fan-signin")}
+                  onClick={() => router.push("/fan-signin")}
                   className="block text-sm text-muted-foreground hover:text-white transition-colors"
                 >
                   Join as Fan
                 </button>
                 <button
-                  onClick={() => onNavigate("artist-signin")}
+                  onClick={() => router.push("/artist-signin")}
                   className="block text-sm text-muted-foreground hover:text-white transition-colors"
                 >
                   Join as Artist

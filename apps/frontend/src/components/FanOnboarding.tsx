@@ -1,22 +1,24 @@
+"use client";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+
 import { CheckCircle2, Trophy, TrendingUp, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "./ui/button";
 import { Logo } from "./Logo";
 
-interface FanOnboardingProps {
-  onNavigate: (page: string) => void;
-}
+interface FanOnboardingProps {}
 
-export function FanOnboarding({ onNavigate }: FanOnboardingProps) {
+export function FanOnboarding({}: FanOnboardingProps) {
+  const router = useRouter();
   useEffect(() => {
     // Auto-redirect after 3 seconds
     const timer = setTimeout(() => {
-      onNavigate("dashboard");
+      router.push("dashboard");
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [onNavigate]);
+  }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-20 relative overflow-hidden">
@@ -127,7 +129,7 @@ export function FanOnboarding({ onNavigate }: FanOnboardingProps) {
           className="text-center space-y-4"
         >
           <Button
-            onClick={() => onNavigate("dashboard")}
+            onClick={() => router.push("/dashboard")}
             className="bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 text-white neon-glow py-6 px-12 rounded-xl transition-all duration-200"
             size="lg"
           >

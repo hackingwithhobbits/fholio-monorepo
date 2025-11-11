@@ -1,13 +1,12 @@
+"use client";
 import { motion } from "framer-motion";
 import { Music, Users, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { Logo } from "./Logo";
+import { useRouter } from "next/navigation";
 
-interface AuthPageProps {
-  onNavigate: (page: string, userType?: "fan" | "artist") => void;
-}
-
-export function AuthPage({ onNavigate }: AuthPageProps) {
+export function AuthPage() {
+  const router = useRouter();
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-20 relative overflow-hidden">
       {/* Animated Background Gradient */}
@@ -47,7 +46,7 @@ export function AuthPage({ onNavigate }: AuthPageProps) {
           >
             <div
               className="glass-card rounded-3xl p-8 h-full hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden"
-              onClick={() => onNavigate("fan-signin")}
+              onClick={() => router.push("/fan-signin")}
             >
               {/* Purple Gradient Accent */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -100,7 +99,7 @@ export function AuthPage({ onNavigate }: AuthPageProps) {
           >
             <div
               className="glass-card rounded-3xl p-8 h-full hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden"
-              onClick={() => onNavigate("artist-signin")}
+              onClick={() => router.push("/artist-signin")}
             >
               {/* Pink Gradient Accent */}
               <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-pink-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

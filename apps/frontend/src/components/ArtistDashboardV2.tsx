@@ -1,5 +1,7 @@
+"use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   Upload,
   Music,
@@ -35,20 +37,16 @@ import {
 import { LeaderboardPage } from "./LeaderboardPage";
 import { authUtils, UserSession } from "@/lib/auth";
 interface ArtistDashboardV2Props {
-  onNavigate: (page: string) => void;
   onLogout: () => void;
 }
 
-export function ArtistDashboardV2({
-  onNavigate,
-  onLogout,
-}: ArtistDashboardV2Props) {
+export function ArtistDashboardV2({ onLogout }: ArtistDashboardV2Props) {
   const [activeTab, setActiveTab] = useState<
     "submit" | "tracks" | "leaderboard" | "profile"
   >("submit");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [userSession, setUserSession] = useState<UserSession | null>(null);
-
+  const router = useRouter();
   // Form state
   const [artistName, setArtistName] = useState("");
   const [trackTitle, setTrackTitle] = useState("");
@@ -391,7 +389,7 @@ export function ArtistDashboardV2({
         );
 
       case "leaderboard":
-        return <LeaderboardPage onNavigate={onNavigate} />;
+        return <LeaderboardPage />;
 
       case "profile":
         return (
@@ -490,7 +488,7 @@ export function ArtistDashboardV2({
             {/* Logo */}
             <div
               className="flex items-center gap-3 cursor-pointer group"
-              onClick={() => onNavigate("home")}
+              onClick={() => router.push("/")}
             >
               <Logo
                 size="md"
