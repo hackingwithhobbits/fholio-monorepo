@@ -1,153 +1,266 @@
-import type { Request, Response } from 'express';
+// apps/backend/src/controllers/artist.controller.ts
 
-import { artistService } from '@/services/artist.service';
-import type { ApiResponse } from '@/types';
-import { asyncHandler } from '@/utils/asyncHandler';
-import {
-  getArtistsQuerySchema,
-  createArtistSchema,
-  type GetArtistsQuery,
-} from '@/validators/artist.validator';
-import { idParamSchema } from '@/validators/common.validator';
+import { Request, Response } from 'express';
+import { ArtistService } from '../services/artist.service';
+import { WeekService } from '../services/week.service';
+import { logger } from '../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
-export class ArtistController {
+const artistService = new ArtistService();
+const weekService = new WeekService();
+
+export const artistController = {
   /**
-   * GET /api/v1/artists
-   * Get all artists with filters
+   * GET /api/artists/leaderboard
+   * Get artist leaderboard for current week
    */
-  getArtists = asyncHandler(async (req: Request, res: Response) => {
-    const query = getArtistsQuerySchema.parse(req.query) as GetArtistsQuery;
-    const result = await artistService.getArtists(query);
+  async getLeaderboard(req: Request, res: Response) {
+    try {
+      const league = req.query.league as 'Major' | 'Minor' | undefined;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const weekId = req.query.week_id as string;
 
-    const response: ApiResponse = {
-      success: true,
-      data: result.artists,
-      meta: {
-        timestamp: new Date().toISOString(),
-        ...result.pagination,
-      },
-    };
+      let targetWeekId = weekId;
+      if (!weekId) {
+        const currentWeek = await weekService.getCurrentWeek();
+        if (!currentWeek) {
+          return res.status(404).json({
+            success: false,
+            message: 'No active week found'
+          });
+        }
+        targetWeekId = currentWeek.id;
+      }
 
-    res.json(response);
-  });
+      const artists = await artistService.getLeaderboard(targetWeekId, league, limit);
 
-  /**
-   * GET /api/v1/artists/trending
-   * Get trending artists
-   */
-  getTrending = asyncHandler(async (req: Request, res: Response) => {
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
-    const artists = await artistService.getTrendingArtists(limit);
-
-    const response: ApiResponse = {
-      success: true,
-      data: artists,
-      meta: {
-        timestamp: new Date().toISOString(),
-      },
-    };
-
-    res.json(response);
-  });
-
-  /**
-   * GET /api/v1/artists/genres
-   * Get all genres
-   */
-  getGenres = asyncHandler(async (req: Request, res: Response) => {
-    const genres = await artistService.getGenres();
-
-    const response: ApiResponse = {
-      success: true,
-      data: genres,
-      meta: {
-        timestamp: new Date().toISOString(),
-      },
-    };
-
-    res.json(response);
-  });
+      res.json({
+        success: true,
+        data: artists,
+        meta: {
+          count: artists.length,
+          league: league || 'all',
+          weekId: targetWeekId
+        }
+      });
+    } catch (error: any) {
+      logger.error('Error fetching artist leaderboard', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch leaderboard'
+      });
+    }
+  },
 
   /**
-   * GET /api/v1/artists/genre/:genre
-   * Get artists by genre
+   * GET /api/artists/:id
+   * Get detailed artist profile
    */
-  getByGenre = asyncHandler(async (req: Request, res: Response) => {
-    const { genre } = req.params;
-    const artists = await artistService.getArtistsByGenre(genre);
+  async getArtistProfile(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const artist = await artistService.getArtistProfile(id);
 
-    const response: ApiResponse = {
-      success: true,
-      data: artists,
-      meta: {
-        timestamp: new Date().toISOString(),
-      },
-    };
+      if (!artist) {
+        return res.status(404).json({
+          success: false,
+          message: 'Artist not found'
+        });
+      }
 
-    res.json(response);
-  });
+      // Get current week performance
+      const currentWeek = await weekService.getCurrentWeek();
+      let weekPerformance = null;
+      
+      if (currentWeek) {
+        weekPerformance = await artistService.getArtistWeekPerformance(id, currentWeek.id);
+      }
+
+      res.json({
+        success: true,
+        data: {
+          ...artist,
+          currentWeekPerformance: weekPerformance
+        }
+      });
+    } catch (error: any) {
+      logger.error('Error fetching artist profile', { error: error.message, artistId: req.params.id });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch artist profile'
+      });
+    }
+  },
 
   /**
-   * GET /api/v1/artists/:id
-   * Get single artist
+   * GET /api/artists/:id/history
+   * Get artist's weekly performance history
    */
-  getArtistById = asyncHandler(async (req: Request, res: Response) => {
-    console.log('=== DEBUG getArtistById ===');
-    console.log('Raw params:', req.params);
-    console.log('Raw id:', req.params.id);
-    console.log('ID type:', typeof req.params.id);
-    console.log('ID length:', req.params.id?.length);
-    const { id } = idParamSchema.parse(req.params);
-    const artist = await artistService.getArtistById(id);
+  async getArtistHistory(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const limit = parseInt(req.query.limit as string) || 10;
 
-    const response: ApiResponse = {
-      success: true,
-      data: artist,
-      meta: {
-        timestamp: new Date().toISOString(),
-      },
-    };
+      const history = await artistService.getArtistHistory(id, limit);
 
-    res.json(response);
-  });
+      res.json({
+        success: true,
+        data: history
+      });
+    } catch (error: any) {
+      logger.error('Error fetching artist history', { error: error.message, artistId: req.params.id });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch artist history'
+      });
+    }
+  },
 
   /**
-   * GET /api/v1/artists/:id/performance
-   * Get artist performance history
+   * GET /api/artists/pool/current
+   * Get current week's artist pool (100 songs)
    */
-  getPerformance = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = idParamSchema.parse(req.params);
-    const performance = await artistService.getArtistPerformance(id);
+  async getCurrentPool(req: Request, res: Response) {
+    try {
+      const currentWeek = await weekService.getCurrentWeek();
+      if (!currentWeek) {
+        return res.status(404).json({
+          success: false,
+          message: 'No active week found'
+        });
+      }
 
-    const response: ApiResponse = {
-      success: true,
-      data: performance,
-      meta: {
-        timestamp: new Date().toISOString(),
-      },
-    };
+      const pool = await artistService.getWeeklyPool(currentWeek.id);
 
-    res.json(response);
-  });
+      res.json({
+        success: true,
+        data: pool,
+        meta: {
+          count: pool.length,
+          weekId: currentWeek.id
+        }
+      });
+    } catch (error: any) {
+      logger.error('Error fetching artist pool', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch artist pool'
+      });
+    }
+  },
 
   /**
-   * POST /api/v1/artists
-   * Create new artist (admin only)
+   * GET /api/artists/top50
+   * Get Top 50 eligible artists for picks
    */
-  createArtist = asyncHandler(async (req: Request, res: Response) => {
-    const artistData = createArtistSchema.parse(req.body);
-    const artist = await artistService.createArtist(artistData);
+  async getTop50(req: Request, res: Response) {
+    try {
+      const currentWeek = await weekService.getCurrentWeek();
+      if (!currentWeek) {
+        return res.status(404).json({
+          success: false,
+          message: 'No active week found'
+        });
+      }
 
-    const response: ApiResponse = {
-      success: true,
-      data: artist,
-      meta: {
-        timestamp: new Date().toISOString(),
-      },
-    };
+      const top50 = await artistService.getTop50(currentWeek.id);
 
-    res.status(201).json(response);
-  });
-}
+      res.json({
+        success: true,
+        data: top50,
+        meta: {
+          count: top50.length,
+          weekId: currentWeek.id
+        }
+      });
+    } catch (error: any) {
+      logger.error('Error fetching Top 50', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch Top 50'
+      });
+    }
+  },
 
-export const artistController = new ArtistController();
+  /**
+   * POST /api/artists/submit-track
+   * Submit track for consideration (Artist accounts only)
+   */
+  async submitTrack(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized'
+        });
+      }
+
+      const { track_url, title, genre } = req.body;
+
+      if (!track_url || !title || !genre) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields: track_url, title, genre'
+        });
+      }
+
+      const submission = await artistService.submitTrack(
+        req.user.id,
+        track_url,
+        title,
+        genre
+      );
+
+      logger.info('Track submitted', { userId: req.user.id, trackId: submission.id });
+
+      res.json({
+        success: true,
+        data: submission,
+        message: 'Track submitted successfully'
+      });
+    } catch (error: any) {
+      logger.error('Error submitting track', { error: error.message, userId: req.user?.id });
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to submit track'
+      });
+    }
+  },
+
+  /**
+   * GET /api/artists/search
+   * Search artists by name or genre
+   */
+  async searchArtists(req: Request, res: Response) {
+    try {
+      const query = req.query.q as string;
+      const genre = req.query.genre as string;
+      const limit = parseInt(req.query.limit as string) || 20;
+
+      if (!query && !genre) {
+        return res.status(400).json({
+          success: false,
+          message: 'Search query or genre required'
+        });
+      }
+
+      const results = await artistService.searchArtists(query, genre, limit);
+
+      res.json({
+        success: true,
+        data: results,
+        meta: {
+          count: results.length,
+          query,
+          genre
+        }
+      });
+    } catch (error: any) {
+      logger.error('Error searching artists', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to search artists'
+      });
+    }
+  }
+};
