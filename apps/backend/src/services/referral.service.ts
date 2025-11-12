@@ -83,10 +83,16 @@ export class ReferralService {
     if (error) throw error;
 
     // Update referrer stats
+    const { data: current } = await supabase
+      .from('referral_stats')
+      .select('total_referrals')
+      .eq('user_id', referrerId)
+      .single();
+
     await supabase
       .from('referral_stats')
       .update({
-        total_referrals: supabase.sql`total_referrals + 1`,
+        total_referrals: (current?.total_referrals || 0) + 1,
       })
       .eq('user_id', referrerId);
 
@@ -132,11 +138,16 @@ export class ReferralService {
       .eq('id', referral.id);
 
     // Update referrer stats
+    const { data: stats } = await supabase
+      .from('referral_stats')
+      .select('total_referrals, successful_referrals, total_earnings')
+      .eq('user_id', referral.referrer_user_id)
+      .single();
+
     await supabase
       .from('referral_stats')
       .update({
-        successful_referrals: supabase.sql`successful_referrals + 1`,
-        total_earnings: supabase.sql`total_earnings + ${rewardAmount}`,
+        total_referrals: (stats?.total_referrals || 0) + 1,
       })
       .eq('user_id', referral.referrer_user_id);
 

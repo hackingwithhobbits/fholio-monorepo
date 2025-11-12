@@ -252,4 +252,38 @@ export class VotingService {
       topArtists: await this.getTopVotedArtists(weekId, 10),
     };
   }
+  /**
+   * Remove a vote (only during voting window)
+   */
+  async removeVote(userId: string, voteId: string) {
+    // Get vote details
+    const { data: vote } = await supabase
+      .from('votes')
+      .select('*, week_id')
+      .eq('id', voteId)
+      .eq('user_id', userId)
+      .single();
+
+    if (!vote) {
+      throw new Error('Vote not found or unauthorized');
+    }
+
+    // Check if voting window is still open
+    const week = await this.weekService.getCurrentWeek();
+    if (!week || week.id !== vote.week_id) {
+      throw new Error('Cannot remove vote - invalid week');
+    }
+
+    if (!this.weekService.isVotingOpen(week)) {
+      throw new Error('Cannot remove vote - voting window is closed');
+    }
+
+    // Delete the vote
+    const { error } = await supabase.from('votes').delete().eq('id', voteId).eq('user_id', userId);
+
+    if (error) throw error;
+
+    // Update artist_week vote count
+    await this.updateArtistVoteCount(vote.artist_id, vote.week_id);
+  }
 }

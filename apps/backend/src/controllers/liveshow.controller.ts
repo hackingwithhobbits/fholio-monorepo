@@ -3,6 +3,7 @@
 import { Request, Response } from 'express';
 import { LiveShowService } from '../services/liveshow.service';
 import { logger } from '../utils/logger';
+import { supabase } from '@/config/database';
 
 const liveShowService = new LiveShowService();
 

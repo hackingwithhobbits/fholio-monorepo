@@ -4,11 +4,181 @@ import { supabase } from '../config/database';
 import { Artist, ArtistWeek, WeekArtist } from '../types/database.types';
 
 export class ArtistService {
-  /**
-   * Publish the 100-song pool for a new week
-   * Mix of: new submissions + past high performers
-   */
-  async publishWeeklyPool(weekId: string, poolSize: number = 100) {
+    /**
+ * Get artist profile
+ */
+async getArtistProfile(artistId: string) {
+  const { data, error } = await supabase
+    .from('artists')
+    .select('*')
+    .eq('id', artistId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Get artist's weekly performance history
+ */
+async getArtistHistory(artistId: string, limit: number = 10) {
+  const { data, error } = await supabase
+    .from('artist_week')
+    .select(`
+      *,
+      week:weeks(week_number, week_starting, week_ending)
+    `)
+    .eq('artist_id', artistId)
+    .order('week.week_starting', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Get artist performance for specific week
+ */
+async getArtistWeekPerformance(artistId: string, weekId: string) {
+  const { data, error } = await supabase
+    .from('artist_week')
+    .select('*')
+    .eq('artist_id', artistId)
+    .eq('week_id', weekId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') throw error;
+  return data;
+}
+
+/**
+ * Get weekly pool (100 artists for the week)
+ */
+async getWeeklyPool(weekId: string) {
+  const { data, error } = await supabase
+    .from('week_artists')
+    .select(`
+      *,
+      artist:artists(*),
+      artist_week!inner(score, votes, rank, status)
+    `)
+    .eq('week_id', weekId)
+    .order('artist_week.score', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Get Top 50 artists eligible for picks
+ */
+async getTop50(weekId: string) {
+  const { data, error } = await supabase
+    .from('artist_week')
+    .select(`
+      *,
+      artist:artists(*)
+    `)
+    .eq('week_id', weekId)
+    .eq('is_top_50', true)
+    .order('rank', { ascending: true })
+    .limit(50);
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Submit track for consideration (Artist accounts)
+ */
+async submitTrack(
+  userId: string,
+  trackUrl: string,
+  title: string,
+  genre: string
+) {
+  // Check if user is an artist
+  const { data: user } = await supabase
+    .from('users')
+    .select('user_type')
+    .eq('id', userId)
+    .single();
+
+  if (!user || user.user_type !== 'artist') {
+    throw new Error('Only artist accounts can submit tracks');
+  }
+
+  // Check for existing pending submissions
+  const { data: existingSubmission } = await supabase
+    .from('artist_submissions')
+    .select('*')
+    .eq('artist_id', userId)
+    .eq('status', 'pending')
+    .single();
+
+  if (existingSubmission) {
+    throw new Error('You already have a pending submission');
+  }
+
+  // Create track record first
+  const { data: track, error: trackError } = await supabase
+    .from('tracks')
+    .insert({
+      title,
+      artist_id: userId,
+      url: trackUrl,
+      genre
+    })
+    .select()
+    .single();
+
+  if (trackError) throw trackError;
+
+  // Create submission
+  const { data: submission, error } = await supabase
+    .from('artist_submissions')
+    .insert({
+      artist_id: userId,
+      track_id: track.id,
+      status: 'pending',
+      submitted_at: new Date().toISOString()
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return submission;
+}
+
+/**
+ * Search artists by name or genre
+ */
+async searchArtists(query?: string, genre?: string, limit: number = 20) {
+  let dbQuery = supabase
+    .from('artists')
+    .select('*');
+
+  if (query) {
+    dbQuery = dbQuery.ilike('name', `%${query}%`);
+  }
+
+  if (genre) {
+    dbQuery = dbQuery.eq('genre', genre);
+  }
+
+  dbQuery = dbQuery.limit(limit);
+
+  const { data, error } = await dbQuery;
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Publish the 100-song pool for a new week
+ * Mix of: new submissions + past high performers
+ */
+async publishWeeklyPool(weekId: string, poolSize: number = 100) {
     // Algorithm:
     // 1. Get all new submissions (status='pending')
     // 2. Get past top performers from last 4 weeks

@@ -207,4 +207,66 @@ export class LineupService {
         .eq('id', lineups[i].id);
     }
   }
+  // Add these to apps/backend/src/services/lineup.service.ts
+
+  /**
+   * Get lineup by ID
+   */
+  async getLineupById(lineupId: string) {
+    const { data, error } = await supabase
+      .from('fan_lineups')
+      .select(
+        `
+      *,
+      lineup_artists(
+        *,
+        artist:artists(*)
+      )
+    `
+      )
+      .eq('id', lineupId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  }
+
+  /**
+   * Lock lineup manually
+   */
+  async lockLineup(lineupId: string) {
+    const { error } = await supabase
+      .from('fan_lineups')
+      .update({
+        is_locked: true,
+        locked_at: new Date().toISOString(),
+      })
+      .eq('id', lineupId);
+
+    if (error) throw error;
+  }
+
+  /**
+   * Get user's lineup history
+   */
+  async getUserLineupHistory(userId: string, limit: number = 10) {
+    const { data, error } = await supabase
+      .from('fan_lineups')
+      .select(
+        `
+      *,
+      week:weeks(week_number, week_starting, week_ending),
+      lineup_artists(
+        *,
+        artist:artists(name, image_url)
+      )
+    `
+      )
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  }
 }
