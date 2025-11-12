@@ -245,7 +245,29 @@ export class LineupService {
 
     if (error) throw error;
   }
+  /**
+   * Delete lineup (only before lock)
+   */
+  async deleteLineup(lineupId: string) {
+    // Get lineup to check if it's locked
+    const lineup = await this.getLineupById(lineupId);
 
+    if (!lineup) {
+      throw new Error('Lineup not found');
+    }
+
+    if (lineup.is_locked) {
+      throw new Error('Cannot delete locked lineup');
+    }
+
+    // Delete lineup_artists first (foreign key constraint)
+    await supabase.from('lineup_artists').delete().eq('lineup_id', lineupId);
+
+    // Delete the lineup
+    const { error } = await supabase.from('fan_lineups').delete().eq('id', lineupId);
+
+    if (error) throw error;
+  }
   /**
    * Get user's lineup history
    */
