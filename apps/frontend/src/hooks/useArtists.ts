@@ -57,7 +57,7 @@ export function useArtistLeaderboard(
 ) {
   const { data, error, mutate } = useSWR(
     ["/artists/leaderboard", league, limit],
-    () => artistService.getLeaderboard(league, limit),
+    () => artistService.getLeaderboard(league, limit.toString()),
     {
       refreshInterval: 30000,
     },

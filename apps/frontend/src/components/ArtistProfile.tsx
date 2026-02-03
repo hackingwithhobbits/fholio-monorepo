@@ -17,7 +17,6 @@ import {
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { useArtistProfile } from "@/hooks/useArtist";
 import {
   useVotingActions,
   useMyVotes,
@@ -38,6 +37,7 @@ import {
   PolarAngleAxis,
   Radar,
 } from "recharts";
+import { useArtistProfile } from "@/hooks/useArtist";
 
 interface ArtistProfileProps {
   artistId?: string;

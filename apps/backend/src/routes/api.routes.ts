@@ -26,6 +26,9 @@ import { supportController } from '../controllers/support.controller';
 import { analyticsController } from '../controllers/analytics.controller';
 import { trackController } from '@/controllers/track.controller';
 import { walletController } from '@/controllers/wallet.controller';
+import { adminController } from '@/controllers/admin.controller';
+import { adminMiddleware } from '@/middleware/admin.middleware';
+import { phaseController } from '@/controllers/phase.controller';
 
 const router = express.Router();
 
@@ -217,5 +220,36 @@ router.get('/wallet/transactions', authMiddleware, walletController.getTransacti
 router.get('/wallet/weekly-earnings', authMiddleware, walletController.getWeeklyEarnings);
 router.get('/wallet/top-earners', walletController.getTopEarners);
 router.post('/wallet/withdraw', authMiddleware, walletController.createWithdrawal);
+
+router.get('/admin/stats', authMiddleware, adminController.getPlatformStats);
+router.get('/admin/tracks/pending', authMiddleware, adminController.getPendingTracks);
+router.post('/admin/tracks/:id/approve', authMiddleware, adminController.approveTrack);
+router.post('/admin/tracks/:id/reject', authMiddleware, adminController.rejectTrack);
+router.get('/admin/weeks', authMiddleware, adminController.getAllWeeks);
+router.post('/admin/weeks', authMiddleware, adminController.createWeek);
+router.put('/admin/weeks/:id', authMiddleware, adminController.updateWeek);
+router.delete('/admin/weeks/:id', authMiddleware, adminController.deleteWeek);
+router.get('/admin/users', authMiddleware, adminController.getAllUsers);
+router.post('/admin/users/:id/suspend', authMiddleware, adminController.suspendUser);
+router.post('/admin/users/:id/unsuspend', authMiddleware, adminController.unsuspendUser);
+router.get('/admin/prize-pool', authMiddleware, adminController.getPrizePoolConfig);
+router.put('/admin/prize-pool', authMiddleware, adminController.updatePrizePoolConfig);
+router.get('/admin/activity', authMiddleware, adminController.getActivityLogs);
+
+router.get('/phase/current', phaseController.getCurrentPhase);
+router.post('/phase/lock-lineups', authMiddleware, phaseController.lockLineups);
+router.post('/phase/calculate-top50', authMiddleware, phaseController.calculateTop50);
+router.post('/phase/finalize-scores', authMiddleware, phaseController.finalizeScores);
+router.post('/phase/distribute-prizes', authMiddleware, phaseController.distributePrizes);
+router.post('/phase/run-transitions', authMiddleware, phaseController.runPhaseTransitions);
+router.post('/phase/publish-pool', authMiddleware, phaseController.publishWeeklyPool);
+
+router.get('/admin/stats', authMiddleware, adminMiddleware, adminController.getPlatformStats);
+router.get(
+  '/admin/tracks/pending',
+  authMiddleware,
+  adminMiddleware,
+  adminController.getPendingTracks
+);
 
 export default router;

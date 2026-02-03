@@ -10,6 +10,7 @@ export interface AuthRequest extends Request {
     id: string;
     email: string;
     userType: string;
+    role?: string; // ADD THIS LINE
   };
 }
 

@@ -1,6 +1,6 @@
 // apps/frontend/src/lib/auth.ts (or wherever it is)
 
-interface UserSession {
+export interface UserSession {
   id: string;
   email: string;
   username: string;
