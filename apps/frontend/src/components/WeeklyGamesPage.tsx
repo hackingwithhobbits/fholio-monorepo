@@ -1,361 +1,441 @@
-import { useState, useEffect } from "react";
+// apps/frontend/src/components/WeeklyGamesPage.tsx
+
 import { motion } from "framer-motion";
+import { useState, useMemo } from "react";
 import {
-  Clock,
-  Filter,
   Search,
+  Filter,
   TrendingUp,
+  Users,
   Music,
-  Star,
-  Check,
-  X as XIcon,
-  Sparkles,
-  Play,
+  Clock,
+  Vote,
+  CheckCircle2,
+  Lock,
+  Loader2,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Badge } from "./ui/badge";
+import { Logo } from "./Logo";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { useCurrentWeekTracks } from "@/hooks/useTracks";
+import { useCurrentWeek } from "@/hooks/useWeek";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "./ui/dialog";
-import { weeklyTracks } from "../data/weeklyTracks";
+  useMyVotes,
+  useRemainingVotes,
+  useVotingActions,
+} from "@/hooks/useVoting";
+import { authUtils } from "@/lib/auth";
+import { toast } from "sonner";
 
 interface WeeklyGamesPageProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, artistId?: string) => void;
 }
 
 export function WeeklyGamesPage({ onNavigate }: WeeklyGamesPageProps) {
-  const [selectedTracks, setSelectedTracks] = useState<number[]>([]);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [timeLeft, setTimeLeft] = useState({
-    hours: 46,
-    minutes: 12,
-    seconds: 34,
-  });
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        let { hours, minutes, seconds } = prev;
-
-        seconds--;
-        if (seconds < 0) {
-          seconds = 59;
-          minutes--;
-          if (minutes < 0) {
-            minutes = 59;
-            hours--;
-            if (hours < 0) {
-              hours = 71;
-            }
-          }
-        }
-
-        return { hours, minutes, seconds };
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const [tracks, setTracks] = useState(weeklyTracks);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("trending");
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
 
-  const toggleTrackSelection = (trackId: number) => {
-    setSelectedTracks((prev) => {
-      if (prev.includes(trackId)) {
-        return prev.filter((id) => id !== trackId);
-      } else if (prev.length < 5) {
-        return [...prev, trackId];
-      }
-      return prev;
+  const userSession = authUtils.getSession();
+  const isAuthenticated = !!userSession;
+
+  // Fetch data
+  const { week } = useCurrentWeek();
+  const { tracks, isLoading: tracksLoading } = useCurrentWeekTracks();
+  const { votes: myVotes, refresh: refreshVotes } = useMyVotes(week?.id);
+  const {
+    remaining,
+    limit,
+    used,
+    refresh: refreshRemaining,
+  } = useRemainingVotes(week?.id);
+  const { submitVote, isVoting } = useVotingActions();
+
+  // Check if voting is open
+  const isVotingOpen = useMemo(() => {
+    if (!week) return false;
+    const now = new Date();
+    const votingStart = new Date(week.voting_open_at);
+    const votingEnd = new Date(week.voting_close_at);
+    return now >= votingStart && now <= votingEnd;
+  }, [week]);
+
+  // Get voted artist IDs
+  const votedArtistIds = useMemo(() => {
+    return new Set(myVotes.map((v: any) => v.artist_id));
+  }, [myVotes]);
+
+  // Filter tracks
+  const filteredTracks = useMemo(() => {
+    return tracks.filter((track: any) => {
+      const matchesSearch =
+        track.artist?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        track.title?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesGenre =
+        !selectedGenre || track.artist?.genre === selectedGenre;
+      return matchesSearch && matchesGenre;
     });
-  };
+  }, [tracks, searchQuery, selectedGenre]);
 
-  const handleLockPicks = () => {
-    if (selectedTracks.length === 5) {
-      setShowSuccess(true);
+  // Get unique genres
+  const genres = useMemo(() => {
+    const genreSet = new Set(
+      tracks.map((t: any) => t.artist?.genre).filter(Boolean),
+    );
+    return Array.from(genreSet);
+  }, [tracks]);
+
+  // Handle vote
+  const handleVote = async (artistId: string) => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to vote");
+      onNavigate("signin-fan");
+      return;
+    }
+
+    if (!isVotingOpen) {
+      toast.error("Voting is not open");
+      return;
+    }
+
+    if (remaining <= 0) {
+      toast.error(`You've used all ${limit} votes for this week`);
+      return;
+    }
+
+    const success = await submitVote(artistId, week?.id);
+    if (success) {
+      await refreshVotes();
+      await refreshRemaining();
     }
   };
 
-  const filteredTracks = tracks
-    .filter((track) => {
-      if (searchQuery) {
-        return (
-          track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          track.artist.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      if (activeFilter === "trending") {
-        return b.votes - a.votes;
-      }
-      return 0;
-    });
+  // Calculate time until voting closes
+  const getTimeUntilVotingCloses = () => {
+    if (!week?.voting_close_at) return "N/A";
+
+    const now = new Date();
+    const closeTime = new Date(week.voting_close_at);
+    const diff = closeTime.getTime() - now.getTime();
+
+    if (diff <= 0) return "Closed";
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
 
   return (
-    <div className="min-h-screen bg-black pt-16">
-      {/* Header */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 border-b border-primary/10">
-        <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8 relative">
+      {/* Background Logo Watermark */}
+      <div className="logo-watermark">
+        <Logo size="xl" className="opacity-100" style={{ height: "400px" }} />
+      </div>
+
+      <div className="max-w-7xl mx-auto space-y-8 relative z-10">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <div className="text-xs text-accent mb-2 tracking-widest uppercase">
+            THIS WEEK'S ARTISTS
+          </div>
+          <h1 className="text-5xl md:text-6xl gradient-text tracking-tighter mb-2">
+            Vote for Artists
+          </h1>
+          <p className="text-muted-foreground/80 tracking-tight">
+            Week {week?.week_number || "N/A"} • Vote for your favorites
+          </p>
+        </motion.div>
+
+        {/* Voting Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid md:grid-cols-4 gap-4"
+        >
+          {/* Voting Status */}
+          <div
+            className={`glass-card rounded-2xl p-6 neon-glow ${isVotingOpen ? "border-2 border-accent" : "border-2 border-muted"}`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Clock
+                className={`w-5 h-5 ${isVotingOpen ? "text-accent" : "text-muted-foreground"}`}
+              />
+              <span className="text-sm tracking-tight text-muted-foreground">
+                Voting Status
+              </span>
+            </div>
+            <div
+              className={`text-2xl tracking-tight ${isVotingOpen ? "text-accent" : "text-muted-foreground"}`}
+            >
+              {isVotingOpen ? "OPEN" : "CLOSED"}
+            </div>
+            {isVotingOpen && (
+              <div className="text-xs text-muted-foreground/70 mt-1">
+                Closes in {getTimeUntilVotingCloses()}
+              </div>
+            )}
+          </div>
+
+          {/* Votes Used */}
+          {isAuthenticated && (
+            <>
+              <div className="glass-card rounded-2xl p-6 neon-glow">
+                <div className="flex items-center gap-2 mb-2">
+                  <Vote className="w-5 h-5 text-primary" />
+                  <span className="text-sm tracking-tight text-muted-foreground">
+                    Votes Used
+                  </span>
+                </div>
+                <div className="text-3xl gradient-text tracking-tight">
+                  {used} / {limit}
+                </div>
+              </div>
+
+              <div className="glass-card rounded-2xl p-6 neon-glow">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 className="w-5 h-5 text-accent" />
+                  <span className="text-sm tracking-tight text-muted-foreground">
+                    Remaining
+                  </span>
+                </div>
+                <div className="text-3xl text-accent tracking-tight">
+                  {remaining}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Total Artists */}
+          <div className="glass-card rounded-2xl p-6 neon-glow">
+            <div className="flex items-center gap-2 mb-2">
+              <Music className="w-5 h-5 text-secondary" />
+              <span className="text-sm tracking-tight text-muted-foreground">
+                Total Artists
+              </span>
+            </div>
+            <div className="text-3xl text-white tracking-tight">
+              {tracks.length}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Auth Prompt for Non-logged Users */}
+        {!isAuthenticated && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ delay: 0.2 }}
+            className="glass-card rounded-2xl p-6 text-center neon-glow border-2 border-primary/30"
           >
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 lg:mb-4 gradient-text tracking-tighter">
-              Weekly Games
-            </h1>
-            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground mb-6 lg:mb-8">
-              Pick your top 5 tracks and compete for prizes
+            <Vote className="w-12 h-12 text-primary mx-auto mb-4" />
+            <h3 className="text-xl text-white mb-2">Sign In to Vote</h3>
+            <p className="text-muted-foreground mb-4">
+              Create an account to vote for your favorite artists and compete
+              for prizes
             </p>
-
-            {/* Countdown Timer Bar */}
-            <div className="glass-card p-4 rounded-2xl neon-glow">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <Clock className="w-5 h-5 text-accent" />
-                  <span className="text-sm text-white">Voting closes in:</span>
-                </div>
-                <div className="flex gap-3">
-                  <div className="glass-card px-4 py-2 rounded-lg">
-                    <span className="text-2xl text-white">
-                      {timeLeft.hours.toString().padStart(2, "0")}
-                    </span>
-                    <span className="text-xs text-muted-foreground ml-1">
-                      h
-                    </span>
-                  </div>
-                  <div className="glass-card px-4 py-2 rounded-lg">
-                    <span className="text-2xl text-white">
-                      {timeLeft.minutes.toString().padStart(2, "0")}
-                    </span>
-                    <span className="text-xs text-muted-foreground ml-1">
-                      m
-                    </span>
-                  </div>
-                  <div className="glass-card px-4 py-2 rounded-lg">
-                    <span className="text-2xl text-white">
-                      {timeLeft.seconds.toString().padStart(2, "0")}
-                    </span>
-                    <span className="text-xs text-muted-foreground ml-1">
-                      s
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Selection Counter */}
-              <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">
-                    Selected:
-                  </span>
-                  <span className="text-sm text-accent">
-                    {selectedTracks.length} / 5
-                  </span>
-                </div>
-                <Button
-                  onClick={handleLockPicks}
-                  disabled={selectedTracks.length !== 5}
-                  className="gradient-bg hover:opacity-90 disabled:opacity-50 h-11"
-                  size="sm"
-                >
-                  <span className="hidden sm:inline">Lock My Picks</span>
-                  <span className="sm:hidden">Lock Picks</span>
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Filters and Search */}
-      <section className="py-6 px-4 sm:px-6 lg:px-8 border-b border-primary/10 sticky top-16 z-40 glass-card">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            {/* Search */}
-            <div className="relative w-full md:w-96">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search tracks or artists..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 glass-card border-primary/20"
-              />
-            </div>
-
-            {/* Tabs */}
-            <Tabs
-              value={activeFilter}
-              onValueChange={setActiveFilter}
-              className="w-full md:w-auto"
+            <Button
+              onClick={() => onNavigate("signin-fan")}
+              className="gradient-bg neon-glow holo-button rounded-xl"
             >
-              <TabsList className="glass-card">
-                <TabsTrigger value="trending">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Trending
-                </TabsTrigger>
-                <TabsTrigger value="genre">
-                  <Music className="w-4 h-4 mr-2" />
-                  Genre
-                </TabsTrigger>
-                <TabsTrigger value="new">
-                  <Star className="w-4 h-4 mr-2" />
-                  New
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        </div>
-      </section>
+              Sign In / Sign Up
+            </Button>
+          </motion.div>
+        )}
 
-      {/* Track Grid */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filteredTracks.map((track, index) => {
-              const isSelected = selectedTracks.includes(track.id);
+        {/* Search and Filter */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="flex flex-col md:flex-row gap-4"
+        >
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search artists or tracks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-black/40 border-primary/30 focus:border-primary text-white pl-12 pr-4 py-6 rounded-xl"
+            />
+          </div>
+
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant={selectedGenre === null ? "default" : "outline"}
+              onClick={() => setSelectedGenre(null)}
+              className={
+                selectedGenre === null ? "gradient-bg" : "border-primary/30"
+              }
+            >
+              All Genres
+            </Button>
+            {genres.map((genre: any) => (
+              <Button
+                key={genre}
+                variant={selectedGenre === genre ? "default" : "outline"}
+                onClick={() => setSelectedGenre(genre)}
+                className={
+                  selectedGenre === genre ? "gradient-bg" : "border-primary/30"
+                }
+              >
+                {genre}
+              </Button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Loading State */}
+        {tracksLoading && (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-12 h-12 animate-spin text-primary" />
+          </div>
+        )}
+
+        {/* Tracks Grid */}
+        {!tracksLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {filteredTracks.map((track: any, index: number) => {
+              const hasVoted = votedArtistIds.has(track.artist_id);
+              const voteCount = track.artist_week?.votes || 0;
+
               return (
                 <motion.div
                   key={track.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.01 }}
-                  className={`relative glass-card rounded-xl overflow-hidden hover:scale-105 transition-all cursor-pointer group ${
-                    isSelected ? "ring-2 ring-accent" : ""
+                  transition={{ delay: index * 0.05 }}
+                  className={`glass-card rounded-2xl p-6 neon-glow hover:scale-[1.02] transition-all ${
+                    hasVoted ? "border-2 border-accent" : ""
                   }`}
-                  onClick={() => toggleTrackSelection(track.id)}
                 >
-                  {/* Trending Badge */}
-                  {track.trending && (
-                    <div className="absolute top-2 left-2 z-10">
-                      <div className="glass-card px-2 py-1 rounded-lg flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3 text-accent" />
-                        <span className="text-xs text-accent">Hot</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Selection Indicator */}
-                  {isSelected && (
-                    <div className="absolute top-2 right-2 z-10">
-                      <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center">
-                        <Check className="w-4 h-4 text-black" />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Image */}
-                  <div className="aspect-square relative">
+                  {/* Artist Image & Info */}
+                  <div className="flex items-center gap-4 mb-4">
                     <ImageWithFallback
-                      src={track.image}
-                      alt={track.title}
-                      className="w-full h-full object-cover"
+                      src={track.artist?.image_url || track.cover_image_url}
+                      alt={track.artist?.name || "Artist"}
+                      className="w-16 h-16 rounded-xl object-cover"
                     />
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-opacity ${
-                        isSelected
-                          ? "opacity-100"
-                          : "opacity-0 group-hover:opacity-100"
-                      }`}
-                    />
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className="text-lg text-white tracking-tight cursor-pointer hover:text-primary transition-colors truncate"
+                        onClick={() => onNavigate("artist", track.artist_id)}
+                      >
+                        {track.artist?.name || "Unknown Artist"}
+                      </h3>
+                      <p className="text-sm text-muted-foreground/70 truncate">
+                        {track.title}
+                      </p>
+                    </div>
+                  </div>
 
-                    {/* Play Button */}
-                    <div
-                      className={`absolute inset-0 flex items-center justify-center transition-opacity ${
-                        isSelected
-                          ? "opacity-0"
-                          : "opacity-0 group-hover:opacity-100"
-                      }`}
+                  {/* Track Details */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <Badge className="bg-primary/20 text-primary border-primary/30">
+                      {track.artist?.genre || "Unknown"}
+                    </Badge>
+                    <Badge className="bg-white/10 text-white/70">
+                      {track.artist?.league || "Minor"}
+                    </Badge>
+                  </div>
+
+                  {/* Vote Count */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        {voteCount} votes
+                      </span>
+                    </div>
+                    {track.artist_week?.status && (
+                      <Badge className="bg-accent/20 text-accent text-xs">
+                        {track.artist_week.status}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Vote Button */}
+                  {isAuthenticated ? (
+                    <Button
+                      onClick={() => handleVote(track.artist_id)}
+                      disabled={
+                        !isVotingOpen || hasVoted || isVoting || remaining <= 0
+                      }
+                      className={`w-full ${
+                        hasVoted
+                          ? "bg-accent/20 text-accent border-accent/30"
+                          : "gradient-bg neon-glow holo-button"
+                      } rounded-xl`}
                     >
-                      <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <Play className="w-5 h-5 text-white ml-0.5" />
-                      </div>
-                    </div>
-
-                    {/* Vote Count */}
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <div className="glass-card px-2 py-1 rounded-lg flex items-center justify-between">
-                        <span className="text-xs text-white/80">
-                          {track.votes} votes
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Info */}
-                  <div className="p-3">
-                    <p className="text-sm text-white truncate">{track.title}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {track.artist}
-                    </p>
-                    <p className="text-xs text-accent mt-1">{track.genre}</p>
-                  </div>
+                      {hasVoted ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                          Voted
+                        </>
+                      ) : !isVotingOpen ? (
+                        <>
+                          <Lock className="w-4 h-4 mr-2" />
+                          Voting Closed
+                        </>
+                      ) : isVoting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Voting...
+                        </>
+                      ) : remaining <= 0 ? (
+                        <>
+                          <Lock className="w-4 h-4 mr-2" />
+                          No Votes Left
+                        </>
+                      ) : (
+                        <>
+                          <Vote className="w-4 h-4 mr-2" />
+                          Vote ({remaining} left)
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => onNavigate("signin-fan")}
+                      variant="outline"
+                      className="w-full border-primary/30 hover:bg-primary/10"
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
+                      Sign In to Vote
+                    </Button>
+                  )}
                 </motion.div>
               );
             })}
-          </div>
-        </div>
-      </section>
+          </motion.div>
+        )}
 
-      {/* Success Modal */}
-      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <DialogContent className="glass-card border border-primary/20">
-          <DialogHeader>
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center">
-                <Check className="w-8 h-8 text-white" />
-              </div>
-            </div>
-            <DialogTitle className="gradient-text text-center text-2xl">
-              Picks Locked!
-            </DialogTitle>
-            <DialogDescription className="text-white/70 text-center pt-4">
-              Your 5 tracks have been locked in for this week's competition.
-              Good luck!
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 mt-6">
-            <div className="glass-card p-4 rounded-xl">
-              <p className="text-sm text-muted-foreground mb-2">Your Picks:</p>
-              <div className="space-y-2">
-                {selectedTracks.map((id) => {
-                  const track = tracks.find((t) => t.id === id);
-                  return track ? (
-                    <div
-                      key={id}
-                      className="flex items-center gap-2 text-sm text-white"
-                    >
-                      <Check className="w-4 h-4 text-accent" />
-                      <span>
-                        {track.title} - {track.artist}
-                      </span>
-                    </div>
-                  ) : null;
-                })}
-              </div>
-            </div>
-            <Button
-              onClick={() => {
-                setShowSuccess(false);
-                onNavigate("fan-dashboard");
-              }}
-              className="w-full gradient-bg hover:opacity-90"
-            >
-              View My Dashboard
-            </Button>
+        {/* Empty State */}
+        {!tracksLoading && filteredTracks.length === 0 && (
+          <div className="glass-card rounded-2xl p-12 text-center neon-glow">
+            <Music className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+            <p className="text-white text-xl mb-2">No tracks found</p>
+            <p className="text-muted-foreground">
+              Try adjusting your search or filter
+            </p>
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+      </div>
     </div>
   );
 }

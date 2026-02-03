@@ -1,8 +1,11 @@
+// apps/backend/src/server.ts
+
 import { testDatabaseConnection } from '@/config/supabase';
 import { logger } from '@/utils/logger';
 
 import app from './app';
 import { env } from './config/env';
+import { startPhaseTransitionCron, startPreciseSchedules } from './jobs/phase-transitions.cron';
 
 async function startServer() {
   try {
@@ -13,6 +16,7 @@ async function startServer() {
       hasServiceKey: !!env.SUPABASE_SERVICE_ROLE_KEY,
       serviceKeyPrefix: env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 20) + '...',
     });
+
     // Test database connection
     logger.info('Testing database connection...');
     const isConnected = await testDatabaseConnection();
@@ -29,6 +33,18 @@ async function startServer() {
       logger.info(
         `📝 API documentation available at http://localhost:${env.PORT}${env.API_PREFIX}`
       );
+
+      // Start cron jobs after server is running
+      try {
+        logger.info('Starting automated phase management...');
+        startPhaseTransitionCron();
+        startPreciseSchedules();
+        logger.info('✅ All cron jobs started successfully');
+      } catch (cronError) {
+        logger.error('Failed to start cron jobs:', cronError);
+        // Don't crash the server if cron jobs fail to start
+        logger.warn('⚠️ Server is running but automated phase management is disabled');
+      }
     });
 
     // Graceful shutdown

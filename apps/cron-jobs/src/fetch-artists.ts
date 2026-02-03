@@ -202,8 +202,9 @@ async function fetchArtistsList(
       offset,
       code2: "US",
       "sp_ml[]": [30000, 60000], // Spotify monthly listeners
-      "career_trend[]": ["steady", "growth", "explosive growth"],
+      career_trend: "explosive growth",
     });
+    // "career_trend[]": ["steady", "growth", "explosive growth"],
 
     // The response structure is: { obj: { obj: [...artists], offset: X, total: Y } }
     const artists = response.obj?.obj || [];

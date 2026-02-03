@@ -17,7 +17,7 @@
     "lint": "npm run lint --workspaces",
     "clean": "npm run clean --workspaces"
   },
-  "dependencies": {
+  "dependen cies": {
     "@supabase/supabase-js": "^2.38.0",
     "axios": "^1.6.0",
     "bottleneck": "^2.19.5",
@@ -25,7 +25,11 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@types/node-cron": "^3.0.11",
     "eslint-plugin-unused-imports": "^4.3.0",
     "typescript": "^5.2.0"
+  },
+  "dependencies": {
+    "node-cron": "^4.2.1"
   }
 }

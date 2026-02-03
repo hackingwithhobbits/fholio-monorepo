@@ -1,3 +1,5 @@
+// apps/frontend/src/components/ArtistDashboardV2.tsx
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -9,8 +11,11 @@ import {
   Play,
   Award,
   Users,
-  DollarSign,
   TrendingUp,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  X,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -34,6 +39,9 @@ import {
 } from "./ui/alert-dialog";
 import { LeaderboardPage } from "./LeaderboardPage";
 import { authUtils, UserSession } from "@/lib/auth";
+import { useArtistStats, useArtistSubmissions } from "@/hooks/useArtists";
+import { trackService } from "@/lib/api/services";
+
 interface ArtistDashboardV2Props {
   onNavigate: (page: string) => void;
   onLogout: () => void;
@@ -46,14 +54,16 @@ export function ArtistDashboardV2({
   const [activeTab, setActiveTab] = useState<
     "submit" | "tracks" | "leaderboard" | "profile"
   >("submit");
+
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [userSession, setUserSession] = useState<UserSession | null>(null);
 
   // Form state
-  const [artistName, setArtistName] = useState("");
   const [trackTitle, setTrackTitle] = useState("");
   const [genre, setGenre] = useState("");
   const [description, setDescription] = useState("");
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load user session on mount
   useEffect(() => {
@@ -62,6 +72,23 @@ export function ArtistDashboardV2({
       setUserSession(session);
     }
   }, []);
+
+  const artistId = userSession?.id;
+
+  // Fetch real data
+  const {
+    submissions,
+    isLoading: loadingSubmissions,
+    error: submissionsError,
+    refresh: refreshSubmissions,
+  } = useArtistSubmissions(artistId);
+
+  const {
+    stats,
+    isLoading: loadingStats,
+    refresh: refreshStats,
+  } = useArtistStats(artistId);
+
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -73,6 +100,7 @@ export function ArtistDashboardV2({
       return "Recently";
     }
   };
+
   const tabs = [
     { id: "submit" as const, label: "Submit Music", icon: Upload },
     { id: "tracks" as const, label: "My Tracks", icon: Music },
@@ -80,41 +108,71 @@ export function ArtistDashboardV2({
     { id: "profile" as const, label: "Profile", icon: User },
   ];
 
-  const submissions = [
-    {
-      id: 1,
-      title: "Summer Nights",
-      status: "Live",
-      rank: 7,
-      votes: 2847,
-      streams: 45230,
-    },
-    {
-      id: 2,
-      title: "Electric Dreams",
-      status: "In Review",
-      rank: null,
-      votes: 0,
-      streams: 0,
-    },
-    {
-      id: 3,
-      title: "Midnight City",
-      status: "Past",
-      rank: 23,
-      votes: 1234,
-      streams: 28940,
-    },
-  ];
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = [
+        "audio/mpeg",
+        "audio/wav",
+        "audio/flac",
+        "audio/mp3",
+      ];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(
+          "Invalid file type. Please upload MP3, WAV, or FLAC files only.",
+        );
+        return;
+      }
 
-  const handleSubmit = (e: React.FormEvent) => {
+      // Validate file size (50MB max)
+      const maxSize = 50 * 1024 * 1024; // 50MB
+      if (file.size > maxSize) {
+        toast.error("File too large. Maximum size is 50MB.");
+        return;
+      }
+
+      setAudioFile(file);
+      toast.success("Audio file selected: " + file.name);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowSuccessModal(true);
-    // Reset form
-    setArtistName("");
-    setTrackTitle("");
-    setGenre("");
-    setDescription("");
+
+    if (!trackTitle || !genre) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await trackService.submitTrack({
+        title: trackTitle,
+        genre,
+        description,
+        audio: audioFile || undefined,
+      });
+
+      // Reset form
+      setTrackTitle("");
+      setGenre("");
+      setDescription("");
+      setAudioFile(null);
+
+      // Refresh data
+      await refreshSubmissions();
+      await refreshStats();
+
+      setShowSuccessModal(true);
+      toast.success("Track submitted successfully!");
+    } catch (error: any) {
+      console.error("Submit error:", error);
+      toast.error(error.message || "Failed to submit track");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderTabContent = () => {
@@ -148,24 +206,10 @@ export function ArtistDashboardV2({
                 className="glass-card rounded-2xl p-8 neon-glow"
               >
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Artist Name */}
-                  <div>
-                    <label className="block text-sm text-muted-foreground mb-2">
-                      Artist Name
-                    </label>
-                    <Input
-                      value={artistName}
-                      onChange={(e) => setArtistName(e.target.value)}
-                      placeholder="Your artist name"
-                      className="bg-white/5 border-white/10 text-white rounded-xl"
-                      required
-                    />
-                  </div>
-
                   {/* Track Title */}
                   <div>
                     <label className="block text-sm text-muted-foreground mb-2">
-                      Track Title
+                      Track Title *
                     </label>
                     <Input
                       value={trackTitle}
@@ -179,21 +223,21 @@ export function ArtistDashboardV2({
                   {/* Genre */}
                   <div>
                     <label className="block text-sm text-muted-foreground mb-2">
-                      Genre
+                      Genre *
                     </label>
                     <Select value={genre} onValueChange={setGenre} required>
                       <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl">
                         <SelectValue placeholder="Select a genre" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pop">Pop</SelectItem>
-                        <SelectItem value="rock">Rock</SelectItem>
-                        <SelectItem value="hip-hop">Hip-Hop</SelectItem>
-                        <SelectItem value="electronic">Electronic</SelectItem>
-                        <SelectItem value="r&b">R&B</SelectItem>
-                        <SelectItem value="indie">Indie</SelectItem>
-                        <SelectItem value="country">Country</SelectItem>
-                        <SelectItem value="jazz">Jazz</SelectItem>
+                        <SelectItem value="Pop">Pop</SelectItem>
+                        <SelectItem value="Rock">Rock</SelectItem>
+                        <SelectItem value="Hip-Hop">Hip-Hop</SelectItem>
+                        <SelectItem value="Electronic">Electronic</SelectItem>
+                        <SelectItem value="R&B">R&B</SelectItem>
+                        <SelectItem value="Indie">Indie</SelectItem>
+                        <SelectItem value="Country">Country</SelectItem>
+                        <SelectItem value="Jazz">Jazz</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -201,16 +245,56 @@ export function ArtistDashboardV2({
                   {/* Upload Audio */}
                   <div>
                     <label className="block text-sm text-muted-foreground mb-2">
-                      Upload Audio
+                      Upload Audio File
                     </label>
-                    <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-accent/50 transition-colors cursor-pointer">
-                      <Upload className="w-12 h-12 mx-auto mb-3 text-accent" />
-                      <p className="text-white mb-1">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        MP3, WAV, or FLAC (max. 50MB)
-                      </p>
+                    <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-accent/50 transition-colors">
+                      <input
+                        type="file"
+                        id="audio-upload"
+                        accept="audio/mpeg,audio/wav,audio/flac,audio/mp3"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="audio-upload"
+                        className="cursor-pointer block"
+                      >
+                        {audioFile ? (
+                          <div className="flex items-center justify-center gap-3">
+                            <CheckCircle className="w-8 h-8 text-accent" />
+                            <div className="text-left">
+                              <p className="text-white font-medium">
+                                {audioFile.name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {(audioFile.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setAudioFile(null);
+                              }}
+                              className="ml-auto"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="w-12 h-12 mx-auto mb-3 text-accent" />
+                            <p className="text-white mb-1">
+                              Click to upload or drag and drop
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              MP3, WAV, or FLAC (max. 50MB)
+                            </p>
+                          </>
+                        )}
+                      </label>
                     </div>
                   </div>
 
@@ -224,18 +308,27 @@ export function ArtistDashboardV2({
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Tell fans about this track..."
                       className="bg-white/5 border-white/10 text-white rounded-xl min-h-[100px]"
-                      required
                     />
                   </div>
 
                   {/* Submit Button */}
                   <Button
                     type="submit"
+                    disabled={isSubmitting || !trackTitle || !genre}
                     className="w-full bg-gradient-to-r from-accent to-pink-600 hover:opacity-90 text-white neon-glow py-6 rounded-xl transition-all duration-200"
                     size="lg"
                   >
-                    <Upload className="w-5 h-5 mr-2" />
-                    Submit Track
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5 mr-2" />
+                        Submit Track
+                      </>
+                    )}
                   </Button>
                 </form>
               </motion.div>
@@ -244,6 +337,29 @@ export function ArtistDashboardV2({
         );
 
       case "tracks":
+        if (loadingSubmissions) {
+          return (
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading submissions...</p>
+              </div>
+            </div>
+          );
+        }
+
+        if (submissionsError) {
+          return (
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="text-center">
+                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <p className="text-red-500 mb-4">Failed to load submissions</p>
+                <Button onClick={() => refreshSubmissions()}>Retry</Button>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8">
             <div className="max-w-7xl mx-auto space-y-8">
@@ -279,7 +395,7 @@ export function ArtistDashboardV2({
                     </span>
                   </div>
                   <div className="text-3xl gradient-text tracking-tight">
-                    #7
+                    {stats?.currentRank ? `#${stats.currentRank}` : "N/A"}
                   </div>
                 </div>
 
@@ -287,23 +403,23 @@ export function ArtistDashboardV2({
                   <div className="flex items-center gap-3 mb-2">
                     <Users className="w-5 h-5 text-primary" />
                     <span className="text-sm text-muted-foreground">
-                      Total Fans
+                      Total Votes
                     </span>
                   </div>
                   <div className="text-3xl text-white tracking-tight">
-                    2,847
+                    {stats?.totalVotes || 0}
                   </div>
                 </div>
 
                 <div className="glass-card rounded-2xl p-6 neon-glow">
                   <div className="flex items-center gap-3 mb-2">
-                    <DollarSign className="w-5 h-5 text-secondary" />
+                    <Music className="w-5 h-5 text-secondary" />
                     <span className="text-sm text-muted-foreground">
-                      This Week
+                      Submissions
                     </span>
                   </div>
                   <div className="text-3xl text-white tracking-tight">
-                    $1,240
+                    {stats?.totalSubmissions || 0}
                   </div>
                 </div>
 
@@ -311,11 +427,11 @@ export function ArtistDashboardV2({
                   <div className="flex items-center gap-3 mb-2">
                     <TrendingUp className="w-5 h-5 text-accent" />
                     <span className="text-sm text-muted-foreground">
-                      Momentum
+                      Avg Score
                     </span>
                   </div>
                   <div className="text-3xl text-accent tracking-tight">
-                    +12%
+                    {stats?.avgScore || "0.0"}
                   </div>
                 </div>
               </motion.div>
@@ -330,61 +446,86 @@ export function ArtistDashboardV2({
                 <h2 className="text-2xl text-white tracking-tight">
                   Your Tracks
                 </h2>
-                {submissions.map((track, index) => (
-                  <div
-                    key={track.id}
-                    className="glass-card rounded-2xl p-6 neon-glow hover:scale-[1.01] transition-all"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-pink-600 flex items-center justify-center">
-                        <Play className="w-8 h-8 text-white" />
-                      </div>
 
-                      <div className="flex-1">
-                        <h3 className="text-lg text-white tracking-tight mb-1">
-                          {track.title}
-                        </h3>
-                        <div className="flex items-center gap-3">
-                          <Badge
-                            className={
-                              track.status === "Live"
-                                ? "bg-accent/20 text-accent border-accent/30"
-                                : track.status === "In Review"
-                                  ? "bg-primary/20 text-primary border-primary/30"
-                                  : "bg-white/10 text-white/70 border-white/20"
-                            }
-                          >
-                            {track.status}
-                          </Badge>
-                          {track.rank && (
-                            <span className="text-sm text-muted-foreground">
-                              Rank: #{track.rank}
-                            </span>
-                          )}
+                {submissions.length === 0 ? (
+                  <div className="glass-card rounded-2xl p-12 text-center">
+                    <Music className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-xl text-white mb-2">
+                      No submissions yet
+                    </h3>
+                    <p className="text-muted-foreground mb-6">
+                      Submit your first track to get started
+                    </p>
+                    <Button
+                      onClick={() => setActiveTab("submit")}
+                      className="gradient-bg"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Submit Track
+                    </Button>
+                  </div>
+                ) : (
+                  submissions.map((submission: any) => (
+                    <div
+                      key={submission.id}
+                      className="glass-card rounded-2xl p-6 neon-glow hover:scale-[1.01] transition-all"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-pink-600 flex items-center justify-center">
+                          <Play className="w-8 h-8 text-white" />
                         </div>
-                      </div>
 
-                      <div className="hidden md:flex items-center gap-6 text-center">
-                        <div>
-                          <div className="text-2xl text-white tracking-tight">
-                            {track.votes.toLocaleString()}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Votes
+                        <div className="flex-1">
+                          <h3 className="text-lg text-white tracking-tight mb-1">
+                            {submission.track?.title || "Unknown Track"}
+                          </h3>
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <Badge className="bg-accent/20 text-accent border-accent/30">
+                              Week {submission.week?.week_number || "N/A"}
+                            </Badge>
+                            <Badge
+                              className={`${
+                                submission.track?.status === "approved"
+                                  ? "bg-green-500/20 text-green-400 border-green-500/30"
+                                  : submission.track?.status === "rejected"
+                                    ? "bg-red-500/20 text-red-400 border-red-500/30"
+                                    : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                              }`}
+                            >
+                              {submission.track?.status || "Pending"}
+                            </Badge>
+                            {submission.artist_week && (
+                              <span className="text-sm text-muted-foreground">
+                                Votes: {submission.artist_week.votes || 0}
+                              </span>
+                            )}
                           </div>
                         </div>
-                        <div>
-                          <div className="text-2xl text-white tracking-tight">
-                            {track.streams.toLocaleString()}
+
+                        <div className="hidden md:flex items-center gap-6 text-center">
+                          <div>
+                            <div className="text-2xl text-white tracking-tight">
+                              {submission.artist_week?.votes || 0}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Votes
+                            </div>
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            Streams
+                          <div>
+                            <div className="text-2xl text-white tracking-tight">
+                              {(
+                                submission.artist_week?.final_score || 0
+                              ).toFixed(1)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Score
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </motion.div>
             </div>
           </div>
@@ -404,7 +545,7 @@ export function ArtistDashboardV2({
                     <User className="w-10 h-10 text-white" />
                   </div>
                   <h2 className="text-2xl text-white mb-2">
-                    {userSession?.artistName || "Artist"}
+                    {userSession?.username || "Artist"}
                   </h2>
                   <p className="text-muted-foreground">Fholio Artist</p>
                 </div>
@@ -418,7 +559,7 @@ export function ArtistDashboardV2({
                           Artist Name
                         </label>
                         <div className="text-white mt-1 text-lg">
-                          {userSession?.artistName || "Loading..."}
+                          {userSession?.username || "Loading..."}
                         </div>
                       </div>
 
@@ -458,7 +599,7 @@ export function ArtistDashboardV2({
                           Total Submissions
                         </label>
                         <div className="text-white mt-1">
-                          {submissions.length} tracks
+                          {stats?.totalSubmissions || 0} tracks
                         </div>
                       </div>
                     </div>
@@ -533,11 +674,10 @@ export function ArtistDashboardV2({
 
             {/* Logout Button */}
             <div className="flex items-center gap-4">
-              {/* Show artist name on desktop */}
               {userSession && (
                 <div className="hidden lg:block text-right">
                   <div className="text-white text-sm font-medium">
-                    {userSession.artistName}
+                    {userSession.username}
                   </div>
                   <div className="text-muted-foreground text-xs">
                     {userSession.email}

@@ -9,9 +9,11 @@ import { FanDashboard } from "./components/FanDashboard";
 import { ArtistDashboardV2 } from "./components/ArtistDashboardV2";
 import { LeaderboardPage } from "./components/LeaderboardPage";
 import { AuthPage } from "./components/AuthPage";
+import { AboutPage } from "./components/AboutPage"; // ← ADDED
 import { Logo } from "./components/Logo";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
+import { AdminPanel } from "./components/AdminPanel";
 
 type Page =
   | "home"
@@ -23,7 +25,8 @@ type Page =
   | "fan-dashboard"
   | "artist-dashboard"
   | "leaderboard"
-  | "about";
+  | "about"
+  | "admin";
 
 type UserType = "guest" | "fan" | "artist" | null;
 
@@ -46,7 +49,7 @@ export default function AppV2() {
   const handleNavigate = (
     page: string,
     artistId?: string,
-    newUserType?: UserType
+    newUserType?: UserType,
   ) => {
     // Set user type if provided
     if (newUserType !== undefined) {
@@ -109,49 +112,12 @@ export default function AppV2() {
             onLogout={handleLogout}
           />
         );
+      case "admin":
+        return <AdminPanel onNavigate={handleNavigate} />;
       case "leaderboard":
         return <LeaderboardPage onNavigate={handleNavigate} />;
       case "about":
-        return (
-          <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
-              <div className="text-center mb-12">
-                <h1 className="text-5xl md:text-6xl mb-6 gradient-text tracking-tighter">
-                  About Fholio
-                </h1>
-                <p className="text-xl text-muted-foreground">
-                  The Fantasy League for Music
-                </p>
-              </div>
-              <div className="glass-card rounded-2xl p-8 space-y-6">
-                <p className="text-lg text-white/90">
-                  Fholio is a next-generation platform where fans build "music
-                  portfolios" of artists and earn rewards when those artists
-                  perform well.
-                </p>
-                <p className="text-muted-foreground">
-                  Every week, fans vote on 100 tracks, draft 5 artists to their
-                  lineup, and watch as their picks compete for the Top 10. When
-                  your artists win, you earn a share of the prize pool.
-                </p>
-                <p className="text-muted-foreground">
-                  Artists upload their music, build a fan base, and earn 40% of
-                  the weekly prize pool when they make the Top 10.
-                </p>
-                <div className="pt-4 border-t border-white/10">
-                  <h3 className="text-white mb-3 tracking-tight">
-                    Weekly Cycle
-                  </h3>
-                  <ul className="space-y-2 text-muted-foreground">
-                    <li>• Friday: Reveal Top 100 tracks and vote</li>
-                    <li>• Monday: Draft your 5-artist lineup</li>
-                    <li>• Thursday: Live show reveals Top 10 winners</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <AboutPage onNavigate={handleNavigate} />; // ← REPLACED
       default:
         return <LandingPageV2 onNavigate={handleNavigate} />;
     }

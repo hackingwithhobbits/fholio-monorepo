@@ -1,55 +1,97 @@
-import { apiFetch } from "../client";
-import type { Artist, GetArtistsParams, ApiResponse } from "../types";
+// apps/frontend/src/lib/api/services/artist.service.ts
+import { apiClient } from "../client";
 
-export const artistService = {
-  /**
-   * Get all artists with filters
-   */
-  async getArtists(params?: GetArtistsParams): Promise<ApiResponse<Artist[]>> {
-    const searchParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          searchParams.append(key, String(value));
-        }
-      });
-    }
+export interface GetArtistsParams {
+  league?: "Major" | "Minor";
+  genre?: string;
+  limit?: number;
+}
 
-    return apiFetch<Artist[]>(`/artists?${searchParams.toString()}`);
-  },
+class ArtistService {
+  async getArtistById(artistId: string) {
+    return apiClient.get(`/artists/${artistId}`);
+  }
 
   /**
-   * Get single artist by ID
+   * Get complete artist profile
    */
-  async getArtistById(id: string): Promise<ApiResponse<Artist>> {
-    return apiFetch<Artist>(`/artists/${id}`);
-  },
+  async getArtistProfile(artistId: string) {
+    return apiClient.get(`/artists/${artistId}/profile`);
+  }
 
   /**
-   * Get artist performance history
+   * Get artist tracks
    */
-  async getArtistPerformance(id: string): Promise<ApiResponse<any>> {
-    return apiFetch(`/artists/${id}/performance`);
-  },
+  async getArtistTracks(artistId: string) {
+    return apiClient.get(`/artists/${artistId}/tracks`);
+  }
 
   /**
-   * Get trending artists
+   * Get artist stats
    */
-  async getTrending(limit = 10): Promise<ApiResponse<Artist[]>> {
-    return apiFetch<Artist[]>(`/artists/trending?limit=${limit}`);
-  },
+  async getArtistStats(artistId: string) {
+    return apiClient.get(`/artists/${artistId}/stats`);
+  }
 
   /**
-   * Get artists by genre
+   * Get artist weekly history
    */
-  async getByGenre(genre: string): Promise<ApiResponse<Artist[]>> {
-    return apiFetch<Artist[]>(`/artists/genre/${genre}`);
-  },
+  async getArtistHistory(artistId: string, limit: number = 12) {
+    return apiClient.get(`/artists/${artistId}/history`, { limit });
+  }
 
   /**
-   * Get all genres
+   * Get artist leaderboard
    */
-  async getGenres(): Promise<ApiResponse<string[]>> {
-    return apiFetch<string[]>("/artists/genres");
-  },
-};
+  async getLeaderboard(weekId?: string, league?: string, limit: number = 50) {
+    return apiClient.get("/artists/leaderboard", {
+      week_id: weekId,
+      league,
+      limit,
+    });
+  }
+
+  /**
+   * Search artists
+   */
+  async searchArtists(query?: string, genre?: string, limit: number = 20) {
+    return apiClient.get("/artists/search", { q: query, genre, limit });
+  }
+
+  async getArtists(params?: GetArtistsParams) {
+    return apiClient.get("/artists", params);
+  }
+
+  async getArtistPerformance(id: string) {
+    return apiClient.get(`/artists/${id}/performance`);
+  }
+
+  async getTrending(limit: number = 20) {
+    return apiClient.get("/artists/trending", { limit });
+  }
+
+  async getByGenre(genre: string) {
+    return apiClient.get("/artists", { genre });
+  }
+
+  async getGenres() {
+    return apiClient.get("/artists/genres");
+  }
+
+  async getCurrentPool() {
+    return apiClient.get("/artists/pool/current");
+  }
+
+  async getTop50() {
+    return apiClient.get("/artists/top50");
+  }
+  async getMySubmissions(artistId: string) {
+    return apiClient.get("/artists/my-submissions", { artistId });
+  }
+
+  async getMyStats(artistId: string) {
+    return apiClient.get("/artists/my-stats", { artistId });
+  }
+}
+
+export const artistService = new ArtistService();

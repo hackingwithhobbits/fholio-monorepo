@@ -1,3 +1,4 @@
+// apps/frontend/src/components/DiscoverPage.tsx
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -9,9 +10,10 @@ import {
   ChevronDown,
   Music,
   Users,
-  BarChart3,
   Plus,
   Check,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
@@ -26,27 +28,17 @@ import {
 } from "./ui/select";
 import { Dialog, DialogContent, DialogHeader } from "./ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { artists } from "../data/mockData";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Logo } from "./Logo";
-import { ShareButtons } from "./ShareButtons";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
+import { useCurrentPool } from "@/hooks/useArtists";
+import { useCurrentWeek } from "@/hooks/useWeek";
+import { toast } from "sonner";
 
 interface DiscoverPageProps {
   onNavigate: (page: string, artistId?: string) => void;
 }
 
-const genres = [
-  "All",
-  "Pop",
-  "Hip-Hop",
-  "Alt Rock",
-  "Electronic",
-  "Indie",
-  "R&B",
-  "EDM",
-  "Alternative",
-];
 const statuses = [
   "All",
   "Hot Streak",
@@ -56,13 +48,7 @@ const statuses = [
   "Stable",
 ];
 const leagues = ["All", "Major", "Minor"];
-const sortOptions = [
-  "Trending",
-  "Growth %",
-  "Total Streams",
-  "Most Picked",
-  "Score",
-];
+const sortOptions = ["Trending", "Score", "Growth", "Most Voted"];
 
 export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,36 +60,104 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
   const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
   const [myPicks, setMyPicks] = useState<string[]>([]);
 
-  const getArtistStatus = (artist: any) => {
-    if (artist.change > 4) return "Hot Streak";
-    if (artist.change > 2) return "Rising";
-    if (artist.score > 90) return "Top 100";
-    return "Fan Favorite";
+  // Real backend data
+  const { pool, isLoading, error } = useCurrentPool();
+  const { week } = useCurrentWeek();
+
+  // Extract unique genres from real data
+  const genres = [
+    "All",
+    ...new Set(pool.map((p) => p.artist?.genre).filter(Boolean)),
+  ];
+
+  const getArtistStatus = (artistWeek: any) => {
+    if (!artistWeek) return "New Entrant";
+    const score = artistWeek.final_score || 0;
+    const votes = artistWeek.votes || 0;
+
+    if (votes > 100) return "Hot Streak";
+    if (score > 50) return "Rising";
+    if (votes > 50) return "Trending";
+    return "New Entrant";
   };
 
   const handleAddToPicks = (artistId: string) => {
     if (myPicks.length < 5 && !myPicks.includes(artistId)) {
       setMyPicks([...myPicks, artistId]);
+      toast.success("Added to your Fholio!");
     } else if (myPicks.includes(artistId)) {
       setMyPicks(myPicks.filter((id) => id !== artistId));
+      toast.success("Removed from your Fholio");
+    } else {
+      toast.error("Maximum 5 artists allowed in lineup");
     }
   };
 
-  const filteredArtists = artists.filter((artist) => {
-    const matchesSearch =
-      artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      artist.genre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      artist.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesGenre =
-      selectedGenre === "All" || artist.genre === selectedGenre;
-    const matchesStatus =
-      selectedStatus === "All" || artist.status === selectedStatus;
-    const matchesLeague =
-      selectedLeague === "All" || artist.league === selectedLeague;
-    return matchesSearch && matchesGenre && matchesStatus && matchesLeague;
-  });
+  // Filter and sort artists
+  const filteredArtists = pool
+    .filter((item) => {
+      const artist = item.artist;
+      if (!artist) return false;
 
-  const selectedArtistData = artists.find((a) => a.id === selectedArtist);
+      const matchesSearch =
+        artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        artist.genre?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        artist.location?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesGenre =
+        selectedGenre === "All" || artist.genre === selectedGenre;
+
+      const artistStatus = getArtistStatus(item);
+      const matchesStatus =
+        selectedStatus === "All" || artistStatus === selectedStatus;
+
+      const matchesLeague =
+        selectedLeague === "All" || artist.league === selectedLeague;
+
+      return matchesSearch && matchesGenre && matchesStatus && matchesLeague;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "Score":
+          return (b.final_score || 0) - (a.final_score || 0);
+        case "Most Voted":
+          return (b.votes || 0) - (a.votes || 0);
+        case "Growth":
+          return (b.social_growth || 0) - (a.social_growth || 0);
+        default:
+          return (b.final_score || 0) - (a.final_score || 0);
+      }
+    });
+
+  const selectedArtistData = pool.find((p) => p.artist_id === selectedArtist);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading artists...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-500 mb-4">Failed to load artists</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative">
@@ -159,10 +213,10 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
               <span className="text-white">Build Your Fholio.</span>
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Search, explore, and scout your lineup for this week's league.
+              Explore {pool.length} artists in this week's pool
             </p>
             <div className="text-sm text-accent tracking-wider">
-              YOUR LINEUP. YOUR LEAGUE.
+              WEEK {week?.week_number || 1} • YOUR LINEUP. YOUR LEAGUE.
             </div>
           </motion.div>
         </div>
@@ -288,7 +342,13 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
                   </div>
                 </div>
               </div>
-              <Button className="gradient-bg neon-glow holo-button">
+              <Button
+                onClick={() => {
+                  toast.success("Lineup saved! (Feature coming soon)");
+                  onNavigate("fan-dashboard");
+                }}
+                className="gradient-bg neon-glow holo-button"
+              >
                 Lock In Lineup
               </Button>
             </motion.div>
@@ -299,9 +359,12 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
       {/* Artist Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredArtists.map((artist, index) => {
+          {filteredArtists.map((item, index) => {
+            const artist = item.artist;
+            if (!artist) return null;
+
             const isPicked = myPicks.includes(artist.id);
-            const status = getArtistStatus(artist);
+            const status = getArtistStatus(item);
 
             return (
               <motion.div
@@ -309,165 +372,100 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="flip-card group cursor-pointer"
+                className="glass-card rounded-2xl overflow-hidden hover:scale-[1.02] transition-all neon-glow cursor-pointer"
+                onClick={() => setSelectedArtist(artist.id)}
               >
-                <div className="flip-card-inner">
-                  {/* Front */}
-                  <div
-                    className="flip-card-front glass-card rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 neon-glow"
-                    onClick={() => setSelectedArtist(artist.id)}
-                  >
-                    <div className="relative h-80">
-                      <ImageWithFallback
-                        src={artist.imageUrl}
-                        alt={artist.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+                <div className="relative h-80">
+                  <ImageWithFallback
+                    src={
+                      artist.image_url ||
+                      "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f"
+                    }
+                    alt={artist.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
 
-                      {/* League Badge */}
-                      <div className="absolute top-4 left-4">
-                        <Badge
-                          className={`glass-card backdrop-blur-xl ${
-                            artist.league === "Major"
-                              ? "border-accent/50 bg-accent/10 text-accent"
-                              : "border-primary/50 bg-primary/10 text-primary"
-                          }`}
-                        >
-                          {artist.league} League
-                        </Badge>
-                      </div>
-
-                      {/* Status Badge */}
-                      <div className="absolute top-4 right-4">
-                        <Badge
-                          className={`glass-card backdrop-blur-xl ${
-                            artist.status === "Hot Streak"
-                              ? "border-accent/50 bg-accent/10 text-accent"
-                              : artist.status === "Rising"
-                                ? "border-primary/50 bg-primary/10 text-primary"
-                                : artist.status === "New Entrant"
-                                  ? "border-secondary/50 bg-secondary/10 text-secondary"
-                                  : "border-white/30 bg-white/10"
-                          }`}
-                        >
-                          <Sparkles className="w-3 h-3 mr-1" />
-                          {artist.status}
-                        </Badge>
-                      </div>
-
-                      {/* Score */}
-                      <div className="absolute top-16 left-4 glass-card px-4 py-2 rounded-full backdrop-blur-xl border-primary/30">
-                        <span className="gradient-text text-lg">
-                          {artist.score.toFixed(1)}
-                        </span>
-                      </div>
-
-                      {/* Content */}
-                      <div className="absolute bottom-0 left-0 right-0 p-6">
-                        <h3 className="text-2xl text-white mb-1 tracking-tight">
-                          {artist.name}
-                        </h3>
-                        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-4">
-                          <div className="flex items-center gap-1">
-                            <Music className="w-3 h-3" />
-                            {artist.genre}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {artist.location}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            {(artist.fanBackers / 1000).toFixed(1)}K
-                          </div>
-                          <div
-                            className={`flex items-center gap-1 ${artist.change >= 0 ? "text-accent" : "text-secondary"}`}
-                          >
-                            <TrendingUp
-                              className={`w-3 h-3 ${artist.change < 0 ? "rotate-180" : ""}`}
-                            />
-                            {artist.change >= 0 ? "+" : ""}
-                            {artist.change.toFixed(1)}%
-                          </div>
-                        </div>
-
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToPicks(artist.id);
-                          }}
-                          disabled={myPicks.length >= 5 && !isPicked}
-                          className={`w-full ${
-                            isPicked
-                              ? "bg-accent/20 border-accent text-accent hover:bg-accent/30"
-                              : "gradient-bg"
-                          } neon-glow holo-button`}
-                        >
-                          {isPicked ? (
-                            <>
-                              <Check className="w-4 h-4 mr-2" />
-                              In My Fholio
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="w-4 h-4 mr-2" />
-                              Add to Fholio
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
+                  {/* League Badge */}
+                  <div className="absolute top-4 left-4">
+                    <Badge
+                      className={`glass-card backdrop-blur-xl ${
+                        artist.league === "Major"
+                          ? "border-accent/50 bg-accent/10 text-accent"
+                          : "border-primary/50 bg-primary/10 text-primary"
+                      }`}
+                    >
+                      {artist.league} League
+                    </Badge>
                   </div>
 
-                  {/* Back - Engagement Data */}
-                  <div className="flip-card-back glass-card rounded-2xl p-6 neon-glow">
-                    <div className="h-full flex flex-col justify-between">
-                      <div>
-                        <h3 className="text-xl text-white mb-6 tracking-tight">
-                          {artist.name}
-                        </h3>
-                        <div className="space-y-4">
-                          <div className="glass-card p-4 rounded-xl">
-                            <div className="text-sm text-muted-foreground mb-1">
-                              Streams
-                            </div>
-                            <div className="text-2xl gradient-text">
-                              {(artist.streams / 1000000).toFixed(1)}M
-                            </div>
-                          </div>
-                          <div className="glass-card p-4 rounded-xl">
-                            <div className="text-sm text-muted-foreground mb-1">
-                              Engagement
-                            </div>
-                            <div className="text-2xl text-accent">
-                              {artist.engagement}%
-                            </div>
-                          </div>
-                          <div className="glass-card p-4 rounded-xl">
-                            <div className="text-sm text-muted-foreground mb-1">
-                              Growth
-                            </div>
-                            <div
-                              className={`text-2xl ${artist.growth >= 0 ? "text-accent" : "text-secondary"}`}
-                            >
-                              {artist.growth >= 0 ? "+" : ""}
-                              {artist.growth}%
-                            </div>
-                          </div>
-                        </div>
+                  {/* Status Badge */}
+                  <div className="absolute top-4 right-4">
+                    <Badge
+                      className={`glass-card backdrop-blur-xl ${
+                        status === "Hot Streak"
+                          ? "border-accent/50 bg-accent/10 text-accent"
+                          : status === "Rising"
+                            ? "border-primary/50 bg-primary/10 text-primary"
+                            : "border-white/30 bg-white/10"
+                      }`}
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      {status}
+                    </Badge>
+                  </div>
+
+                  {/* Score */}
+                  <div className="absolute top-16 left-4 glass-card px-4 py-2 rounded-full backdrop-blur-xl border-primary/30">
+                    <span className="gradient-text text-lg">
+                      {(item.final_score || 0).toFixed(1)}
+                    </span>
+                  </div>
+
+                  {/* Content */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <h3 className="text-2xl text-white mb-1 tracking-tight">
+                      {artist.name}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-4">
+                      <div className="flex items-center gap-1">
+                        <Music className="w-3 h-3" />
+                        {artist.genre}
                       </div>
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onNavigate("artist", artist.id);
-                        }}
-                        variant="outline"
-                        className="w-full border-primary/40 hover:bg-primary/20"
-                      >
-                        View Full Profile
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {artist.location || "Unknown"}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        {item.votes || 0} votes
+                      </div>
                     </div>
+
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToPicks(artist.id);
+                      }}
+                      disabled={myPicks.length >= 5 && !isPicked}
+                      className={`w-full ${
+                        isPicked
+                          ? "bg-accent/20 border-accent text-accent hover:bg-accent/30"
+                          : "gradient-bg"
+                      } neon-glow holo-button`}
+                    >
+                      {isPicked ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          In My Fholio
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add to Fholio
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
               </motion.div>
@@ -486,77 +484,21 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
         )}
       </div>
 
-      {/* Bottom Section - Hot Picks */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="glass-card p-8 rounded-2xl card-reflection">
-          <h2 className="text-3xl text-white mb-6 tracking-tight">
-            This Week's Hot Picks
-          </h2>
-          <div className="grid sm:grid-cols-3 gap-6">
-            {artists.slice(0, 3).map((artist, index) => (
-              <motion.div
-                key={artist.id}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="glass-card p-6 rounded-xl hover:scale-105 transition-all cursor-pointer neon-glow"
-                onClick={() => onNavigate("artist", artist.id)}
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <ImageWithFallback
-                    src={artist.imageUrl}
-                    alt={artist.name}
-                    className="w-16 h-16 rounded-lg object-cover"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-white truncate">{artist.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {artist.genre}
-                    </div>
-                  </div>
-                </div>
-                <div className="h-16">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={artist.weeklyHistory.map((score, i) => ({ score }))}
-                    >
-                      <Line
-                        type="monotone"
-                        dataKey="score"
-                        stroke="#8b1fff"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Performance
-                  </span>
-                  <span className="gradient-text">
-                    {artist.score.toFixed(1)}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Artist Detail Modal */}
       <Dialog
         open={!!selectedArtist}
         onOpenChange={() => setSelectedArtist(null)}
       >
         <DialogContent className="glass-card max-w-4xl border-primary/20 p-0 overflow-hidden">
-          {selectedArtistData && (
+          {selectedArtistData && selectedArtistData.artist && (
             <div>
               <div className="relative h-64">
                 <ImageWithFallback
-                  src={selectedArtistData.imageUrl}
-                  alt={selectedArtistData.name}
+                  src={
+                    selectedArtistData.artist.image_url ||
+                    "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f"
+                  }
+                  alt={selectedArtistData.artist.name}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
@@ -568,64 +510,53 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
                 </button>
                 <div className="absolute bottom-6 left-6 right-6">
                   <h2 className="text-3xl text-white mb-2 tracking-tight">
-                    {selectedArtistData.name}
+                    {selectedArtistData.artist.name}
                   </h2>
                   <div className="flex items-center gap-4 text-muted-foreground">
-                    <span>{selectedArtistData.genre}</span>
+                    <span>{selectedArtistData.artist.genre}</span>
                     <span>•</span>
-                    <span>
-                      {selectedArtistData.fanBackers.toLocaleString()} backers
-                    </span>
+                    <span>{selectedArtistData.votes || 0} votes</span>
                   </div>
                 </div>
               </div>
 
               <Tabs defaultValue="overview" className="p-6">
-                <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="stats">Stats</TabsTrigger>
-                  <TabsTrigger value="activity">Activity</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
-                  <p className="text-muted-foreground">
-                    {selectedArtistData.bio}
-                  </p>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="glass-card p-4 rounded-xl text-center">
                       <div className="text-3xl gradient-text mb-1">
-                        {selectedArtistData.score.toFixed(1)}
+                        {(selectedArtistData.final_score || 0).toFixed(1)}
                       </div>
                       <div className="text-sm text-muted-foreground">Score</div>
                     </div>
                     <div className="glass-card p-4 rounded-xl text-center">
                       <div className="text-3xl text-accent mb-1">
-                        {selectedArtistData.engagement}%
+                        {selectedArtistData.votes || 0}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Engagement
-                      </div>
+                      <div className="text-sm text-muted-foreground">Votes</div>
                     </div>
                     <div className="glass-card p-4 rounded-xl text-center">
-                      <div
-                        className={`text-3xl mb-1 ${selectedArtistData.growth >= 0 ? "text-accent" : "text-secondary"}`}
-                      >
-                        {selectedArtistData.growth >= 0 ? "+" : ""}
-                        {selectedArtistData.growth}%
+                      <div className="text-3xl text-primary mb-1">
+                        {selectedArtistData.streams || 0}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Growth
+                        Streams
                       </div>
                     </div>
                   </div>
                   <Button
                     onClick={() => {
-                      handleAddToPicks(selectedArtistData.id);
+                      handleAddToPicks(selectedArtistData.artist.id);
                       setSelectedArtist(null);
                     }}
                     disabled={
                       myPicks.length >= 5 &&
-                      !myPicks.includes(selectedArtistData.id)
+                      !myPicks.includes(selectedArtistData.artist.id)
                     }
                     className="w-full gradient-bg neon-glow holo-button"
                   >
@@ -635,49 +566,29 @@ export function DiscoverPage({ onNavigate }: DiscoverPageProps) {
                 </TabsContent>
 
                 <TabsContent value="stats" className="space-y-4">
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart
-                      data={selectedArtistData.weeklyHistory.map(
-                        (score, i) => ({ week: `W${i + 1}`, score })
-                      )}
-                    >
-                      <Line
-                        type="monotone"
-                        dataKey="score"
-                        stroke="#8b1fff"
-                        strokeWidth={3}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">
                         Total Streams
                       </span>
                       <span className="text-white">
-                        {selectedArtistData.streams.toLocaleString()}
+                        {(selectedArtistData.streams || 0).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Fan Votes</span>
                       <span className="text-white">
-                        {selectedArtistData.votes}%
+                        {selectedArtistData.votes || 0}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">
-                        Backers This Week
+                        Engagement Score
                       </span>
                       <span className="text-white">
-                        {selectedArtistData.fanBackers.toLocaleString()}
+                        {selectedArtistData.engagement_score || 0}
                       </span>
                     </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="activity">
-                  <div className="text-center py-8 text-muted-foreground">
-                    Social activity feed coming soon...
                   </div>
                 </TabsContent>
               </Tabs>

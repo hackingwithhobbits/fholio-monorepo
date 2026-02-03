@@ -1,72 +1,61 @@
-import axios, { AxiosError, AxiosRequestConfig } from "axios";
-import { ApiErrorResponse, ApiResponse } from "./types";
+// apps/frontend/src/lib/api/client.ts
+import axios, { AxiosInstance } from "axios";
 
-// API Configuration
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
-// Create axios instance
-export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 30000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+class ApiClient {
+  private client: AxiosInstance;
 
-// Request interceptor
-apiClient.interceptors.request.use(
-  (config) => {
-    // Add auth token if available
-    const token = localStorage.getItem("auth_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    // Add user ID for development (replace with proper auth later)
-    const userId = localStorage.getItem("user_id");
-    if (userId) {
-      config.headers["x-user-id"] = userId;
-    }
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor
-apiClient.interceptors.response.use(
-  (response) => response.data, // Return just the data
-  (error: AxiosError<ApiErrorResponse>) => {
-    // Handle errors consistently
-    const errorMessage =
-      error.response?.data?.error?.message ||
-      error.message ||
-      "An error occurred";
-
-    console.error("API Error:", {
-      status: error.response?.status,
-      message: errorMessage,
-      url: error.config?.url,
+  constructor() {
+    this.client = axios.create({
+      baseURL: API_URL,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      timeout: 10000,
     });
 
-    return Promise.reject({
-      message: errorMessage,
-      status: error.response?.status,
-      code: error.response?.data?.error?.code,
-    });
-  }
-);
+    // Request interceptor for auth
+    this.client.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem("auth_token");
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error),
+    );
 
-// Generic fetch function
-export async function apiFetch<T>(
-  endpoint: string,
-  config?: AxiosRequestConfig
-): Promise<ApiResponse<T>> {
-  return apiClient.request<any, ApiResponse<T>>({
-    url: endpoint,
-    ...config,
-  });
+    // Response interceptor - extract data
+    this.client.interceptors.response.use(
+      (response) => {
+        // Backend returns { success: true, data: {...} }
+        // Return the data directly
+        return response.data?.data || response.data;
+      },
+      (error) => {
+        console.error("API Error:", error.response?.data || error.message);
+        return Promise.reject(error.response?.data || error);
+      },
+    );
+  }
+
+  async get<T = any>(url: string, params?: Record<string, any>): Promise<T> {
+    return this.client.get(url, { params });
+  }
+
+  async post<T = any>(url: string, data?: any): Promise<T> {
+    return this.client.post(url, data);
+  }
+
+  async put<T = any>(url: string, data?: any): Promise<T> {
+    return this.client.put(url, data);
+  }
+
+  async delete<T = any>(url: string): Promise<T> {
+    return this.client.delete(url);
+  }
 }
+
+export const apiClient = new ApiClient();

@@ -1,58 +1,41 @@
-// Session management for beta authentication
+// apps/frontend/src/lib/auth.ts (or wherever it is)
+
 export interface UserSession {
   id: string;
   email: string;
-  username?: string;
-  artistName?: string;
+  username: string;
   userType: "fan" | "artist";
   createdAt: string;
 }
 
-const SESSION_KEY = "fholio_beta_session";
-
-// Helper to check if we're on client side
-const isClient = typeof window !== "undefined";
+const SESSION_KEY = "fholio_beta_session"; // Match what's actually being used
+const TOKEN_KEY = "auth_token"; // Match what API client expects
 
 export const authUtils = {
-  // Save session to localStorage
-  setSession(session: UserSession) {
-    if (!isClient) return;
-    try {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    } catch (error) {
-      console.error("Failed to save session:", error);
+  setSession: (user: UserSession, token?: string) => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
     }
   },
 
-  // Get current session
-  getSession(): UserSession | null {
-    if (!isClient) return null;
-
-    try {
-      const sessionData = localStorage.getItem(SESSION_KEY);
-      if (!sessionData) return null;
-      return JSON.parse(sessionData);
-    } catch (error) {
-      console.error("Failed to get session:", error);
-      return null;
-    }
+  getSession: (): UserSession | null => {
+    const session = localStorage.getItem(SESSION_KEY);
+    return session ? JSON.parse(session) : null;
   },
 
-  // Clear session (logout)
-  clearSession() {
-    if (!isClient) return;
-    try {
-      localStorage.removeItem(SESSION_KEY);
-    } catch (error) {
-      console.error("Failed to clear session:", error);
-    }
+  getToken: (): string | null => {
+    return localStorage.getItem(TOKEN_KEY);
   },
 
-  // Check if user is logged in
-  isAuthenticated(): boolean {
-    return this.getSession() !== null;
+  clearSession: () => {
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(TOKEN_KEY);
   },
 
+  isAuthenticated: (): boolean => {
+    return !!authUtils.getToken();
+  },
   // Get user type
   getUserType(): "fan" | "artist" | null {
     const session = this.getSession();

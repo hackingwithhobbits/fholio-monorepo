@@ -1,42 +1,79 @@
-import { motion, AnimatePresence } from "framer-motion";
+// apps/frontend/src/components/LeaderboardPage.tsx
+
+import { motion } from "framer-motion";
+import { useState } from "react";
 import {
   Trophy,
   TrendingUp,
-  TrendingDown,
   Users,
-  Sparkles,
-  MapPin,
-  Crown,
   Award,
-  ArrowRight,
+  Clock,
+  Zap,
+  Crown,
+  Medal,
+  ChevronUp,
+  ChevronDown,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Progress } from "./ui/progress";
-import { artists, topFans } from "../data/mockData";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Avatar } from "./ui/avatar";
 import { Logo } from "./Logo";
 import { ShareButtons } from "./ShareButtons";
+import {
+  useGlobalLeaderboard,
+  useWeeklyLeaderboard,
+  useMyRank,
+  useMyStats,
+} from "@/hooks/useLeaderboard";
+import { useCurrentWeek } from "@/hooks/useWeek";
+import { authUtils } from "@/lib/auth";
 
 interface LeaderboardPageProps {
-  onNavigate: (page: string, artistId?: string) => void;
+  onNavigate: (page: string) => void;
 }
 
 export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
-  const [selectedLeague, setSelectedLeague] = useState<"Major" | "Minor">(
-    "Major"
-  );
+  const [selectedTab, setSelectedTab] = useState<"weekly" | "global">("weekly");
+  const userSession = authUtils.getSession();
 
-  const majorLeagueArtists = artists
-    .filter((a) => a.league === "Major")
-    .sort((a, b) => b.score - a.score);
-  const minorLeagueArtists = artists
-    .filter((a) => a.league === "Minor")
-    .sort((a, b) => b.score - a.score);
+  // Fetch data
+  const { week } = useCurrentWeek();
+  const { leaderboard: globalLeaderboard, isLoading: globalLoading } =
+    useGlobalLeaderboard(50);
+  const { leaderboard: weeklyLeaderboard, isLoading: weeklyLoading } =
+    useWeeklyLeaderboard(week?.id, 50);
+  const { rank: myRank, isLoading: rankLoading } = useMyRank(week?.id);
+  const { stats: myStats, isLoading: statsLoading } = useMyStats();
 
-  const currentArtists =
-    selectedLeague === "Major" ? majorLeagueArtists : minorLeagueArtists;
+  const isLoading = selectedTab === "weekly" ? weeklyLoading : globalLoading;
+  const currentLeaderboard =
+    selectedTab === "weekly" ? weeklyLeaderboard : globalLeaderboard;
+
+  // Prize pool (mock for now - can be made dynamic)
+  const prizePool = {
+    total: 1000,
+    first: 500,
+    second: 300,
+    third: 200,
+  };
+
+  const getRankBadge = (rank: number) => {
+    if (rank === 1) return <Crown className="w-5 h-5 text-yellow-400" />;
+    if (rank === 2) return <Medal className="w-5 h-5 text-gray-400" />;
+    if (rank === 3) return <Medal className="w-5 h-5 text-amber-600" />;
+    return null;
+  };
+
+  const getRankColor = (rank: number) => {
+    if (rank === 1) return "text-yellow-400";
+    if (rank === 2) return "text-gray-400";
+    if (rank === 3) return "text-amber-600";
+    if (rank <= 10) return "text-primary";
+    return "text-white";
+  };
 
   return (
     <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8 relative">
@@ -52,520 +89,350 @@ export function LeaderboardPage({ onNavigate }: LeaderboardPageProps) {
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
-          <div className="text-xs text-accent mb-4 tracking-widest uppercase">
-            YOUR LINEUP. YOUR LEAGUE.
+          <div className="text-xs text-accent mb-2 tracking-widest uppercase">
+            COMPETE. WIN. DOMINATE.
           </div>
-          <h1 className="text-5xl md:text-6xl mb-6 gradient-text tracking-tighter">
-            Live Leaderboards
+          <h1 className="text-5xl md:text-6xl gradient-text tracking-tighter mb-2">
+            Leaderboard
           </h1>
-          <p className="text-xl text-muted-foreground/80 tracking-tight">
-            Real-time rankings across all leagues
+          <p className="text-muted-foreground/80 tracking-tight">
+            Top fans competing for prizes
           </p>
+        </motion.div>
 
-          {/* Friday Reveal Countdown */}
-          <div className="glass-card rounded-xl px-6 py-3 inline-block mt-4">
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-accent" />
-              <span className="text-white">Friday Reveal Countdown:</span>
-              <span className="text-2xl gradient-text tracking-tight">
-                2d 14h 32m
+        {/* User Stats Card */}
+        {userSession && myRank && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="glass-card rounded-2xl p-6 neon-glow border-2 border-primary/30"
+          >
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
+                  <Trophy className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <div className="text-white text-xl tracking-tight mb-1">
+                    Your Rank: #{myRank.rank || "N/A"}
+                  </div>
+                  <div className="text-sm text-muted-foreground/70">
+                    {myRank.total_participants || 0} competitors • Score:{" "}
+                    {myRank.total_score?.toFixed(1) || 0}
+                  </div>
+                </div>
+              </div>
+
+              {/* User Global Stats */}
+              {myStats && (
+                <div className="flex gap-6">
+                  <div className="text-center">
+                    <div className="text-2xl gradient-text tracking-tight">
+                      {myStats.weeks_played}
+                    </div>
+                    <div className="text-xs text-muted-foreground/70">
+                      Weeks Played
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl gradient-text tracking-tight">
+                      {myStats.avg_score?.toFixed(1) || 0}
+                    </div>
+                    <div className="text-xs text-muted-foreground/70">
+                      Avg Score
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl text-accent tracking-tight">
+                      {myStats.total_wins}
+                    </div>
+                    <div className="text-xs text-muted-foreground/70">Wins</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Prize Pool */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid md:grid-cols-4 gap-4"
+        >
+          <div className="glass-card rounded-2xl p-6 neon-glow bg-gradient-to-br from-accent/10 to-transparent">
+            <div className="flex items-center gap-2 mb-2">
+              <Award className="w-5 h-5 text-accent" />
+              <span className="text-sm tracking-tight text-muted-foreground">
+                Total Prize Pool
               </span>
+            </div>
+            <div className="text-3xl gradient-text tracking-tight">
+              ${prizePool.total}
+            </div>
+          </div>
+
+          <div className="glass-card rounded-2xl p-6 neon-glow border-2 border-yellow-400/30">
+            <div className="flex items-center gap-2 mb-2">
+              <Crown className="w-5 h-5 text-yellow-400" />
+              <span className="text-sm tracking-tight text-muted-foreground">
+                1st Place
+              </span>
+            </div>
+            <div className="text-3xl text-yellow-400 tracking-tight">
+              ${prizePool.first}
+            </div>
+          </div>
+
+          <div className="glass-card rounded-2xl p-6 neon-glow border-2 border-gray-400/30">
+            <div className="flex items-center gap-2 mb-2">
+              <Medal className="w-5 h-5 text-gray-400" />
+              <span className="text-sm tracking-tight text-muted-foreground">
+                2nd Place
+              </span>
+            </div>
+            <div className="text-3xl text-gray-400 tracking-tight">
+              ${prizePool.second}
+            </div>
+          </div>
+
+          <div className="glass-card rounded-2xl p-6 neon-glow border-2 border-amber-600/30">
+            <div className="flex items-center gap-2 mb-2">
+              <Medal className="w-5 h-5 text-amber-600" />
+              <span className="text-sm tracking-tight text-muted-foreground">
+                3rd Place
+              </span>
+            </div>
+            <div className="text-3xl text-amber-600 tracking-tight">
+              ${prizePool.third}
             </div>
           </div>
         </motion.div>
 
-        {/* Main Tabs: Top Artists, Top Fans */}
-        <Tabs defaultValue="artists" className="w-full">
-          <div className="flex justify-center mb-8">
-            <TabsList className="glass-card grid grid-cols-2 gap-2 p-2 inline-flex rounded-2xl">
-              <TabsTrigger
-                value="artists"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all duration-200 ease-in-out rounded-xl px-4 sm:px-8 py-3 min-h-[44px]"
-              >
-                <Trophy className="w-4 h-4 mr-1 sm:mr-2" />
-                <span className="text-sm sm:text-base">Top Artists</span>
+        {/* Leaderboard Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Tabs
+            value={selectedTab}
+            onValueChange={(value) =>
+              setSelectedTab(value as "weekly" | "global")
+            }
+            className="w-full"
+          >
+            <TabsList className="glass-card mb-6">
+              <TabsTrigger value="weekly">
+                <Clock className="w-4 h-4 mr-2" />
+                This Week
               </TabsTrigger>
-              <TabsTrigger
-                value="fans"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all duration-200 ease-in-out rounded-xl px-4 sm:px-8 py-3 min-h-[44px]"
-              >
-                <Users className="w-4 h-4 mr-1 sm:mr-2" />
-                <span className="text-sm sm:text-base">Top Fans</span>
+              <TabsTrigger value="global">
+                <Trophy className="w-4 h-4 mr-2" />
+                All-Time
               </TabsTrigger>
             </TabsList>
-          </div>
 
-          {/* TOP ARTISTS TAB */}
-          <TabsContent value="artists">
-            {/* League Selector for Artists */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="flex justify-center mb-8"
-            >
-              <div className="glass-card rounded-2xl p-2 inline-flex gap-2">
-                <button
-                  onClick={() => setSelectedLeague("Major")}
-                  className={`px-4 sm:px-8 py-3 rounded-xl transition-all tracking-tight min-h-[44px] ${
-                    selectedLeague === "Major"
-                      ? "gradient-bg neon-glow text-white"
-                      : "text-muted-foreground hover:text-white hover:bg-white/5"
-                  }`}
-                >
-                  <span className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
-                    <Trophy className="w-4 h-4" />
-                    <span className="hidden sm:inline">Major League</span>
-                    <span className="sm:hidden">Major</span>
-                  </span>
-                </button>
-                <button
-                  onClick={() => setSelectedLeague("Minor")}
-                  className={`px-4 sm:px-8 py-3 rounded-xl transition-all tracking-tight min-h-[44px] ${
-                    selectedLeague === "Minor"
-                      ? "gradient-bg neon-glow text-white"
-                      : "text-muted-foreground hover:text-white hover:bg-white/5"
-                  }`}
-                >
-                  <span className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
-                    <Sparkles className="w-4 h-4" />
-                    <span className="hidden sm:inline">Minor League</span>
-                    <span className="sm:hidden">Minor</span>
-                  </span>
-                </button>
+            {/* Loading State */}
+            {isLoading && (
+              <div className="flex items-center justify-center py-20">
+                <div className="text-center">
+                  <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    Loading leaderboard...
+                  </p>
+                </div>
               </div>
-            </motion.div>
-
-            {/* Top 3 Podium */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="grid md:grid-cols-3 gap-6 mb-8"
-            >
-              {currentArtists.slice(0, 3).map((artist, index) => {
-                const positions = [1, 0, 2]; // Reorder for podium effect
-                const actualPosition = positions.indexOf(index);
-                const heights = ["h-72", "h-80", "h-64"];
-                const delays = [0.3, 0.25, 0.35];
-
-                return (
-                  <motion.div
-                    key={artist.id}
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: delays[index] }}
-                    className={`glass-card rounded-2xl overflow-hidden neon-glow cursor-pointer hover:scale-105 transition-all ${
-                      heights[actualPosition]
-                    }`}
-                    onClick={() => onNavigate("artist", artist.id)}
-                    style={{ order: positions[index] }}
-                  >
-                    <div className="relative h-full">
-                      <ImageWithFallback
-                        src={artist.imageUrl}
-                        alt={artist.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
-
-                      {/* Rank Badge */}
-                      <div className="absolute top-4 left-1/2 -translate-x-1/2">
-                        <div
-                          className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                            index === 0
-                              ? "bg-accent/30 border-2 border-accent backdrop-blur-xl"
-                              : index === 1
-                                ? "bg-primary/30 border-2 border-primary backdrop-blur-xl"
-                                : "bg-secondary/30 border-2 border-secondary backdrop-blur-xl"
-                          }`}
-                        >
-                          <Crown
-                            className={`w-8 h-8 ${
-                              index === 0
-                                ? "text-accent"
-                                : index === 1
-                                  ? "text-primary"
-                                  : "text-secondary"
-                            }`}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="absolute bottom-0 left-0 right-0 p-6">
-                        <div className="text-center mb-4">
-                          <div
-                            className={`text-5xl mb-2 ${
-                              index === 0
-                                ? "text-accent"
-                                : index === 1
-                                  ? "text-primary"
-                                  : "text-secondary"
-                            }`}
-                          >
-                            #{index + 1}
-                          </div>
-                          <h3 className="text-2xl text-white mb-2 tracking-tight">
-                            {artist.name}
-                          </h3>
-                          <div className="text-sm text-muted-foreground/70 mb-3">
-                            {artist.genre}
-                          </div>
-                          <div className="text-3xl gradient-text tracking-tight">
-                            {artist.score.toFixed(1)}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground/70">
-                          <span className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            {artist.fanBackers.toLocaleString()}
-                          </span>
-                          <span>•</span>
-                          <span
-                            className={`flex items-center gap-1 ${artist.change >= 0 ? "text-accent" : "text-secondary"}`}
-                          >
-                            {artist.change >= 0 ? (
-                              <TrendingUp className="w-3 h-3" />
-                            ) : (
-                              <TrendingDown className="w-3 h-3" />
-                            )}
-                            {artist.change >= 0 ? "+" : ""}
-                            {artist.change.toFixed(1)}%
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-
-            {/* Weekly Champion Quote (First Place) */}
-            {currentArtists[0] && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="glass-card rounded-2xl p-8 mb-8 neon-glow"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <Award className="w-8 h-8 text-accent" />
-                  <h2 className="text-2xl text-white tracking-tight">
-                    Weekly Champion
-                  </h2>
-                </div>
-                <div className="flex items-center gap-6">
-                  <ImageWithFallback
-                    src={currentArtists[0].imageUrl}
-                    alt={currentArtists[0].name}
-                    className="w-24 h-24 rounded-xl object-cover"
-                  />
-                  <div className="flex-1">
-                    <h3 className="text-xl text-white mb-2">
-                      {currentArtists[0].name}
-                    </h3>
-                    <p className="text-muted-foreground italic">
-                      "Huge thanks to all my fans on Fholio! Your support means
-                      everything. Let's keep the momentum going!"
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
             )}
 
-            {/* Full Rankings List */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <h2 className="text-2xl text-white tracking-tight mb-6">
-                Full Rankings
-              </h2>
-              <div className="space-y-3">
-                <AnimatePresence mode="popLayout">
-                  {currentArtists.map((artist, index) => {
-                    const prevRank =
-                      index + 1 + Math.floor(Math.random() * 3) - 1;
-                    const rankChange = artist.change;
-                    const progressToTop10 =
-                      index >= 10
-                        ? ((currentArtists[9].score - artist.score) /
-                            currentArtists[9].score) *
-                          100
-                        : 100;
-
-                    return (
-                      <motion.div
-                        key={artist.id}
-                        layout
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        transition={{ delay: 0.6 + index * 0.02 }}
-                        className="glass-card rounded-2xl p-4 neon-glow hover:scale-[1.01] transition-all group cursor-pointer relative overflow-hidden"
-                        onClick={() => onNavigate("artist", artist.id)}
-                      >
-                        {/* Animated glow for climbing/dropping artists */}
-                        {Math.abs(rankChange) > 3 && (
-                          <motion.div
-                            className={`absolute inset-0 ${rankChange > 0 ? "bg-accent/5" : "bg-secondary/5"}`}
-                            animate={{ opacity: [0.3, 0, 0.3] }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                          />
-                        )}
-
-                        <div className="relative z-10 flex items-center gap-4">
-                          {/* Rank */}
-                          <div className="w-12 text-center">
-                            <div
-                              className={`text-2xl tracking-tight ${
-                                index < 3 ? "gradient-text" : "text-white"
-                              }`}
-                            >
-                              #{index + 1}
-                            </div>
-                          </div>
-
-                          {/* Artist Image */}
-                          <ImageWithFallback
-                            src={artist.imageUrl}
-                            alt={artist.name}
-                            className="w-16 h-16 rounded-xl object-cover group-hover:scale-110 transition-transform"
-                          />
-
-                          {/* Artist Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 mb-1">
-                              <h3 className="text-lg text-white tracking-tight truncate">
-                                {artist.name}
-                              </h3>
-                              <Badge
-                                className={`${
-                                  artist.status === "Hot Streak"
-                                    ? "bg-accent/20 text-accent border-accent/30"
-                                    : artist.status === "Rising"
-                                      ? "bg-primary/20 text-primary border-primary/30"
-                                      : artist.status === "New Entrant"
-                                        ? "bg-secondary/20 text-secondary border-secondary/30"
-                                        : "bg-white/10 text-white/70 border-white/20"
-                                } text-xs`}
-                              >
-                                {artist.status}
-                              </Badge>
-                            </div>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground/70">
-                              <span>{artist.genre}</span>
-                              <span>•</span>
-                              <span className="flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                {artist.fanBackers.toLocaleString()} fans
-                              </span>
-                              <span>•</span>
-                              <span>{artist.location}</span>
-                            </div>
-
-                            {/* Progress to Top 10 */}
-                            {index >= 10 && (
-                              <div className="mt-2">
-                                <div className="flex items-center justify-between text-xs text-muted-foreground/70 mb-1">
-                                  <span>Progress to Top 10</span>
-                                  <span>{progressToTop10.toFixed(0)}%</span>
-                                </div>
-                                <Progress
-                                  value={progressToTop10}
-                                  className="h-1"
-                                />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Stats */}
-                          <div className="hidden md:flex items-center gap-8 text-center">
-                            <div>
-                              <div className="text-2xl gradient-text tracking-tight">
-                                {artist.score.toFixed(1)}
-                              </div>
-                              <div className="text-xs text-muted-foreground/70">
-                                Score
-                              </div>
-                            </div>
-                            <div>
-                              <div
-                                className={`text-2xl tracking-tight flex items-center gap-1 ${
-                                  rankChange >= 0
-                                    ? "text-accent"
-                                    : "text-secondary"
-                                }`}
-                              >
-                                {rankChange >= 0 ? (
-                                  <TrendingUp className="w-5 h-5" />
-                                ) : (
-                                  <TrendingDown className="w-5 h-5" />
-                                )}
-                                {rankChange >= 0 ? "+" : ""}
-                                {rankChange.toFixed(1)}%
-                              </div>
-                              <div className="text-xs text-muted-foreground/70">
-                                Change
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Share Button */}
-                          <div onClick={(e) => e.stopPropagation()}>
-                            <ShareButtons
-                              title={`Check out ${artist.name} on Fholio!`}
-                              description={`Rank #${index + 1} | Score: ${artist.score.toFixed(1)}`}
-                              compact
-                            />
-                          </div>
-
-                          <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-white group-hover:translate-x-1 transition-all" />
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          </TabsContent>
-
-          {/* TOP FANS TAB */}
-          <TabsContent value="fans">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-8"
-            >
-              <div className="text-center mb-8">
-                <h2 className="text-3xl text-white tracking-tight mb-2">
-                  Top Fans This Week
-                </h2>
-                <p className="text-muted-foreground">
-                  Ranked by total earnings and lineup performance
+            {/* Empty State */}
+            {!isLoading && currentLeaderboard.length === 0 && (
+              <div className="glass-card rounded-2xl p-12 text-center neon-glow">
+                <Users className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+                <p className="text-white text-xl mb-2">No rankings yet</p>
+                <p className="text-muted-foreground mb-6">
+                  Be the first to compete this week!
                 </p>
+                <Button
+                  onClick={() => onNavigate("discover")}
+                  className="gradient-bg neon-glow holo-button rounded-xl"
+                >
+                  Create Your Lineup
+                </Button>
               </div>
+            )}
 
-              {/* Top 3 Fans Podium */}
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
-                {topFans.slice(0, 3).map((fan, index) => {
-                  const positions = [1, 0, 2];
-                  const heights = ["h-64", "h-72", "h-56"];
+            {/* Leaderboard Table */}
+            {!isLoading && currentLeaderboard.length > 0 && (
+              <TabsContent value={selectedTab} className="space-y-3">
+                {/* Header */}
+                <div className="grid grid-cols-12 gap-4 px-6 py-3 text-xs text-muted-foreground/70 uppercase tracking-wider">
+                  <div className="col-span-1">Rank</div>
+                  <div className="col-span-5">Fan</div>
+                  <div className="col-span-2 text-center">Score</div>
+                  <div className="col-span-2 text-center hidden md:block">
+                    {selectedTab === "weekly" ? "Picks" : "Weeks"}
+                  </div>
+                  <div className="col-span-2 text-center hidden md:block">
+                    Change
+                  </div>
+                </div>
+
+                {/* Leaderboard Rows */}
+                {currentLeaderboard.map((entry: any, index: number) => {
+                  const isCurrentUser = entry.user_id === userSession?.id;
+                  const rank = entry.rank || index + 1;
 
                   return (
                     <motion.div
-                      key={fan.id}
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 + index * 0.1 }}
-                      className={`glass-card rounded-2xl p-8 text-center neon-glow hover:scale-105 transition-all ${
-                        heights[positions.indexOf(index)]
-                      }`}
-                      style={{ order: positions[index] }}
+                      key={entry.user_id || index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className={`glass-card rounded-2xl p-6 neon-glow hover:scale-[1.01] transition-all ${
+                        isCurrentUser ? "border-2 border-primary" : ""
+                      } ${rank <= 3 ? "bg-gradient-to-r from-primary/5 to-transparent" : ""}`}
                     >
-                      <div className="relative inline-block mb-4">
-                        <img
-                          src={fan.avatar}
-                          alt={fan.name}
-                          className="w-24 h-24 rounded-full object-cover border-4 border-primary/30"
-                        />
-                        <div
-                          className={`absolute -top-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center text-white ${
-                            index === 0
-                              ? "bg-accent"
-                              : index === 1
-                                ? "bg-primary"
-                                : "bg-secondary"
-                          }`}
-                        >
-                          {index === 0 ? (
-                            <Crown className="w-5 h-5" />
+                      <div className="grid grid-cols-12 gap-4 items-center">
+                        {/* Rank */}
+                        <div className="col-span-1">
+                          <div className="flex items-center gap-2">
+                            {getRankBadge(rank)}
+                            <span
+                              className={`text-2xl ${getRankColor(rank)} tracking-tight`}
+                            >
+                              {rank}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* User Info */}
+                        <div className="col-span-5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold">
+                              {entry.username?.charAt(0)?.toUpperCase() || "?"}
+                            </div>
+                            <div>
+                              <div className="text-white tracking-tight flex items-center gap-2">
+                                {entry.username || "Anonymous"}
+                                {isCurrentUser && (
+                                  <Badge className="bg-primary/20 text-primary text-xs">
+                                    You
+                                  </Badge>
+                                )}
+                              </div>
+                              {rank <= 3 && (
+                                <div className="text-xs text-accent">
+                                  {rank === 1 && "🏆 Champion"}
+                                  {rank === 2 && "🥈 Runner-up"}
+                                  {rank === 3 && "🥉 Third Place"}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Score */}
+                        <div className="col-span-2 text-center">
+                          <div className="text-2xl gradient-text tracking-tight">
+                            {entry.total_score?.toFixed(1) || 0}
+                          </div>
+                          <div className="text-xs text-muted-foreground/70">
+                            points
+                          </div>
+                        </div>
+
+                        {/* Picks/Weeks */}
+                        <div className="col-span-2 text-center hidden md:block">
+                          <div className="text-xl text-white tracking-tight">
+                            {entry.picks_count || entry.weeks_played || 0}
+                          </div>
+                          <div className="text-xs text-muted-foreground/70">
+                            {selectedTab === "weekly" ? "picks" : "weeks"}
+                          </div>
+                        </div>
+
+                        {/* Change/Trend */}
+                        <div className="col-span-2 text-center hidden md:block">
+                          {entry.rank_change !== undefined &&
+                          entry.rank_change !== 0 ? (
+                            <div className="flex items-center justify-center gap-1">
+                              {entry.rank_change > 0 ? (
+                                <>
+                                  <ChevronUp className="w-4 h-4 text-accent" />
+                                  <span className="text-accent">
+                                    +{entry.rank_change}
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="w-4 h-4 text-secondary" />
+                                  <span className="text-secondary">
+                                    {entry.rank_change}
+                                  </span>
+                                </>
+                              )}
+                            </div>
                           ) : (
-                            fan.rank
+                            <span className="text-muted-foreground/50">-</span>
                           )}
                         </div>
-                      </div>
-                      <div className="text-xl text-white tracking-tight mb-1">
-                        {fan.name}
-                      </div>
-                      <div className="text-sm text-muted-foreground/70 mb-4">
-                        {fan.city}
-                      </div>
-                      <div className="text-3xl gradient-text tracking-tight mb-2">
-                        ${fan.earnings}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Total Earnings
                       </div>
                     </motion.div>
                   );
                 })}
-              </div>
+              </TabsContent>
+            )}
+          </Tabs>
+        </motion.div>
 
-              {/* Full Fan Rankings */}
-              <div className="space-y-3">
-                <h3 className="text-xl text-white tracking-tight mb-4">
-                  Full Rankings
-                </h3>
-                {topFans.map((fan, index) => (
-                  <motion.div
-                    key={fan.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + index * 0.05 }}
-                    className="glass-card rounded-2xl p-4 neon-glow hover:scale-[1.01] transition-all"
-                  >
-                    <div className="flex items-center gap-4">
-                      {/* Rank */}
-                      <div className="w-12 text-center">
-                        <div
-                          className={`text-2xl tracking-tight ${
-                            index < 3 ? "gradient-text" : "text-white"
-                          }`}
-                        >
-                          #{fan.rank}
-                        </div>
-                      </div>
+        {/* CTA Section */}
+        {!userSession && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="glass-card rounded-2xl p-8 text-center neon-glow bg-gradient-to-br from-primary/10 to-secondary/10"
+          >
+            <Zap className="w-12 h-12 text-accent mx-auto mb-4" />
+            <h3 className="text-2xl text-white mb-2 tracking-tight">
+              Start Competing Today
+            </h3>
+            <p className="text-muted-foreground/80 mb-6">
+              Join thousands of fans backing rising artists and winning prizes
+            </p>
+            <Button
+              onClick={() => onNavigate("signin-fan")}
+              size="lg"
+              className="gradient-bg neon-glow holo-button rounded-xl"
+            >
+              Sign Up & Compete
+            </Button>
+          </motion.div>
+        )}
 
-                      {/* Fan Avatar */}
-                      <img
-                        src={fan.avatar}
-                        alt={fan.name}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-primary/20"
-                      />
-
-                      {/* Fan Info */}
-                      <div className="flex-1">
-                        <h3 className="text-lg text-white tracking-tight mb-1">
-                          {fan.name}
-                        </h3>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground/70">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {fan.city}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Earnings */}
-                      <div className="text-right">
-                        <div className="text-2xl gradient-text tracking-tight">
-                          ${fan.earnings}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Earnings
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </TabsContent>
-        </Tabs>
+        {/* Share Section */}
+        {userSession && myRank && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="glass-card rounded-2xl p-8 text-center neon-glow bg-gradient-to-br from-primary/10 to-secondary/10"
+          >
+            <h3 className="text-2xl text-white mb-2 tracking-tight">
+              Share Your Rank
+            </h3>
+            <p className="text-muted-foreground/80 mb-6">
+              Show off your position on the leaderboard
+            </p>
+            <ShareButtons
+              title={`I'm ranked #${myRank.rank} on Fholio!`}
+              description={`Competing with ${myRank.total_participants} fans • Score: ${myRank.total_score?.toFixed(1)}`}
+            />
+          </motion.div>
+        )}
       </div>
     </div>
   );

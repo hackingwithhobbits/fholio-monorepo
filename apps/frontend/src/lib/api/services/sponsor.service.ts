@@ -1,5 +1,3 @@
-import { apiFetch } from "../client";
-
 import type { Request, Response, NextFunction } from "express";
 
 export interface ApiResponse<T = unknown> {
@@ -24,7 +22,7 @@ export class AppError extends Error {
     public statusCode: number,
     public message: string,
     public code?: string,
-    public details?: unknown
+    public details?: unknown,
   ) {
     super(message);
     this.name = "AppError";
@@ -35,7 +33,7 @@ export class AppError extends Error {
 export type AsyncRequestHandler = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => Promise<void>;
 
 export interface Sponsor {

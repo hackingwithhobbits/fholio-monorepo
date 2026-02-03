@@ -1,32 +1,49 @@
-import { apiFetch } from "../client";
-import type { ApiResponse } from "../types";
+// apps/frontend/src/lib/api/services/wallet.service.ts
 
-export const walletService = {
-  /**
-   * Get wallet
-   */
-  async getWallet(): Promise<ApiResponse<any>> {
-    return apiFetch("/wallet");
-  },
+import { apiClient } from "../client";
 
+class WalletService {
   /**
-   * Get payout history
+   * Get user's wallet
    */
-  async getPayoutHistory(limit = 20): Promise<ApiResponse<any[]>> {
-    return apiFetch(`/wallet/payouts?limit=${limit}`);
-  },
+  async getWallet() {
+    return apiClient.get("/wallet");
+  }
 
   /**
-   * Get transactions
+   * Get wallet summary with stats
    */
-  async getTransactions(limit = 50): Promise<ApiResponse<any[]>> {
-    return apiFetch(`/wallet/transactions?limit=${limit}`);
-  },
+  async getWalletSummary() {
+    return apiClient.get("/wallet/summary");
+  }
 
   /**
-   * Get referrals
+   * Get transaction history
    */
-  async getReferrals(): Promise<ApiResponse<any>> {
-    return apiFetch("/wallet/referrals");
-  },
-};
+  async getTransactions(limit: number = 20) {
+    return apiClient.get("/wallet/transactions", { limit });
+  }
+
+  /**
+   * Get weekly earnings breakdown
+   */
+  async getWeeklyEarnings() {
+    return apiClient.get("/wallet/weekly-earnings");
+  }
+
+  /**
+   * Get top earners
+   */
+  async getTopEarners(limit: number = 5) {
+    return apiClient.get("/wallet/top-earners", { limit });
+  }
+
+  /**
+   * Create withdrawal request
+   */
+  async createWithdrawal(amount: number) {
+    return apiClient.post("/wallet/withdraw", { amount });
+  }
+}
+
+export const walletService = new WalletService();
