@@ -3,8 +3,10 @@
 import { Request, Response } from 'express';
 import { ArtistService } from '../services/artist.service';
 import { WeekService } from '../services/week.service';
+
 import { logger } from '../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { supabase } from '../config/database';
 
 const artistService = new ArtistService();
 const weekService = new WeekService();
@@ -26,7 +28,7 @@ export const artistController = {
         if (!currentWeek) {
           return res.status(404).json({
             success: false,
-            message: 'No active week found'
+            message: 'No active week found',
           });
         }
         targetWeekId = currentWeek.id;
@@ -40,14 +42,15 @@ export const artistController = {
         meta: {
           count: artists.length,
           league: league || 'all',
-          weekId: targetWeekId
-        }
+          weekId: targetWeekId,
+        },
       });
     } catch (error: any) {
       logger.error('Error fetching artist leaderboard', { error: error.message });
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch leaderboard'
+        message: 'Failed to fetch leaderboard',
+        error: error.message, // ← Add error message for debugging
       });
     }
   },
@@ -64,14 +67,14 @@ export const artistController = {
       if (!artist) {
         return res.status(404).json({
           success: false,
-          message: 'Artist not found'
+          message: 'Artist not found',
         });
       }
 
       // Get current week performance
       const currentWeek = await weekService.getCurrentWeek();
       let weekPerformance = null;
-      
+
       if (currentWeek) {
         weekPerformance = await artistService.getArtistWeekPerformance(id, currentWeek.id);
       }
@@ -80,14 +83,17 @@ export const artistController = {
         success: true,
         data: {
           ...artist,
-          currentWeekPerformance: weekPerformance
-        }
+          currentWeekPerformance: weekPerformance,
+        },
       });
     } catch (error: any) {
-      logger.error('Error fetching artist profile', { error: error.message, artistId: req.params.id });
+      logger.error('Error fetching artist profile', {
+        error: error.message,
+        artistId: req.params.id,
+      });
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch artist profile'
+        message: 'Failed to fetch artist profile',
       });
     }
   },
@@ -105,17 +111,104 @@ export const artistController = {
 
       res.json({
         success: true,
-        data: history
+        data: history,
       });
     } catch (error: any) {
-      logger.error('Error fetching artist history', { error: error.message, artistId: req.params.id });
+      logger.error('Error fetching artist history', {
+        error: error.message,
+        artistId: req.params.id,
+      });
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch artist history'
+        message: 'Failed to fetch artist history',
+      });
+    }
+  },
+  /**
+   * GET /api/artists/my-submissions
+   */
+  async getMySubmissions(req: Request, res: Response) {
+    try {
+      const userId = req.query.artistId as string;
+
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: 'User ID is required',
+        });
+      }
+
+      // Get artist_id from user
+      const { data: user, error: userError } = await supabase
+        .from('users')
+        .select('artist_id')
+        .eq('id', userId)
+        .single();
+
+      if (userError || !user || !user.artist_id) {
+        return res.status(404).json({
+          success: false,
+          message: 'Artist not found for this user',
+        });
+      }
+
+      const submissions = await artistService.getArtistSubmissions(user.artist_id);
+
+      res.json({
+        success: true,
+        data: submissions,
+      });
+    } catch (error: any) {
+      console.error('Get submissions error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get submissions',
       });
     }
   },
 
+  /**
+   * GET /api/artists/my-stats
+   */
+  async getMyStats(req: Request, res: Response) {
+    try {
+      const userId = req.query.artistId as string;
+
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: 'User ID is required',
+        });
+      }
+
+      // Get artist_id from user
+      const { data: user, error: userError } = await supabase
+        .from('users')
+        .select('artist_id')
+        .eq('id', userId)
+        .single();
+
+      if (userError || !user || !user.artist_id) {
+        return res.status(404).json({
+          success: false,
+          message: 'Artist not found for this user',
+        });
+      }
+
+      const stats = await artistService.getArtistStats(user.artist_id);
+
+      res.json({
+        success: true,
+        data: stats,
+      });
+    } catch (error: any) {
+      console.error('Get stats error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get stats',
+      });
+    }
+  },
   /**
    * GET /api/artists/pool/current
    * Get current week's artist pool (100 songs)
@@ -126,7 +219,7 @@ export const artistController = {
       if (!currentWeek) {
         return res.status(404).json({
           success: false,
-          message: 'No active week found'
+          message: 'No active week found',
         });
       }
 
@@ -137,14 +230,14 @@ export const artistController = {
         data: pool,
         meta: {
           count: pool.length,
-          weekId: currentWeek.id
-        }
+          weekId: currentWeek.id,
+        },
       });
     } catch (error: any) {
       logger.error('Error fetching artist pool', { error: error.message });
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch artist pool'
+        message: 'Failed to fetch artist pool',
       });
     }
   },
@@ -159,7 +252,7 @@ export const artistController = {
       if (!currentWeek) {
         return res.status(404).json({
           success: false,
-          message: 'No active week found'
+          message: 'No active week found',
         });
       }
 
@@ -170,14 +263,14 @@ export const artistController = {
         data: top50,
         meta: {
           count: top50.length,
-          weekId: currentWeek.id
-        }
+          weekId: currentWeek.id,
+        },
       });
     } catch (error: any) {
       logger.error('Error fetching Top 50', { error: error.message });
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch Top 50'
+        message: 'Failed to fetch Top 50',
       });
     }
   },
@@ -191,7 +284,7 @@ export const artistController = {
       if (!req.user) {
         return res.status(401).json({
           success: false,
-          message: 'Unauthorized'
+          message: 'Unauthorized',
         });
       }
 
@@ -200,29 +293,24 @@ export const artistController = {
       if (!track_url || !title || !genre) {
         return res.status(400).json({
           success: false,
-          message: 'Missing required fields: track_url, title, genre'
+          message: 'Missing required fields: track_url, title, genre',
         });
       }
 
-      const submission = await artistService.submitTrack(
-        req.user.id,
-        track_url,
-        title,
-        genre
-      );
+      const submission = await artistService.submitTrack(req.user.id, track_url, title, genre);
 
       logger.info('Track submitted', { userId: req.user.id, trackId: submission.id });
 
       res.json({
         success: true,
         data: submission,
-        message: 'Track submitted successfully'
+        message: 'Track submitted successfully',
       });
     } catch (error: any) {
       logger.error('Error submitting track', { error: error.message, userId: req.user?.id });
       res.status(500).json({
         success: false,
-        message: error.message || 'Failed to submit track'
+        message: error.message || 'Failed to submit track',
       });
     }
   },
@@ -240,7 +328,7 @@ export const artistController = {
       if (!query && !genre) {
         return res.status(400).json({
           success: false,
-          message: 'Search query or genre required'
+          message: 'Search query or genre required',
         });
       }
 
@@ -252,15 +340,15 @@ export const artistController = {
         meta: {
           count: results.length,
           query,
-          genre
-        }
+          genre,
+        },
       });
     } catch (error: any) {
       logger.error('Error searching artists', { error: error.message });
       res.status(500).json({
         success: false,
-        message: 'Failed to search artists'
+        message: 'Failed to search artists',
       });
     }
-  }
+  },
 };

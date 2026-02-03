@@ -1,5 +1,4 @@
 // apps/backend/src/services/week.service.ts
-
 import { supabase } from '../config/database';
 import { Week } from '../types/database.types';
 
@@ -10,7 +9,7 @@ export class WeekService {
   async getWeekById(weekId: string) {
     const { data, error } = await supabase.from('weeks').select('*').eq('id', weekId).single();
 
-    if (error && error.code !== 'PGRST116') throw error;
+    if (error && (error as any).code !== 'PGRST116') throw error;
     return data;
   }
 
@@ -53,7 +52,6 @@ export class WeekService {
     }
 
     const diff = targetTime.getTime() - now.getTime();
-
     if (diff <= 0) return null;
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -75,7 +73,6 @@ export class WeekService {
    * Create new week
    */
   async createNewWeek() {
-    // Get last week number
     const { data: lastWeek } = await supabase
       .from('weeks')
       .select('week_number')
@@ -85,37 +82,34 @@ export class WeekService {
 
     const newWeekNumber = (lastWeek?.week_number || 0) + 1;
 
-    // Calculate dates (Friday to Thursday cycle)
     const now = new Date();
     const nextFriday = this.getNextFriday(now);
     const thursday = new Date(nextFriday);
-    thursday.setDate(thursday.getDate() + 6); // Next Thursday
+    thursday.setDate(thursday.getDate() + 6);
 
-    // Set specific times (Eastern Time)
     const weekStarting = new Date(nextFriday);
-    weekStarting.setHours(8, 0, 0, 0); // Friday 8am ET
+    weekStarting.setHours(8, 0, 0, 0);
 
     const weekEnding = new Date(thursday);
-    weekEnding.setHours(23, 59, 59, 999); // Thursday 11:59pm ET
+    weekEnding.setHours(23, 59, 59, 999);
 
     const votingOpenAt = new Date(nextFriday);
-    votingOpenAt.setHours(8, 0, 0, 0); // Friday 8am ET
+    votingOpenAt.setHours(8, 0, 0, 0);
 
     const votingCloseAt = new Date(nextFriday);
-    votingCloseAt.setDate(votingCloseAt.getDate() + 2); // Sunday
-    votingCloseAt.setHours(23, 59, 59, 999); // Sunday 11:59pm ET
+    votingCloseAt.setDate(votingCloseAt.getDate() + 2);
+    votingCloseAt.setHours(23, 59, 59, 999);
 
     const picksOpenAt = new Date(nextFriday);
-    picksOpenAt.setDate(picksOpenAt.getDate() + 3); // Monday
-    picksOpenAt.setHours(6, 0, 0, 0); // Monday 6am ET
+    picksOpenAt.setDate(picksOpenAt.getDate() + 3);
+    picksOpenAt.setHours(6, 0, 0, 0);
 
     const picksLockAt = new Date(thursday);
-    picksLockAt.setHours(10, 0, 0, 0); // Thursday 10am ET
+    picksLockAt.setHours(10, 0, 0, 0);
 
     const showAt = new Date(thursday);
-    showAt.setHours(19, 0, 0, 0); // Thursday 7pm ET
+    showAt.setHours(19, 0, 0, 0);
 
-    // Create week
     const { data: week, error } = await supabase
       .from('weeks')
       .insert({
@@ -168,9 +162,9 @@ export class WeekService {
    */
   async updatePhase(weekId: string, phase: string) {
     const { error } = await supabase.from('weeks').update({ phase }).eq('id', weekId);
-
     if (error) throw error;
   }
+
   /**
    * Get the current active week
    */
@@ -206,28 +200,20 @@ export class WeekService {
     return 'unknown';
   }
 
-  /**
-   * Check if voting is open
-   */
   isVotingOpen(week: Week): boolean {
-    const phase = this.getCurrentPhase(week);
-    return phase === 'voting';
+    return this.getCurrentPhase(week) === 'voting';
   }
 
-  /**
-   * Check if picks are open
-   */
   isPicksOpen(week: Week): boolean {
-    const phase = this.getCurrentPhase(week);
-    return phase === 'picks_open';
+    return this.getCurrentPhase(week) === 'picks_open';
   }
 
-  /**
-   * Check if lineups are locked
-   */
   areLineupsLocked(week: Week): boolean {
     const now = new Date();
     const lockTime = new Date(week.picks_lock_at);
     return now >= lockTime;
   }
 }
+
+// ✅ add this, matching track.service.ts pattern
+export const weekService = new WeekService();

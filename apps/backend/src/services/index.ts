@@ -21,3 +21,5 @@ export { SupportService } from './support.service';
 export { EmailService } from './email.service';
 export { AnalyticsService } from './analytics.service';
 export { AdminService } from './admin.service';
+export { AuthService } from './auth.service';
+export { TrackService } from './track.service';

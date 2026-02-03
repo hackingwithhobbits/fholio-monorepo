@@ -17,3 +17,5 @@ export { communityController } from './community.controller';
 export { liveShowController } from './liveshow.controller';
 export { supportController } from './support.controller';
 export { analyticsController } from './analytics.controller';
+export { authController } from './auth.controller';
+export { trackController } from './track.controller';

@@ -29,7 +29,8 @@
       "@config/*": ["./src/config/*"],
       "@middleware/*": ["./src/middleware/*"],
       "@types/*": ["./src/types/*"],
-      "@utils/*": ["./src/utils/*"]
+      "@utils/*": ["./src/utils/*"],
+      "@routes/*": ["./src/routes/*"]
     }
   },
   "include": ["src/**/*", "../frontend/src/lib/api/services/sponsor.service.ts"],

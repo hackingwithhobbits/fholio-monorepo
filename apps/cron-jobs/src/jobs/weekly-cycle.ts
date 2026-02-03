@@ -6,12 +6,12 @@ import { ArtistService } from "../../../backend/src/services/artist.service";
 import { PoolService } from "../../../backend/src/services/pool.service";
 
 export class WeeklyCycleJobs {
-  private weekService: WeekService;
+  private WeekService: WeekService;
   private artistService: ArtistService;
   private poolService: PoolService;
 
   constructor() {
-    this.weekService = new WeekService();
+    this.WeekService = new WeekService();
     this.artistService = new ArtistService();
     this.poolService = new PoolService();
   }
@@ -26,14 +26,14 @@ export class WeeklyCycleJobs {
       async () => {
         console.log("[CRON] Creating new week...");
 
-        const week = await this.weekService.createNewWeek();
+        const week = await this.WeekService.createNewWeek();
         await this.artistService.publishWeeklyPool(week.id, 100);
 
         console.log(`[CRON] Week ${week.week_number} created`);
       },
       {
         timezone: "America/New_York",
-      }
+      },
     );
   }
 
@@ -46,17 +46,17 @@ export class WeeklyCycleJobs {
       async () => {
         console.log("[CRON] Calculating Top 50...");
 
-        const week = await this.weekService.getCurrentWeek();
+        const week = await this.WeekService.getCurrentWeek();
         if (!week) return;
 
         await this.artistService.calculateTop50(week.id);
-        await this.weekService.updatePhase(week.id, "picks_open");
+        await this.WeekService.updatePhase(week.id, "picks_open");
 
         console.log("[CRON] Top 50 published");
       },
       {
         timezone: "America/New_York",
-      }
+      },
     );
   }
 
@@ -69,17 +69,17 @@ export class WeeklyCycleJobs {
       async () => {
         console.log("[CRON] Locking lineups...");
 
-        const week = await this.weekService.getCurrentWeek();
+        const week = await this.WeekService.getCurrentWeek();
         if (!week) return;
 
-        await this.weekService.lockAllLineups(week.id);
+        await this.WeekService.lockAllLineups(week.id);
         await this.artistService.finalizeScores(week.id);
 
         console.log("[CRON] Lineups locked, scores finalized");
       },
       {
         timezone: "America/New_York",
-      }
+      },
     );
   }
 
@@ -92,18 +92,18 @@ export class WeeklyCycleJobs {
       async () => {
         console.log("[CRON] Starting live show...");
 
-        const week = await this.weekService.getCurrentWeek();
+        const week = await this.WeekService.getCurrentWeek();
         if (!week) return;
 
-        await this.weekService.updatePhase(week.id, "live_show");
+        await this.WeekService.updatePhase(week.id, "live_show");
         await this.poolService.distributePayouts(week.id);
-        await this.weekService.completeWeek(week.id);
+        await this.WeekService.completeWeek(week.id);
 
         console.log("[CRON] Live show complete, payouts distributed");
       },
       {
         timezone: "America/New_York",
-      }
+      },
     );
   }
 

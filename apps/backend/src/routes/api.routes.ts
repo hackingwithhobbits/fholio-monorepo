@@ -11,6 +11,7 @@ import {
   leaderboardController,
   challengeController,
   subscriptionController,
+  authController,
 } from '../controllers';
 
 // Import new controllers
@@ -23,6 +24,8 @@ import { communityController } from '../controllers/community.controller';
 import { liveShowController } from '../controllers/liveshow.controller';
 import { supportController } from '../controllers/support.controller';
 import { analyticsController } from '../controllers/analytics.controller';
+import { trackController } from '@/controllers/track.controller';
+import { walletController } from '@/controllers/wallet.controller';
 
 const router = express.Router();
 
@@ -36,6 +39,8 @@ router.get('/week/:id', weekController.getWeekById);
 // ============================================
 // ARTIST ROUTES
 // ============================================
+router.get('/artists/my-submissions', artistController.getMySubmissions.bind(artistController));
+router.get('/artists/my-stats', artistController.getMyStats.bind(artistController));
 router.get('/artists/leaderboard', artistController.getLeaderboard);
 router.get('/artists/pool/current', artistController.getCurrentPool);
 router.get('/artists/top50', artistController.getTop50);
@@ -43,6 +48,13 @@ router.get('/artists/search', artistController.searchArtists);
 router.get('/artists/:id', artistController.getArtistProfile);
 router.get('/artists/:id/history', artistController.getArtistHistory);
 router.post('/artists/submit-track', authMiddleware, artistController.submitTrack);
+
+router.get('/artists/:id/profile', artistController.getArtistProfile);
+router.get('/artists/:id/history', artistController.getArtistHistory);
+
+router.get('/artists/:id', artistController.getArtistProfile);
+router.get('/artists/:id/profile', artistController.getArtistProfile);
+router.get('/artists/:id/history', artistController.getArtistHistory);
 
 // ============================================
 // VOTING ROUTES
@@ -76,9 +88,11 @@ router.get('/users/:id/public', userController.getPublicProfile);
 // ============================================
 // LEADERBOARD ROUTES
 // ============================================
-router.get('/fans/leaderboard', leaderboardController.getTopFans);
-router.get('/leaderboard/live', leaderboardController.getLiveLeaderboard);
-router.get('/leaderboard/global', leaderboardController.getGlobalLeaderboard);
+router.get('/leaderboard/global', leaderboardController.getGlobal);
+router.get('/leaderboard/weekly', leaderboardController.getWeekly);
+router.get('/leaderboard/my-rank', authMiddleware, leaderboardController.getMyRank);
+router.get('/leaderboard/my-stats', authMiddleware, leaderboardController.getMyStats);
+router.get('/leaderboard/prizes', leaderboardController.getPrizes);
 
 // ============================================
 // CHALLENGE ROUTES
@@ -173,5 +187,35 @@ router.get('/support/categories', supportController.getCategories);
 router.get('/analytics/platform', analyticsController.getPlatformStats);
 router.get('/analytics/weekly/:weekId', analyticsController.getWeeklyAnalytics);
 router.get('/analytics/user/:userId', authMiddleware, analyticsController.getUserAnalytics);
+
+// Fan routes
+router.post('/auth/signup/fan', authController.signUpFan.bind(authController));
+router.post('/auth/signin/fan', authController.signInFan.bind(authController));
+
+// Artist routes
+router.post('/auth/signup/artist', authController.signUpArtist.bind(authController));
+router.post('/auth/signin/artist', authController.signInArtist.bind(authController));
+
+router.post('/auth/onboarding/complete', authController.completeOnboarding.bind(authController));
+
+// Common
+router.get('/auth/me', authController.getCurrentUser.bind(authController));
+
+router.get('/tracks/my-submissions', authMiddleware, trackController.getMySubmissions);
+router.get('/tracks/my-stats', authMiddleware, trackController.getMyStats);
+router.get('/tracks/my-tracks', authMiddleware, trackController.getMyTracks);
+
+router.post('/votes', authMiddleware, voteController.submitVote);
+router.get('/votes/my-votes', authMiddleware, voteController.getMyVotes);
+router.get('/votes/remaining', authMiddleware, voteController.getRemainingVotes);
+router.get('/votes/top-voted', voteController.getTopVoted);
+router.delete('/votes/:id', authMiddleware, voteController.removeVote);
+
+router.get('/wallet', authMiddleware, walletController.getWallet);
+router.get('/wallet/summary', authMiddleware, walletController.getWalletSummary);
+router.get('/wallet/transactions', authMiddleware, walletController.getTransactions);
+router.get('/wallet/weekly-earnings', authMiddleware, walletController.getWeeklyEarnings);
+router.get('/wallet/top-earners', walletController.getTopEarners);
+router.post('/wallet/withdraw', authMiddleware, walletController.createWithdrawal);
 
 export default router;

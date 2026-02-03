@@ -1,8 +1,18 @@
+// apps/frontend/src/components/FanOnboardingV2.tsx
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, TrendingUp, DollarSign, ArrowRight } from "lucide-react";
+import {
+  Trophy,
+  TrendingUp,
+  DollarSign,
+  ArrowRight,
+  Loader2,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Logo } from "./Logo";
+import { authService } from "@/lib/api/services";
+import { authUtils } from "@/lib/auth";
+import { toast } from "sonner";
 
 interface FanOnboardingV2Props {
   onNavigate: (page: string) => void;
@@ -10,6 +20,7 @@ interface FanOnboardingV2Props {
 
 export function FanOnboardingV2({ onNavigate }: FanOnboardingV2Props) {
   const [step, setStep] = useState(1);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const steps = [
     {
@@ -40,11 +51,39 @@ export function FanOnboardingV2({ onNavigate }: FanOnboardingV2Props) {
   const currentStep = steps[step - 1];
   const Icon = currentStep.icon;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < 3) {
       setStep(step + 1);
     } else {
-      onNavigate("fan-dashboard");
+      // Complete onboarding
+      setIsCompleting(true);
+
+      try {
+        const session = authUtils.getSession();
+
+        if (!session?.id) {
+          toast.error("Session expired. Please sign in again.");
+          onNavigate("fan-signin");
+          return;
+        }
+
+        // Mark onboarding as complete in backend
+        await authService.completeOnboarding(session.id);
+
+        toast.success("Welcome to Fholio! 🎉");
+
+        // Navigate to dashboard
+        setTimeout(() => {
+          onNavigate("fan-dashboard");
+        }, 500);
+      } catch (error: any) {
+        console.error("Onboarding completion error:", error);
+        toast.error("Failed to complete onboarding");
+        // Navigate anyway - don't block the user
+        onNavigate("fan-dashboard");
+      } finally {
+        setIsCompleting(false);
+      }
     }
   };
 
@@ -115,10 +154,16 @@ export function FanOnboardingV2({ onNavigate }: FanOnboardingV2Props) {
               {/* Button */}
               <Button
                 onClick={handleNext}
+                disabled={isCompleting}
                 className="bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 text-white neon-glow py-6 px-12 rounded-xl transition-all duration-200 w-full"
                 size="lg"
               >
-                {step < 3 ? (
+                {isCompleting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Setting up...
+                  </>
+                ) : step < 3 ? (
                   <>
                     Next
                     <ArrowRight className="ml-2 w-5 h-5" />
@@ -130,6 +175,19 @@ export function FanOnboardingV2({ onNavigate }: FanOnboardingV2Props) {
             </motion.div>
           </AnimatePresence>
         </div>
+
+        {/* Skip Button */}
+        {step < 3 && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            onClick={() => onNavigate("fan-dashboard")}
+            className="text-muted-foreground hover:text-white transition-colors text-sm mt-4 w-full text-center"
+          >
+            Skip onboarding
+          </motion.button>
+        )}
       </div>
     </div>
   );

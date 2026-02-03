@@ -1,11 +1,13 @@
+// apps/frontend/src/components/ArtistSignIn.tsx
 import { motion } from "framer-motion";
 import { Mail, Mic, ArrowLeft, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Logo } from "./Logo";
-import { getSupabase } from "@/lib/supabase";
+import { authService } from "@/lib/api/services";
 import { authUtils } from "@/lib/auth";
+import { toast } from "sonner";
 
 interface ArtistSignInProps {
   onNavigate: (page: string) => void;
@@ -18,86 +20,50 @@ export function ArtistSignIn({ onNavigate, onSuccess }: ArtistSignInProps) {
   const [artistName, setArtistName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const supabase = getSupabase();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    setSuccess("");
 
     try {
       if (isSignUp) {
-        // Sign Up - Create new artist account
-        const { data, error } = await supabase
-          .from("beta_artists")
-          .insert([
-            {
-              email: email.toLowerCase().trim(),
-              artist_name: artistName.trim(),
-            },
-          ])
-          .select();
-
-        if (error) {
-          if (error.code === "23505") {
-            setError("This email is already registered!");
-          } else {
-            console.error("Sign-up error:", error);
-            setError("Sign-up failed. Please try again.");
-          }
-          setIsLoading(false);
-          return;
-        }
-
-        if (data && data[0]) {
-          authUtils.setSession({
-            id: data[0].id,
-            email: data[0].email,
-            artistName: data[0].artist_name,
-            userType: "artist",
-            createdAt: data[0].created_at,
-          });
-
-          setSuccess("Account created! Redirecting...");
-
-          setTimeout(() => {
-            onSuccess(true); // true = new user, go to onboarding
-          }, 1000);
-        }
-      } else {
-        // Sign In - Check if artist exists
-        const { data, error } = await supabase
-          .from("beta_artists")
-          .select("*")
-          .eq("email", email.toLowerCase().trim())
-          .single();
-
-        if (error || !data) {
-          setError("No account found with this email. Please sign up first!");
-          setIsLoading(false);
-          return;
-        }
-
-        authUtils.setSession({
-          id: data.id,
-          email: data.email,
-          artistName: data.artist_name,
-          userType: "artist",
-          createdAt: data.created_at,
+        // Sign Up
+        const user = await authService.signUpArtist({
+          email: email.toLowerCase().trim(),
+          artistName: artistName.trim(),
         });
 
-        setSuccess("Welcome back! Redirecting...");
+        authUtils.setSession({
+          id: user.id,
+          email: user.email,
+          username: user.display_name || artistName.trim(),
+          userType: "artist",
+          createdAt: user.created_at,
+        });
 
-        setTimeout(() => {
-          onSuccess(false); // false = existing user, go to dashboard
-        }, 1000);
+        toast.success("Artist account created successfully!");
+        setTimeout(() => onSuccess(true), 500);
+      } else {
+        // Sign In
+        const user = await authService.signInArtist(email.toLowerCase().trim());
+
+        authUtils.setSession({
+          id: user.id,
+          email: user.email,
+          username: user.display_name || user.username,
+          userType: "artist",
+          createdAt: user.created_at,
+        });
+
+        toast.success("Welcome back!");
+        setTimeout(() => onSuccess(false), 500);
       }
-
-      setIsLoading(false);
     } catch (error: any) {
-      console.error("Error:", error);
-      setError(error.message || "Something went wrong. Please try again.");
+      console.error("Auth error:", error);
+      setError(error.message || "Authentication failed. Please try again.");
+      toast.error(error.message || "Authentication failed");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -143,20 +109,13 @@ export function ArtistSignIn({ onNavigate, onSuccess }: ArtistSignInProps) {
           </p>
         </motion.div>
 
-        {/* Sign In Form */}
+        {/* Form */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
           className="glass-card rounded-2xl p-8 neon-glow"
         >
-          {/* Success Message */}
-          {success && (
-            <div className="mb-4 p-4 bg-green-500/20 border border-green-500/50 rounded-xl text-green-400 text-sm">
-              {success}
-            </div>
-          )}
-
           {/* Error Message */}
           {error && (
             <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-sm">
@@ -235,7 +194,6 @@ export function ArtistSignIn({ onNavigate, onSuccess }: ArtistSignInProps) {
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setError("");
-                setSuccess("");
               }}
               className="text-accent hover:text-accent/80 transition-colors duration-200"
             >
@@ -251,7 +209,7 @@ export function ArtistSignIn({ onNavigate, onSuccess }: ArtistSignInProps) {
           transition={{ delay: 0.4 }}
           className="text-center mt-8 text-xs text-muted-foreground/60"
         >
-          <p>Beta Version - Simplified authentication for testing</p>
+          <p>Beta Version • Simplified authentication</p>
         </motion.div>
       </div>
     </div>

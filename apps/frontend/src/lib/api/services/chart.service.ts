@@ -1,4 +1,4 @@
-import { apiFetch } from "../client";
+import { apiClient } from "../client";
 import type { Artist, TopFan, SocialStats, ApiResponse } from "../types";
 
 export const chartService = {
@@ -7,7 +7,7 @@ export const chartService = {
    */
   async getTop100(week?: string): Promise<ApiResponse<Artist[]>> {
     const url = week ? `/charts/top100?week=${week}` : "/charts/top100";
-    return apiFetch<Artist[]>(url);
+    return apiClient.get<ApiResponse<Artist[]>>(url);
   },
 
   /**
@@ -15,10 +15,10 @@ export const chartService = {
    */
   async getLeaderboard(
     week: string,
-    limit = 10
+    limit = 10,
   ): Promise<ApiResponse<TopFan[]>> {
-    return apiFetch<TopFan[]>(
-      `/charts/leaderboard?week=${week}&limit=${limit}`
+    return apiClient.get<ApiResponse<TopFan[]>>(
+      `/charts/leaderboard?week=${week}&limit=${limit}`,
     );
   },
 
@@ -26,20 +26,24 @@ export const chartService = {
    * Get global leaderboard
    */
   async getGlobalLeaderboard(limit = 50): Promise<ApiResponse<any[]>> {
-    return apiFetch<any[]>(`/charts/leaderboard/global?limit=${limit}`);
+    return apiClient.get<ApiResponse<any[]>>(
+      `/charts/leaderboard/global?limit=${limit}`,
+    );
   },
 
   /**
    * Get last week's winners
    */
   async getLastWeekWinners(limit = 10): Promise<ApiResponse<TopFan[]>> {
-    return apiFetch<TopFan[]>(`/charts/winners/last-week?limit=${limit}`);
+    return apiClient.get<ApiResponse<TopFan[]>>(
+      `/charts/winners/last-week?limit=${limit}`,
+    );
   },
 
   /**
    * Get social stats
    */
   async getSocialStats(): Promise<ApiResponse<SocialStats>> {
-    return apiFetch<SocialStats>("/charts/stats");
+    return apiClient.get<ApiResponse<SocialStats>>("/charts/stats");
   },
 };

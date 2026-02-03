@@ -37,17 +37,15 @@ export interface ArtistWeek {
   id: string;
   artist_id: string;
   week_id: string;
-  score: number;
+  final_score: number; // ← NOT score
   streams: number;
   votes: number;
-  engagement: number;
-  growth_percentage: number;
-  rank: number;
-  status: 'Hot Streak' | 'Rising' | 'New Entrant' | 'Trending' | 'Stable';
-  is_top_50: boolean;
-  weights_json?: any;
+  engagement_score: number; // ← NOT engagement
+  social_growth: number; // ← NOT growth_percentage
+  rank: number | null;
+  status: string;
+  artist: Artist;
 }
-
 export interface WeekArtist {
   id: string;
   week_id: string;
@@ -55,7 +53,7 @@ export interface WeekArtist {
   track_id?: string;
   source_flag: 'new' | 'past_performer' | 'submission';
   is_top_50: boolean;
-  eligible_for_picks: boolean;
+  is_eligible_for_picking: boolean;
 }
 
 export interface User {
@@ -128,4 +126,131 @@ export interface Transaction {
   ref_id?: string; // Reference to lineup, challenge, etc.
   status: 'pending' | 'completed' | 'failed';
   created_at: string;
+}
+
+export interface Database {
+  public: {
+    Tables: {
+      users: {
+        Row: {
+          id: string;
+          email: string;
+          display_name: string | null;
+          avatar_url: string | null;
+          user_type: 'fan' | 'artist' | 'admin';
+          tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
+          created_at: string;
+          is_banned?: boolean;
+          ban_reason?: string | null;
+          banned_at?: string | null;
+          banned_by?: string | null;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          display_name?: string | null;
+          avatar_url?: string | null;
+          user_type?: 'fan' | 'artist' | 'admin';
+          tier?: 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          display_name?: string | null;
+          avatar_url?: string | null;
+          user_type?: 'fan' | 'artist' | 'admin';
+          tier?: 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
+        };
+      };
+      weeks: {
+        Row: {
+          id: string;
+          week_number: number;
+          week_starting: string;
+          week_ending: string;
+          voting_open_at: string;
+          voting_close_at: string;
+          picks_open_at: string;
+          picks_lock_at: string;
+          show_at: string;
+          phase: string;
+          status: 'active' | 'locked' | 'completed';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          week_number: number;
+          week_starting: string;
+          week_ending: string;
+          voting_open_at: string;
+          voting_close_at: string;
+          picks_open_at: string;
+          picks_lock_at: string;
+          show_at: string;
+          phase?: string;
+          status?: 'active' | 'locked' | 'completed';
+          created_at?: string;
+        };
+        Update: {
+          phase?: string;
+          status?: 'active' | 'locked' | 'completed';
+        };
+      };
+      artists: {
+        Row: {
+          id: string;
+          name: string;
+          genre: string;
+          image_url: string | null;
+          bio: string | null;
+          league: 'Major' | 'Minor';
+          monthly_listeners: number | null;
+          instagram_followers: number | null;
+          location: string | null;
+          social_links: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          genre: string;
+          image_url?: string | null;
+          bio?: string | null;
+          league?: 'Major' | 'Minor';
+          monthly_listeners?: number | null;
+          instagram_followers?: number | null;
+          location?: string | null;
+          social_links?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          genre?: string;
+          image_url?: string | null;
+          bio?: string | null;
+          league?: 'Major' | 'Minor';
+          monthly_listeners?: number | null;
+          instagram_followers?: number | null;
+          location?: string | null;
+          social_links?: Json | null;
+        };
+      };
+      // Add more tables as needed...
+      [key: string]: {
+        Row: Record<string, any>;
+        Insert: Record<string, any>;
+        Update: Record<string, any>;
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+  };
 }

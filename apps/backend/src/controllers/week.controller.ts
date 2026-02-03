@@ -2,10 +2,10 @@
 
 import { Request, Response } from 'express';
 import { WeekService } from '../services/week.service';
+
 import { logger } from '../utils/logger';
 
 const weekService = new WeekService();
-
 export const weekController = {
   /**
    * GET /api/week/current

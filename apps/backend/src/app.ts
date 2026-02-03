@@ -7,7 +7,7 @@ import { env } from '@/config/env';
 import { errorHandler, notFoundHandler } from '@/middleware/errorHandler';
 import { httpLogger } from '@/middleware/logger';
 import { rateLimiter } from '@/middleware/rateLimiter';
-import routes from '@/routes';
+import routes from '@/routes/api.routes';
 
 const app = express();
 

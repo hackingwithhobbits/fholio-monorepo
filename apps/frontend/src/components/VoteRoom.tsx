@@ -1,3 +1,4 @@
+// src/components/VoteRoom.tsx
 import { motion } from "framer-motion";
 import { useState } from "react";
 import {
@@ -9,6 +10,8 @@ import {
   TrendingUp,
   MapPin,
   Music2,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -20,121 +23,111 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { Input } from "./ui/input";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { toast } from "sonner";
-
-interface Submission {
-  id: string;
-  artistName: string;
-  trackName: string;
-  imageUrl: string;
-  genre: string;
-  location: string;
-  votes: number;
-  tags: string[];
-  previewUrl?: string;
-}
+import { useCurrentPool } from "@/hooks/useArtists";
+import { useVoting } from "@/hooks/useVoting";
+import { useCurrentWeek } from "@/hooks/useWeek";
 
 interface VoteRoomProps {
   onNavigate: (page: string) => void;
 }
 
 export function VoteRoom({ onNavigate }: VoteRoomProps) {
-  const [votesRemaining, setVotesRemaining] = useState(10);
   const [selectedGenre, setSelectedGenre] = useState("all");
   const [selectedFilter, setSelectedFilter] = useState("all");
-  const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
-  const maxVotes = 10;
+  const [votingArtistId, setVotingArtistId] = useState<string | null>(null);
 
-  // Mock submissions data
-  const submissions: Submission[] = [
-    {
-      id: "1",
-      artistName: "Luna Echo",
-      trackName: "Midnight Drive",
-      imageUrl:
-        "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400",
-      genre: "Electronic",
-      location: "Los Angeles, CA",
-      votes: 2847,
-      tags: ["New", "Rising"],
-    },
-    {
-      id: "2",
-      artistName: "The Neon Wolves",
-      trackName: "Electric Dreams",
-      imageUrl:
-        "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400",
-      genre: "Rock",
-      location: "Nashville, TN",
-      votes: 3254,
-      tags: ["Returning", "Hot Streak"],
-    },
-    {
-      id: "3",
-      artistName: "Solaris",
-      trackName: "Golden Hour",
-      imageUrl:
-        "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400",
-      genre: "Pop",
-      location: "New York, NY",
-      votes: 4102,
-      tags: ["Spotlight", "Rising"],
-    },
-    {
-      id: "4",
-      artistName: "Bass Therapy",
-      trackName: "Frequency",
-      imageUrl:
-        "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400",
-      genre: "Hip-Hop",
-      location: "Atlanta, GA",
-      votes: 1923,
-      tags: ["New"],
-    },
-    {
-      id: "5",
-      artistName: "Crimson Sky",
-      trackName: "Horizon",
-      imageUrl:
-        "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400",
-      genre: "Indie",
-      location: "Austin, TX",
-      votes: 2156,
-      tags: ["Rising"],
-    },
-    {
-      id: "6",
-      artistName: "Velvet Storm",
-      trackName: "Thunder",
-      imageUrl:
-        "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=400",
-      genre: "R&B",
-      location: "Miami, FL",
-      votes: 3687,
-      tags: ["Returning", "Spotlight"],
-    },
+  // Real backend data
+  const { pool, isLoading, error } = useCurrentPool();
+  const { votes, remaining, limit, submitVote, isSubmitting } = useVoting();
+  const { week, timeRemaining, phase } = useCurrentWeek();
+
+  const votesRemaining = remaining;
+  const maxVotes = limit;
+
+  // Extract unique genres from real data
+  const genres = [
+    "all",
+    ...new Set(pool.map((p) => p.artist?.genre).filter(Boolean)),
   ];
 
-  const handleVote = (submissionId: string, artistName: string) => {
-    if (votesRemaining > 0 && !votedIds.has(submissionId)) {
-      setVotesRemaining((prev) => prev - 1);
-      setVotedIds((prev) => new Set([...prev, submissionId]));
-      toast.success(`Voted for ${artistName}!`, {
-        description: `${votesRemaining - 1} votes remaining • +10 XP earned`,
-      });
-    } else if (votedIds.has(submissionId)) {
-      toast.error("Already voted for this track");
-    } else {
+  // Filter pool by genre and filter
+  const filteredSubmissions = pool.filter((item) => {
+    const artist = item.artist;
+    if (!artist) return false;
+
+    const matchesGenre =
+      selectedGenre === "all" ||
+      artist.genre.toLowerCase() === selectedGenre.toLowerCase();
+
+    // Apply filter based on status or tags
+    let matchesFilter = true;
+    if (selectedFilter !== "all") {
+      // You can customize these filters based on your data
+      matchesFilter = selectedFilter === "all";
+    }
+
+    return matchesGenre && matchesFilter;
+  });
+
+  const handleVote = async (artistId: string, artistName: string) => {
+    if (votesRemaining <= 0) {
       toast.error("No votes remaining", {
         description: "Come back tomorrow for more votes",
+      });
+      return;
+    }
+
+    const hasVoted = votes.some((v) => v.artist_id === artistId);
+    if (hasVoted) {
+      toast.error("Already voted for this track");
+      return;
+    }
+
+    setVotingArtistId(artistId);
+    const success = await submitVote(artistId);
+    setVotingArtistId(null);
+
+    if (success) {
+      toast.success(`Voted for ${artistName}!`, {
+        description: `${remaining - 1} votes remaining • +10 XP earned`,
       });
     }
   };
 
   const votesUsed = maxVotes - votesRemaining;
   const voteProgress = (votesUsed / maxVotes) * 100;
+
+  const isVotingOpen = phase === "voting";
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading submissions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-500 mb-4">Failed to load submissions</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-32">
@@ -152,7 +145,8 @@ export function VoteRoom({ onNavigate }: VoteRoomProps) {
             <div className="flex items-center justify-center gap-2 mb-4">
               <ThumbsUp className="w-5 h-5 text-accent" />
               <span className="text-xs text-accent tracking-widest uppercase">
-                Vote Room • Submissions Phase
+                Vote Room •{" "}
+                {isVotingOpen ? "Submissions Phase" : "Voting Closed"}
               </span>
             </div>
             <h1 className="text-5xl md:text-7xl mb-6 gradient-text tracking-tighter">
@@ -185,15 +179,26 @@ export function VoteRoom({ onNavigate }: VoteRoomProps) {
                   </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="flex items-center gap-2 text-accent mb-1">
-                  <Clock className="w-4 h-4" />
-                  <span className="text-sm tracking-widest uppercase">
-                    Voting Ends In
-                  </span>
+              {isVotingOpen && timeRemaining ? (
+                <div className="text-right">
+                  <div className="flex items-center gap-2 text-accent mb-1">
+                    <Clock className="w-4 h-4" />
+                    <span className="text-sm tracking-widest uppercase">
+                      Voting Ends In
+                    </span>
+                  </div>
+                  <div className="text-2xl text-white">
+                    {timeRemaining.days}d {timeRemaining.hours}h{" "}
+                    {timeRemaining.minutes}m
+                  </div>
                 </div>
-                <div className="text-2xl text-white">1d 04h 23m</div>
-              </div>
+              ) : (
+                <div className="text-right">
+                  <div className="text-red-500 text-sm tracking-widest uppercase">
+                    Voting Closed
+                  </div>
+                </div>
+              )}
             </div>
             <Progress value={voteProgress} className="h-2" />
             <div className="mt-3 text-center text-sm text-muted-foreground/70">
@@ -213,12 +218,13 @@ export function VoteRoom({ onNavigate }: VoteRoomProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Genres</SelectItem>
-                <SelectItem value="pop">Pop</SelectItem>
-                <SelectItem value="rock">Rock</SelectItem>
-                <SelectItem value="hiphop">Hip-Hop</SelectItem>
-                <SelectItem value="electronic">Electronic</SelectItem>
-                <SelectItem value="indie">Indie</SelectItem>
-                <SelectItem value="rnb">R&B</SelectItem>
+                {genres
+                  .filter((g) => g !== "all")
+                  .map((genre) => (
+                    <SelectItem key={genre} value={genre.toLowerCase()}>
+                      {genre}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
@@ -238,7 +244,7 @@ export function VoteRoom({ onNavigate }: VoteRoomProps) {
             <div className="flex-1" />
 
             <div className="text-sm text-muted-foreground/70">
-              {submissions.length} submissions this week
+              {filteredSubmissions.length} submissions this week
             </div>
           </div>
         </div>
@@ -248,12 +254,22 @@ export function VoteRoom({ onNavigate }: VoteRoomProps) {
       <section className="px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {submissions.map((submission, index) => {
-              const hasVoted = votedIds.has(submission.id);
+            {filteredSubmissions.map((item, index) => {
+              const artist = item.artist;
+              if (!artist) return null;
+
+              const hasVoted = votes.some((v) => v.artist_id === artist.id);
+              const isVoting = votingArtistId === artist.id;
+
+              // Determine tags based on data
+              const tags: string[] = [];
+              if (item.source_flag === "new_submission") tags.push("New");
+              if (item.source_flag === "past_performer") tags.push("Returning");
+              if (item.votes && item.votes > 100) tags.push("Rising");
 
               return (
                 <motion.div
-                  key={submission.id}
+                  key={artist.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
@@ -264,12 +280,15 @@ export function VoteRoom({ onNavigate }: VoteRoomProps) {
                   {/* Track Art */}
                   <div className="relative mb-4">
                     <ImageWithFallback
-                      src={submission.imageUrl}
-                      alt={submission.trackName}
+                      src={
+                        artist.image_url ||
+                        "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f"
+                      }
+                      alt={artist.name}
                       className="w-full aspect-square object-cover rounded-xl"
                     />
                     <div className="absolute top-3 right-3 flex gap-2">
-                      {submission.tags.map((tag) => (
+                      {tags.map((tag) => (
                         <Badge
                           key={tag}
                           variant={
@@ -293,25 +312,25 @@ export function VoteRoom({ onNavigate }: VoteRoomProps) {
 
                   {/* Track Info */}
                   <h3 className="text-white mb-1 tracking-tight">
-                    {submission.trackName}
+                    {artist.name}
                   </h3>
                   <p className="text-muted-foreground/70 text-sm mb-3">
-                    {submission.artistName}
+                    {artist.genre}
                   </p>
 
                   <div className="flex items-center gap-2 text-xs text-muted-foreground/70 mb-4">
                     <Music2 className="w-3 h-3" />
-                    <span>{submission.genre}</span>
+                    <span>{artist.genre}</span>
                     <span>•</span>
                     <MapPin className="w-3 h-3" />
-                    <span>{submission.location}</span>
+                    <span>{artist.location || "Unknown"}</span>
                   </div>
 
                   {/* Vote Count */}
                   <div className="flex items-center gap-2 mb-4">
                     <TrendingUp className="w-4 h-4 text-primary" />
                     <span className="text-sm text-muted-foreground/70">
-                      {submission.votes.toLocaleString()} votes
+                      {item.votes?.toLocaleString() || 0} votes
                     </span>
                   </div>
 
@@ -321,24 +340,37 @@ export function VoteRoom({ onNavigate }: VoteRoomProps) {
                       size="sm"
                       variant="outline"
                       className="flex-1 glass-card border-primary/30 text-white hover:bg-primary/20 hover:border-primary/50 hover:text-white transition-all"
+                      disabled
                     >
                       <Play className="w-4 h-4 mr-2" />
                       Preview
                     </Button>
                     <Button
                       size="sm"
-                      onClick={() =>
-                        handleVote(submission.id, submission.artistName)
+                      onClick={() => handleVote(artist.id, artist.name)}
+                      disabled={
+                        hasVoted ||
+                        votesRemaining === 0 ||
+                        !isVotingOpen ||
+                        isVoting
                       }
-                      disabled={hasVoted || votesRemaining === 0}
                       className={`flex-1 ${
                         hasVoted
                           ? "bg-accent/20 text-accent"
                           : "gradient-bg neon-glow holo-button"
                       }`}
                     >
-                      <ThumbsUp className="w-4 h-4 mr-2" />
-                      {hasVoted ? "Voted" : "Upvote"}
+                      {isVoting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Voting...
+                        </>
+                      ) : (
+                        <>
+                          <ThumbsUp className="w-4 h-4 mr-2" />
+                          {hasVoted ? "Voted" : "Upvote"}
+                        </>
+                      )}
                     </Button>
                   </div>
                 </motion.div>

@@ -4,234 +4,220 @@ import { supabase } from '../config/database';
 
 export class LeaderboardService {
   /**
-   * Get top fans for a week
+   * Get global leaderboard (all-time top fans)
    */
-  async getTopFans(weekId: string, limit: number = 100) {
-    const { data, error } = await supabase
+  async getGlobalLeaderboard(limit: number = 50) {
+    // Get all fan_lineups and sum their scores
+    const { data: rankings, error } = await supabase.rpc('get_global_leaderboard', {
+      result_limit: limit,
+    });
+
+    if (error) {
+      // Fallback: manual query if RPC doesn't exist
+      const { data: lineups } = await supabase
+        .from('fan_lineups')
+        .select(
+          `
+          user_id,
+          total_score,
+          users (
+            id,
+            username,
+            display_name,
+            email
+          )
+        `
+        )
+        .order('total_score', { ascending: false })
+        .limit(limit);
+
+      // Group by user and sum scores
+      const userScores = new Map();
+
+      (lineups || []).forEach((lineup: any) => {
+        const userId = lineup.user_id;
+        const username = lineup.users?.username || lineup.users?.display_name || 'Anonymous';
+
+        if (!userScores.has(userId)) {
+          userScores.set(userId, {
+            user_id: userId,
+            username,
+            total_score: 0,
+            weeks_played: 0,
+          });
+        }
+
+        const userStats = userScores.get(userId);
+        userStats.total_score += lineup.total_score || 0;
+        userStats.weeks_played += 1;
+      });
+
+      // Convert to array and sort
+      const rankedUsers = Array.from(userScores.values())
+        .sort((a, b) => b.total_score - a.total_score)
+        .map((user, index) => ({
+          ...user,
+          rank: index + 1,
+        }));
+
+      return rankedUsers;
+    }
+
+    return rankings || [];
+  }
+
+  /**
+   * Get weekly leaderboard for specific week
+   */
+  async getWeeklyLeaderboard(weekId: string, limit: number = 50) {
+    const { data: lineups, error } = await supabase
       .from('fan_lineups')
       .select(
         `
-        *,
-        user:users(
+        id,
+        user_id,
+        total_score,
+        rank,
+        is_locked,
+        picks_count,
+        users (
           id,
-          display_name,
-          avatar_url,
-          tier
+          username,
+          display_name
         )
       `
       )
       .eq('week_id', weekId)
-      .order('rank', { ascending: true })
+      .order('total_score', { ascending: false })
       .limit(limit);
 
     if (error) throw error;
 
-    // Calculate earnings estimate (placeholder until payout calculated)
-    return (data || []).map((lineup, index) => ({
-      ...lineup,
-      estimatedEarnings: this.estimateEarnings(index + 1),
+    return (lineups || []).map((lineup: any, index) => ({
+      rank: index + 1,
+      user_id: lineup.user_id,
+      username: lineup.users?.username || lineup.users?.display_name || 'Anonymous',
+      total_score: lineup.total_score || 0,
+      picks_count: lineup.picks_count || 0,
+      is_locked: lineup.is_locked,
     }));
   }
 
   /**
-   * Get top artists for a week
+   * Get current week leaderboard
    */
-  async getTopArtists(weekId: string, limit: number = 50) {
-    const { data, error } = await supabase
-      .from('artist_week')
-      .select(
-        `
-        *,
-        artist:artists(
-          id,
-          name,
-          genre,
-          image_url,
-          league,
-          location
-        )
-      `
-      )
-      .eq('week_id', weekId)
-      .eq('is_top_50', true)
-      .order('rank', { ascending: true })
-      .limit(limit);
+  async getCurrentWeekLeaderboard(limit: number = 50) {
+    // Get current week
+    const { data: currentWeek } = await supabase
+      .from('weeks')
+      .select('id')
+      .eq('is_active', true)
+      .single();
 
-    if (error) throw error;
-    return data || [];
-  }
-
-  /**
-   * Get global all-time leaderboard
-   */
-  async getGlobalLeaderboard(type: 'fans' | 'artists', limit: number = 100) {
-    if (type === 'fans') {
-      // Aggregate fan earnings across all weeks
-      const { data, error } = await supabase
-        .from('transactions')
-        .select(
-          `
-          user_id,
-          user:users(id, display_name, avatar_url, tier),
-          amount
-        `
-        )
-        .eq('type', 'payout')
-        .order('amount', { ascending: false });
-
-      if (error) throw error;
-
-      // Group by user and sum earnings
-      const userEarnings = (data || []).reduce((acc, transaction) => {
-        const userId = transaction.user_id;
-        if (!acc[userId]) {
-          acc[userId] = {
-            user: transaction.user,
-            totalEarnings: 0,
-            payoutCount: 0,
-          };
-        }
-        acc[userId].totalEarnings += transaction.amount;
-        acc[userId].payoutCount += 1;
-        return acc;
-      }, {} as any);
-
-      // Convert to array and sort
-      const leaderboard = Object.values(userEarnings)
-        .sort((a: any, b: any) => b.totalEarnings - a.totalEarnings)
-        .slice(0, limit)
-        .map((entry: any, index) => ({
-          rank: index + 1,
-          ...entry,
-        }));
-
-      return leaderboard;
-    } else {
-      // Artist global leaderboard
-      const { data, error } = await supabase
-        .from('artist_week')
-        .select(
-          `
-          artist_id,
-          artist:artists(id, name, image_url, genre, league),
-          score
-        `
-        )
-        .order('score', { ascending: false });
-
-      if (error) throw error;
-
-      // Group by artist and calculate average score
-      const artistScores = (data || []).reduce((acc, aw) => {
-        const artistId = aw.artist_id;
-        if (!acc[artistId]) {
-          acc[artistId] = {
-            artist: aw.artist,
-            totalScore: 0,
-            weekCount: 0,
-            avgScore: 0,
-          };
-        }
-        acc[artistId].totalScore += aw.score;
-        acc[artistId].weekCount += 1;
-        acc[artistId].avgScore = acc[artistId].totalScore / acc[artistId].weekCount;
-        return acc;
-      }, {} as any);
-
-      // Convert to array and sort by average score
-      const leaderboard = Object.values(artistScores)
-        .sort((a: any, b: any) => b.avgScore - a.avgScore)
-        .slice(0, limit)
-        .map((entry: any, index) => ({
-          rank: index + 1,
-          ...entry,
-        }));
-
-      return leaderboard;
+    if (!currentWeek) {
+      throw new Error('No active week found');
     }
+
+    return this.getWeeklyLeaderboard(currentWeek.id, limit);
   }
 
   /**
    * Get user's rank in current week
    */
-  async getUserRank(userId: string, weekId: string) {
-    const { data, error } = await supabase
+  async getUserRank(userId: string, weekId?: string) {
+    let targetWeekId = weekId;
+
+    if (!targetWeekId) {
+      const { data: currentWeek } = await supabase
+        .from('weeks')
+        .select('id')
+        .eq('is_active', true)
+        .single();
+
+      if (!currentWeek) return null;
+      targetWeekId = currentWeek.id;
+    }
+
+    const { data: lineup } = await supabase
       .from('fan_lineups')
-      .select('rank, total_score')
+      .select('rank, total_score, picks_count')
       .eq('user_id', userId)
-      .eq('week_id', weekId)
+      .eq('week_id', targetWeekId)
       .single();
 
-    if (error && error.code !== 'PGRST116') throw error;
-    return data;
-  }
+    if (!lineup) return null;
 
-  /**
-   * Get user's rank history
-   */
-  async getUserRankHistory(userId: string, limit: number = 10) {
-    const { data, error } = await supabase
+    // Get total participants
+    const { count } = await supabase
       .from('fan_lineups')
-      .select(
-        `
-        rank,
-        total_score,
-        week:weeks(week_number, week_starting)
-      `
-      )
-      .eq('user_id', userId)
-      .order('week.week_starting', { ascending: false })
-      .limit(limit);
-
-    if (error) throw error;
-    return data || [];
-  }
-
-  /**
-   * Estimate earnings based on rank (before payout)
-   */
-  private estimateEarnings(rank: number): number {
-    // Placeholder estimates based on typical $20k pool
-    const poolSize = 20000;
-    const fanShare = poolSize * 0.6; // 60% to fans
-
-    if (rank === 1) return fanShare * 0.2;
-    if (rank === 2) return fanShare * 0.12;
-    if (rank === 3) return fanShare * 0.08;
-    if (rank <= 10) return fanShare * 0.05;
-    if (rank <= 50) return fanShare * 0.01;
-    if (rank <= 100) return fanShare * 0.003;
-    return 0;
-  }
-
-  /**
-   * Get leaderboard statistics
-   */
-  async getLeaderboardStats(weekId: string) {
-    const { data: fanData } = await supabase
-      .from('fan_lineups')
-      .select('total_score')
-      .eq('week_id', weekId);
-
-    const scores = (fanData || []).map((f) => f.total_score);
+      .select('id', { count: 'exact', head: true })
+      .eq('week_id', targetWeekId);
 
     return {
-      totalParticipants: scores.length,
-      averageScore: scores.reduce((a, b) => a + b, 0) / scores.length || 0,
-      medianScore: this.calculateMedian(scores),
-      highScore: Math.max(...scores, 0),
-      lowScore: Math.min(...scores, 0),
+      rank: lineup.rank,
+      total_score: lineup.total_score,
+      picks_count: lineup.picks_count,
+      total_participants: count || 0,
     };
   }
 
-  private calculateMedian(values: number[]): number {
-    if (values.length === 0) return 0;
-    const sorted = [...values].sort((a, b) => a - b);
-    const middle = Math.floor(sorted.length / 2);
+  /**
+   * Get user's global stats
+   */
+  async getUserGlobalStats(userId: string) {
+    const { data: lineups } = await supabase
+      .from('fan_lineups')
+      .select('total_score, rank, week_id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
 
-    if (sorted.length % 2 === 0) {
-      return (sorted[middle - 1] + sorted[middle]) / 2;
+    if (!lineups || lineups.length === 0) {
+      return {
+        total_score: 0,
+        weeks_played: 0,
+        avg_score: 0,
+        best_rank: null,
+        total_wins: 0,
+      };
     }
-    return sorted[middle];
+
+    const totalScore = lineups.reduce((sum, l) => sum + (l.total_score || 0), 0);
+    const avgScore = totalScore / lineups.length;
+    const bestRank = Math.min(...lineups.map((l) => l.rank || 999));
+    const totalWins = lineups.filter((l) => l.rank === 1).length;
+
+    return {
+      total_score: totalScore,
+      weeks_played: lineups.length,
+      avg_score: avgScore,
+      best_rank: bestRank === 999 ? null : bestRank,
+      total_wins: totalWins,
+    };
+  }
+
+  /**
+   * Get prize pool info for a week
+   */
+  async getWeekPrizePool(weekId: string) {
+    const { data: prizePool } = await supabase
+      .from('prize_pools')
+      .select('*')
+      .eq('week_id', weekId)
+      .single();
+
+    if (!prizePool) {
+      // Return default prize structure
+      return {
+        total_pool: 1000,
+        first_place: 500,
+        second_place: 300,
+        third_place: 200,
+        currency: 'USD',
+      };
+    }
+
+    return prizePool;
   }
 }
+
+export const leaderboardService = new LeaderboardService();

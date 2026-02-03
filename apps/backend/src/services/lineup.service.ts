@@ -15,34 +15,60 @@ export class LineupService {
    * Get user's lineup for a specific week
    */
   async getUserLineup(userId: string, weekId: string): Promise<FanLineup | null> {
-    const { data, error } = await supabase
+    // First get the lineup
+    const { data: lineup, error: lineupError } = await supabase
       .from('fan_lineups')
-      .select(
-        `
-        *,
-        lineup_artists (
-          *,
-          artist:artists (
-            id,
-            name,
-            genre,
-            image_url,
-            league
-          ),
-          artist_week (
-            score,
-            rank,
-            change:growth_percentage
-          )
-        )
-      `
-      )
+      .select('*')
       .eq('user_id', userId)
       .eq('week_id', weekId)
       .single();
 
-    if (error && error.code !== 'PGRST116') throw error;
-    return data;
+    if (lineupError && lineupError.code !== 'PGRST116') throw lineupError;
+    if (!lineup) return null;
+
+    // Get lineup_artists separately
+    const { data: lineupArtists, error: laError } = await supabase
+      .from('lineup_artists')
+      .select(
+        `
+        *,
+        artist:artists(
+          id,
+          name,
+          genre,
+          image_url,
+          league
+        )
+      `
+      )
+      .eq('lineup_id', lineup.id)
+      .order('position', { ascending: true });
+
+    if (laError) throw laError;
+
+    // Get artist_week data for these artists
+    const artistIds = (lineupArtists || []).map((la) => la.artist_id);
+    const { data: artistWeeks, error: awError } = await supabase
+      .from('artist_week')
+      .select('artist_id, final_score, rank, social_growth')
+      .eq('week_id', weekId)
+      .in('artist_id', artistIds);
+
+    if (awError) throw awError;
+
+    // Map artist_week data
+    const artistWeekMap = new Map((artistWeeks || []).map((aw) => [aw.artist_id, aw]));
+
+    // Combine data
+    const enrichedLineupArtists = (lineupArtists || []).map((la) => ({
+      ...la,
+      artist_week: artistWeekMap.get(la.artist_id) || null,
+    }));
+
+    return {
+      ...lineup,
+      lineup_artists: enrichedLineupArtists,
+    } as any;
   }
 
   /**
@@ -84,7 +110,7 @@ export class LineupService {
       .from('week_artists')
       .select('artist_id')
       .eq('week_id', weekId)
-      .eq('eligible_for_picks', true)
+      .eq('is_eligible_for_picking', true) // FIXED: correct column name
       .in('artist_id', artistIds);
 
     if (!weekArtists || weekArtists.length !== artistIds.length) {
@@ -115,6 +141,8 @@ export class LineupService {
           week_id: weekId,
           total_score: 0,
           is_locked: false,
+          picks_count: artistIds.length,
+          captain_artist_id: captainId || null,
         })
         .select()
         .single();
@@ -161,21 +189,39 @@ export class LineupService {
    * Calculate real-time score for a lineup
    */
   async calculateLineupScore(lineupId: string): Promise<number> {
+    // Get lineup info
+    const { data: lineup } = await supabase
+      .from('fan_lineups')
+      .select('week_id, captain_artist_id')
+      .eq('id', lineupId)
+      .single();
+
+    if (!lineup) return 0;
+
+    // Get lineup_artists
     const { data: lineupArtists } = await supabase
       .from('lineup_artists')
-      .select(
-        `
-        is_captain,
-        artist_week (score)
-      `
-      )
+      .select('artist_id, is_captain')
       .eq('lineup_id', lineupId);
 
-    if (!lineupArtists) return 0;
+    if (!lineupArtists || lineupArtists.length === 0) return 0;
 
+    // Get artist_week scores
+    const artistIds = lineupArtists.map((la) => la.artist_id);
+    const { data: artistWeeks } = await supabase
+      .from('artist_week')
+      .select('artist_id, final_score') // FIXED: correct column name
+      .eq('week_id', lineup.week_id)
+      .in('artist_id', artistIds);
+
+    const artistScoreMap = new Map(
+      (artistWeeks || []).map((aw) => [aw.artist_id, aw.final_score || 0])
+    );
+
+    // Calculate total score
     let totalScore = 0;
     for (const la of lineupArtists) {
-      const artistScore = la.artist_week?.[0]?.score || 0;
+      const artistScore = artistScoreMap.get(la.artist_id) || 0;
       const multiplier = la.is_captain ? 1.5 : 1.0;
       totalScore += artistScore * multiplier;
     }
@@ -207,28 +253,38 @@ export class LineupService {
         .eq('id', lineups[i].id);
     }
   }
-  // Add these to apps/backend/src/services/lineup.service.ts
 
   /**
    * Get lineup by ID
    */
   async getLineupById(lineupId: string) {
-    const { data, error } = await supabase
+    const { data: lineup, error: lineupError } = await supabase
       .from('fan_lineups')
-      .select(
-        `
-      *,
-      lineup_artists(
-        *,
-        artist:artists(*)
-      )
-    `
-      )
+      .select('*')
       .eq('id', lineupId)
       .single();
 
-    if (error && error.code !== 'PGRST116') throw error;
-    return data;
+    if (lineupError && lineupError.code !== 'PGRST116') throw lineupError;
+    if (!lineup) return null;
+
+    // Get lineup_artists
+    const { data: lineupArtists, error: laError } = await supabase
+      .from('lineup_artists')
+      .select(
+        `
+        *,
+        artist:artists(*)
+      `
+      )
+      .eq('lineup_id', lineupId)
+      .order('position', { ascending: true });
+
+    if (laError) throw laError;
+
+    return {
+      ...lineup,
+      lineup_artists: lineupArtists || [],
+    } as any;
   }
 
   /**
@@ -245,6 +301,7 @@ export class LineupService {
 
     if (error) throw error;
   }
+
   /**
    * Delete lineup (only before lock)
    */
@@ -268,27 +325,59 @@ export class LineupService {
 
     if (error) throw error;
   }
+
   /**
    * Get user's lineup history
    */
   async getUserLineupHistory(userId: string, limit: number = 10) {
-    const { data, error } = await supabase
+    // Get lineups
+    const { data: lineups, error: lineupsError } = await supabase
       .from('fan_lineups')
-      .select(
-        `
-      *,
-      week:weeks(week_number, week_starting, week_ending),
-      lineup_artists(
-        *,
-        artist:artists(name, image_url)
-      )
-    `
-      )
+      .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    if (error) throw error;
-    return data || [];
+    if (lineupsError) throw lineupsError;
+    if (!lineups || lineups.length === 0) return [];
+
+    // Get weeks
+    const weekIds = lineups.map((l) => l.week_id);
+    const { data: weeks } = await supabase
+      .from('weeks')
+      .select('id, week_number, week_starting, week_ending')
+      .in('id', weekIds);
+
+    const weekMap = new Map((weeks || []).map((w) => [w.id, w]));
+
+    // Get lineup_artists for all lineups
+    const lineupIds = lineups.map((l) => l.id);
+    const { data: allLineupArtists } = await supabase
+      .from('lineup_artists')
+      .select(
+        `
+        lineup_id,
+        artist:artists(name, image_url)
+      `
+      )
+      .in('lineup_id', lineupIds);
+
+    // Group by lineup_id
+    const lineupArtistsMap = new Map();
+    (allLineupArtists || []).forEach((la: any) => {
+      if (!lineupArtistsMap.has(la.lineup_id)) {
+        lineupArtistsMap.set(la.lineup_id, []);
+      }
+      lineupArtistsMap.get(la.lineup_id).push(la);
+    });
+
+    // Combine data
+    return lineups.map((lineup) => ({
+      ...lineup,
+      week: weekMap.get(lineup.week_id) || null,
+      lineup_artists: lineupArtistsMap.get(lineup.id) || [],
+    }));
   }
 }
+
+export const lineupService = new LineupService();

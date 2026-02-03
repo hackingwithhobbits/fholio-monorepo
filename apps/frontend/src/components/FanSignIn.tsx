@@ -1,11 +1,13 @@
+// apps/frontend/src/components/FanSignIn.tsx
 import { motion } from "framer-motion";
 import { Mail, User, ArrowLeft, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Logo } from "./Logo";
-import { getSupabase, supabase } from "@/lib/supabase";
+import { authService } from "@/lib/api/services";
 import { authUtils } from "@/lib/auth";
+import { toast } from "sonner";
 
 interface FanSignInProps {
   onNavigate: (page: string) => void;
@@ -18,94 +20,59 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
   const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const supabase = getSupabase();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    setSuccess("");
 
     try {
+      let response;
+
       if (isSignUp) {
-        // Sign Up - Create new fan account
-
-        const { data, error } = await supabase
-          .from("beta_fans")
-          .insert([
-            {
-              email: email.toLowerCase().trim(),
-              username: username.trim(),
-            },
-          ])
-          .select();
-
-        if (error) {
-          if (error.code === "23505") {
-            setError("This email or username is already registered!");
-          } else {
-            console.error("Sign-up error:", error);
-            setError("Sign-up failed. Please try again.");
-          }
-          setIsLoading(false);
-          return;
-        }
-
-        if (data && data[0]) {
-          authUtils.setSession({
-            id: data[0].id,
-            email: data[0].email,
-            username: data[0].username,
-            userType: "fan",
-            createdAt: data[0].created_at,
-          });
-
-          setSuccess("Account created! Redirecting...");
-
-          setTimeout(() => {
-            onSuccess(true); // true = new user, go to onboarding
-          }, 1000);
-        }
-      } else {
-        // Sign In - Check if fan exists
-        const { data, error } = await supabase
-          .from("beta_fans")
-          .select("*")
-          .eq("email", email.toLowerCase().trim())
-          .single();
-
-        if (error || !data) {
-          setError("No account found with this email. Please sign up first!");
-          setIsLoading(false);
-          return;
-        }
-
-        authUtils.setSession({
-          id: data.id,
-          email: data.email,
-          username: data.username,
-          userType: "fan",
-          createdAt: data.created_at,
+        // Sign Up
+        response = await authService.signUpFan({
+          email: email.toLowerCase().trim(),
+          username: username.trim(),
+          displayName: username.trim(),
         });
-
-        setSuccess("Welcome back! Redirecting...");
-
-        setTimeout(() => {
-          onSuccess(false); // false = existing user, go to dashboard
-        }, 1000);
+      } else {
+        // Sign In
+        response = await authService.signInFan(email.toLowerCase().trim());
       }
 
-      setIsLoading(false);
+      // Response now includes { user, session }
+      const { user, session } = response as any;
+      const token = session.access_token;
+
+      // Store session with token
+      authUtils.setSession(
+        {
+          id: user.id,
+          email: user.email,
+          username: user.username || user.display_name,
+          userType: user.user_type,
+          createdAt: user.created_at,
+        },
+        token,
+      );
+
+      toast.success(
+        isSignUp ? "Account created successfully!" : "Welcome back!",
+      );
+      setTimeout(() => onSuccess(isSignUp), 500);
     } catch (error: any) {
-      console.error("Error:", error);
-      setError(error.message || "Something went wrong. Please try again.");
+      console.error("Auth error:", error);
+      setError(error.message || "Authentication failed. Please try again.");
+      toast.error(error.message || "Authentication failed");
+    } finally {
       setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-20 relative overflow-hidden">
-      {/* Animated Background - Purple Theme */}
+      {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-black via-purple-950/30 to-black" />
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
@@ -144,20 +111,13 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
           </p>
         </motion.div>
 
-        {/* Sign In Form */}
+        {/* Form */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
           className="glass-card rounded-2xl p-8 neon-glow"
         >
-          {/* Success Message */}
-          {success && (
-            <div className="mb-4 p-4 bg-green-500/20 border border-green-500/50 rounded-xl text-green-400 text-sm">
-              {success}
-            </div>
-          )}
-
           {/* Error Message */}
           {error && (
             <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-sm">
@@ -236,7 +196,6 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setError("");
-                setSuccess("");
               }}
               className="text-primary hover:text-primary/80 transition-colors duration-200"
             >
@@ -252,7 +211,7 @@ export function FanSignIn({ onNavigate, onSuccess }: FanSignInProps) {
           transition={{ delay: 0.4 }}
           className="text-center mt-8 text-xs text-muted-foreground/60"
         >
-          <p>Beta Version - Simplified authentication for testing</p>
+          <p>Beta Version • Simplified authentication</p>
         </motion.div>
       </div>
     </div>

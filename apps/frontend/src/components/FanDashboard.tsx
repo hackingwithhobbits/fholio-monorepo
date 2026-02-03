@@ -1,3 +1,4 @@
+// src/components/FanDashboard.tsx
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Wallet, User, LogOut, Music } from "lucide-react";
@@ -6,8 +7,9 @@ import { Logo } from "./Logo";
 import { DashboardV2 } from "./DashboardV2";
 import { LeaderboardPage } from "./LeaderboardPage";
 import { WalletPage } from "./WalletPage";
-import { toast } from "sonner";
 import { authUtils, UserSession } from "@/lib/auth";
+import useSWR from "swr";
+import { userService } from "@/lib/api/services";
 
 interface FanDashboardProps {
   onNavigate: (page: string) => void;
@@ -18,7 +20,11 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
   const [activeTab, setActiveTab] = useState<
     "my-picks" | "leaderboard" | "wallet" | "profile"
   >("my-picks");
+
   const [userSession, setUserSession] = useState<UserSession | null>(null);
+
+  // Fetch real user profile
+  const { data: profile } = useSWR("user/profile", userService.getProfile);
 
   // Load user session on mount
   useEffect(() => {
@@ -27,6 +33,10 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
       setUserSession(session);
     }
   }, []);
+
+  // Use real profile data if available
+  const displayName = profile?.display_name || userSession?.username || "Fan";
+  const displayEmail = profile?.email || userSession?.email || "";
 
   // Format date nicely
   const formatDate = (dateString: string) => {
@@ -66,9 +76,7 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
                   <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center">
                     <User className="w-10 h-10 text-white" />
                   </div>
-                  <h2 className="text-2xl text-white mb-2">
-                    {userSession?.username || "Fan"}
-                  </h2>
+                  <h2 className="text-2xl text-white mb-2">{displayName}</h2>
                   <p className="text-muted-foreground">Fholio Fan</p>
                 </div>
 
@@ -81,7 +89,7 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
                           Username
                         </label>
                         <div className="text-white mt-1 text-lg">
-                          {userSession?.username || "Loading..."}
+                          {displayName}
                         </div>
                       </div>
 
@@ -89,9 +97,7 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
                         <label className="text-sm text-muted-foreground">
                           Email
                         </label>
-                        <div className="text-white mt-1">
-                          {userSession?.email || "Loading..."}
-                        </div>
+                        <div className="text-white mt-1">{displayEmail}</div>
                       </div>
 
                       <div>
@@ -99,9 +105,11 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
                           Member Since
                         </label>
                         <div className="text-white mt-1">
-                          {userSession?.createdAt
-                            ? formatDate(userSession.createdAt)
-                            : "Loading..."}
+                          {profile?.created_at
+                            ? formatDate(profile.created_at)
+                            : userSession?.createdAt
+                              ? formatDate(userSession.createdAt)
+                              : "Recently"}
                         </div>
                       </div>
 
@@ -111,7 +119,9 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
                         </label>
                         <div className="text-white mt-1 flex items-center gap-2">
                           <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm">
-                            Beta Fan
+                            {profile?.user_type === "fan"
+                              ? "Beta Fan"
+                              : "Beta User"}
                           </span>
                         </div>
                       </div>
@@ -187,16 +197,14 @@ export function FanDashboard({ onNavigate, onLogout }: FanDashboardProps) {
             {/* User Info & Logout */}
             <div className="flex items-center gap-4">
               {/* Show username on desktop */}
-              {userSession && (
-                <div className="hidden lg:block text-right">
-                  <div className="text-white text-sm font-medium">
-                    {userSession.username}
-                  </div>
-                  <div className="text-muted-foreground text-xs">
-                    {userSession.email}
-                  </div>
+              <div className="hidden lg:block text-right">
+                <div className="text-white text-sm font-medium">
+                  {displayName}
                 </div>
-              )}
+                <div className="text-muted-foreground text-xs">
+                  {displayEmail}
+                </div>
+              </div>
 
               <Button
                 variant="ghost"

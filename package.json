@@ -17,7 +17,7 @@
     "lint": "npm run lint --workspaces",
     "clean": "npm run clean --workspaces"
   },
-  "dependencies": {
+  "dependen cies": {
     "@supabase/supabase-js": "^2.38.0",
     "axios": "^1.6.0",
     "bottleneck": "^2.19.5",

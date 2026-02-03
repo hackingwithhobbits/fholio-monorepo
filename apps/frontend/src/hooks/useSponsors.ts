@@ -1,9 +1,9 @@
 import useSWR from "swr";
-import { sponsorService } from "../api/services";
+import { sponsorService } from "../lib/api/services";
 
 export function useSponsors() {
   const { data, error, isLoading, mutate } = useSWR("sponsors", () =>
-    sponsorService.getSponsors()
+    sponsorService.getSponsors(),
   );
 
   return {
@@ -17,7 +17,7 @@ export function useSponsors() {
 
 export function useActiveChallenges() {
   const { data, error, isLoading } = useSWR("challenges-active", () =>
-    sponsorService.getActiveChallenges()
+    sponsorService.getActiveChallenges(),
   );
 
   return {
@@ -30,7 +30,7 @@ export function useActiveChallenges() {
 
 export function useSponsor(id?: string) {
   const { data, error, isLoading } = useSWR(id ? ["sponsor", id] : null, () =>
-    sponsorService.getSponsorById(id!)
+    sponsorService.getSponsorById(id!),
   );
 
   return {

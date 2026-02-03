@@ -3,6 +3,7 @@
 import { Request, Response } from 'express';
 import { VotingService } from '../services/voting.service';
 import { WeekService } from '../services/week.service';
+
 import { logger } from '../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
 
@@ -19,7 +20,7 @@ export const voteController = {
       if (!req.user) {
         return res.status(401).json({
           success: false,
-          message: 'Unauthorized'
+          message: 'Unauthorized',
         });
       }
 
@@ -28,7 +29,7 @@ export const voteController = {
       if (!artist_id) {
         return res.status(400).json({
           success: false,
-          message: 'artist_id is required'
+          message: 'artist_id is required',
         });
       }
 
@@ -39,7 +40,7 @@ export const voteController = {
         if (!currentWeek) {
           return res.status(404).json({
             success: false,
-            message: 'No active week found'
+            message: 'No active week found',
           });
         }
         targetWeekId = currentWeek.id;
@@ -50,24 +51,24 @@ export const voteController = {
       logger.info('Vote submitted', {
         userId: req.user.id,
         artistId: artist_id,
-        weekId: targetWeekId
+        weekId: targetWeekId,
       });
 
       res.json({
         success: true,
         data: vote,
-        message: 'Vote submitted successfully'
+        message: 'Vote submitted successfully',
       });
     } catch (error: any) {
       logger.error('Error submitting vote', {
         error: error.message,
         userId: req.user?.id,
-        artistId: req.body.artist_id
+        artistId: req.body.artist_id,
       });
-      
+
       res.status(400).json({
         success: false,
-        message: error.message
+        message: error.message,
       });
     }
   },
@@ -81,7 +82,7 @@ export const voteController = {
       if (!req.user) {
         return res.status(401).json({
           success: false,
-          message: 'Unauthorized'
+          message: 'Unauthorized',
         });
       }
 
@@ -93,7 +94,7 @@ export const voteController = {
         if (!currentWeek) {
           return res.status(404).json({
             success: false,
-            message: 'No active week found'
+            message: 'No active week found',
           });
         }
         targetWeekId = currentWeek.id;
@@ -106,18 +107,18 @@ export const voteController = {
         data: votes,
         meta: {
           count: votes.length,
-          weekId: targetWeekId
-        }
+          weekId: targetWeekId,
+        },
       });
     } catch (error: any) {
       logger.error('Error fetching user votes', {
         error: error.message,
-        userId: req.user?.id
+        userId: req.user?.id,
       });
-      
+
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch votes'
+        message: 'Failed to fetch votes',
       });
     }
   },
@@ -131,7 +132,7 @@ export const voteController = {
       if (!req.user) {
         return res.status(401).json({
           success: false,
-          message: 'Unauthorized'
+          message: 'Unauthorized',
         });
       }
 
@@ -139,7 +140,7 @@ export const voteController = {
       if (!currentWeek) {
         return res.status(404).json({
           success: false,
-          message: 'No active week found'
+          message: 'No active week found',
         });
       }
 
@@ -151,18 +152,18 @@ export const voteController = {
         data: {
           remaining,
           used,
-          total: remaining + used
-        }
+          total: remaining + used,
+        },
       });
     } catch (error: any) {
       logger.error('Error fetching remaining votes', {
         error: error.message,
-        userId: req.user?.id
+        userId: req.user?.id,
       });
-      
+
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch remaining votes'
+        message: 'Failed to fetch remaining votes',
       });
     }
   },
@@ -182,7 +183,7 @@ export const voteController = {
         if (!currentWeek) {
           return res.status(404).json({
             success: false,
-            message: 'No active week found'
+            message: 'No active week found',
           });
         }
         targetWeekId = currentWeek.id;
@@ -195,14 +196,14 @@ export const voteController = {
         data: topVoted,
         meta: {
           count: topVoted.length,
-          weekId: targetWeekId
-        }
+          weekId: targetWeekId,
+        },
       });
     } catch (error: any) {
       logger.error('Error fetching top voted artists', { error: error.message });
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch top voted artists'
+        message: 'Failed to fetch top voted artists',
       });
     }
   },
@@ -216,7 +217,7 @@ export const voteController = {
       if (!req.user) {
         return res.status(401).json({
           success: false,
-          message: 'Unauthorized'
+          message: 'Unauthorized',
         });
       }
 
@@ -228,19 +229,19 @@ export const voteController = {
 
       res.json({
         success: true,
-        message: 'Vote removed successfully'
+        message: 'Vote removed successfully',
       });
     } catch (error: any) {
       logger.error('Error removing vote', {
         error: error.message,
         userId: req.user?.id,
-        voteId: req.params.id
+        voteId: req.params.id,
       });
-      
+
       res.status(400).json({
         success: false,
-        message: error.message
+        message: error.message,
       });
     }
-  }
+  },
 };

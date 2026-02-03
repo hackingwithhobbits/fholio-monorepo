@@ -1,9 +1,9 @@
 import useSWR from "swr";
-import { chartService } from "../api/services";
+import { chartService } from "../lib/api/services";
 
 export function useTop100(week?: string) {
   const { data, error, isLoading } = useSWR(["charts", "top100", week], () =>
-    chartService.getTop100(week)
+    chartService.getTop100(week),
   );
 
   return {
@@ -16,7 +16,7 @@ export function useTop100(week?: string) {
 
 export function useLeaderboard(week: string, limit = 10) {
   const { data, error, isLoading } = useSWR(["leaderboard", week, limit], () =>
-    chartService.getLeaderboard(week, limit)
+    chartService.getLeaderboard(week, limit),
   );
 
   return {
@@ -30,7 +30,7 @@ export function useLeaderboard(week: string, limit = 10) {
 export function useGlobalLeaderboard(limit = 50) {
   const { data, error, isLoading } = useSWR(
     ["leaderboard", "global", limit],
-    () => chartService.getGlobalLeaderboard(limit)
+    () => chartService.getGlobalLeaderboard(limit),
   );
 
   return {
@@ -44,7 +44,7 @@ export function useGlobalLeaderboard(limit = 50) {
 export function useLastWeekWinners(limit = 10) {
   const { data, error, isLoading } = useSWR(
     ["winners", "last-week", limit],
-    () => chartService.getLastWeekWinners(limit)
+    () => chartService.getLastWeekWinners(limit),
   );
 
   return {
@@ -57,7 +57,7 @@ export function useLastWeekWinners(limit = 10) {
 
 export function useSocialStats() {
   const { data, error, isLoading } = useSWR("social-stats", () =>
-    chartService.getSocialStats()
+    chartService.getSocialStats(),
   );
 
   return {

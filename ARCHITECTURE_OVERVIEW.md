@@ -272,8 +272,8 @@ Frontend → POST /api/votes { artist_id: "artist-456" }
 4. VOTING SERVICE logic:
 
    A. Call WEEK SERVICE to validate
-      weekService.getCurrentWeek() → Get week
-      weekService.isVotingOpen(week) → Check if voting window is open
+      WeekService.getCurrentWeek() → Get week
+      WeekService.isVotingOpen(week) → Check if voting window is open
 
    B. Call SUBSCRIPTION SERVICE
       subscriptionService.getUserSubscription(userId)
@@ -324,8 +324,8 @@ LINEUP CONTROLLER calls LINEUP SERVICE
 LINEUP SERVICE.saveLineup():
 
 1. Validate Week
-   weekService.getCurrentWeek()
-   weekService.isPicksOpen(week)
+   WeekService.getCurrentWeek()
+   WeekService.isPicksOpen(week)
    → If not open, throw error
 
 2. Check Subscription Limits
@@ -428,7 +428,7 @@ Frontend → POST /api/votes { artist_id: "xyz" }
 VOTING SERVICE.submitVote():
 
 1. Validate voting window
-   weekService.isVotingOpen() → TRUE
+   WeekService.isVotingOpen() → TRUE
 
 2. Check vote limits
    subscriptionService.getUserSubscription()
@@ -519,7 +519,7 @@ Frontend → POST /api/lineups { artist_ids: [...] }
 LINEUP SERVICE.saveLineup():
 
 1. Validate picks window
-   weekService.isPicksOpen() → TRUE
+   WeekService.isPicksOpen() → TRUE
 
 2. Get eligible artists
    artistService.getTop50(weekId)

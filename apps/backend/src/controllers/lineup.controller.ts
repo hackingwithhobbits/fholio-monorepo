@@ -3,6 +3,7 @@
 import { Request, Response } from 'express';
 import { LineupService } from '../services/lineup.service';
 import { WeekService } from '../services/week.service';
+
 import { logger } from '../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
 

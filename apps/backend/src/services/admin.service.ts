@@ -143,9 +143,9 @@ export class AdminService {
    */
   async manuallyCreateWeek(adminId: string) {
     const { WeekService } = await import('./week.service');
-    const weekService = new WeekService();
+    const WeekService = new WeekService();
 
-    const week = await weekService.createNewWeek();
+    const week = await WeekService.createNewWeek();
     await this.logAudit(adminId, 'create_week', { weekId: week.id });
 
     return week;

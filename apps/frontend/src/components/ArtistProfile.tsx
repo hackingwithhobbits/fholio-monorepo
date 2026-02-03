@@ -1,3 +1,5 @@
+// apps/frontend/src/components/ArtistProfile.tsx
+
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -6,12 +8,23 @@ import {
   Music2,
   Heart,
   ExternalLink,
-  Plus,
+  Vote,
+  Loader2,
+  AlertCircle,
+  Play,
+  TrendingDown,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
-import { artists } from "../data/mockData";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { useArtistProfile } from "@/hooks/useArtist";
+import {
+  useVotingActions,
+  useMyVotes,
+  useRemainingVotes,
+} from "@/hooks/useVoting";
+import { useCurrentWeek } from "@/hooks/useWeek";
+import { authUtils } from "@/lib/auth";
 import {
   LineChart,
   Line,
@@ -31,31 +44,99 @@ interface ArtistProfileProps {
   onNavigate: (page: string) => void;
 }
 
-export function ArtistProfile({
-  artistId = "1",
-  onNavigate,
-}: ArtistProfileProps) {
-  const artist = artists.find((a) => a.id === artistId) || artists[0];
+export function ArtistProfile({ artistId, onNavigate }: ArtistProfileProps) {
+  const userSession = authUtils.getSession();
+  const { profile, isLoading, error } = useArtistProfile(artistId);
+  const { week } = useCurrentWeek();
+  const { votes: myVotes } = useMyVotes(week?.id);
+  const { remaining } = useRemainingVotes(week?.id);
+  const { submitVote, isVoting } = useVotingActions();
 
+  // Check if user has voted for this artist
+  const hasVoted = myVotes.some((v: any) => v.artist_id === artistId);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading artist profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl text-white mb-2">Artist Not Found</h2>
+          <p className="text-muted-foreground mb-6">
+            This artist doesn't exist or has been removed.
+          </p>
+          <Button
+            onClick={() => onNavigate("dashboard")}
+            className="gradient-bg"
+          >
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const { artist, tracks, stats, history, backers } = profile;
+
+  // Prepare performance breakdown data for radar chart
   const performanceBreakdown = [
-    { category: "Streams", value: 92 },
-    { category: "Engagement", value: artist.engagement },
-    { category: "Votes", value: artist.votes },
-    { category: "Growth", value: 85 },
-    { category: "Social", value: 88 },
+    { category: "Streams", value: Math.min(100, stats.streams / 1000) },
+    { category: "Engagement", value: Math.min(100, stats.engagement) },
+    { category: "Votes", value: Math.min(100, stats.totalVotes / 10) },
+    { category: "Growth", value: Math.min(100, Math.abs(stats.socialGrowth)) },
+    { category: "Score", value: Math.min(100, stats.currentScore) },
   ];
 
-  const weeklyData = artist.weeklyHistory.map((score, index) => ({
-    week: `W${index + 1}`,
-    score,
+  // Prepare weekly data for line chart
+  const weeklyData = history.map((item: any) => ({
+    week: `W${item.week?.week_number || "?"}`,
+    score: item.final_score || 0,
   }));
+
+  // Calculate change percentage from history
+  const calculateChange = () => {
+    if (history.length < 2) return 0;
+    const current = history[history.length - 1]?.final_score || 0;
+    const previous = history[history.length - 2]?.final_score || 0;
+    if (previous === 0) return 0;
+    return ((current - previous) / previous) * 100;
+  };
+
+  const change = calculateChange();
+
+  // Handle vote
+  const handleVote = async () => {
+    if (!userSession) {
+      onNavigate("signin-fan");
+      return;
+    }
+
+    if (!artistId) return;
+
+    const success = await submitVote(artistId, week?.id);
+    if (success) {
+      // Votes will refresh automatically via SWR
+    }
+  };
 
   return (
     <div className="min-h-screen">
       {/* Hero Banner */}
       <div className="relative h-96 overflow-hidden">
         <ImageWithFallback
-          src={artist.imageUrl}
+          src={artist.image_url}
           alt={artist.name}
           className="w-full h-full object-cover"
         />
@@ -78,45 +159,81 @@ export function ArtistProfile({
             >
               <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-3 mb-2 flex-wrap">
                     <h1 className="text-4xl md:text-5xl gradient-text">
                       {artist.name}
                     </h1>
-                    <div
-                      className={`px-4 py-1.5 rounded-full ${artist.change >= 0 ? "bg-accent/20" : "bg-secondary/20"}`}
-                    >
-                      <span
-                        className={
-                          artist.change >= 0 ? "text-accent" : "text-secondary"
-                        }
+                    {change !== 0 && (
+                      <div
+                        className={`px-4 py-1.5 rounded-full ${change >= 0 ? "bg-accent/20" : "bg-secondary/20"}`}
                       >
-                        {artist.change >= 0 ? "+" : ""}
-                        {artist.change.toFixed(1)}%
-                      </span>
-                    </div>
+                        <span
+                          className={
+                            change >= 0 ? "text-accent" : "text-secondary"
+                          }
+                        >
+                          {change >= 0 ? "+" : ""}
+                          {change.toFixed(1)}%
+                        </span>
+                      </div>
+                    )}
+                    {stats.currentRank && (
+                      <div className="px-4 py-1.5 rounded-full bg-primary/20">
+                        <span className="text-primary">
+                          #{stats.currentRank}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-4 text-muted-foreground">
+                  <div className="flex items-center gap-4 text-muted-foreground flex-wrap">
                     <div className="flex items-center gap-2">
                       <Music2 className="w-4 h-4" />
-                      <span>{artist.genre}</span>
+                      <span>{artist.genre || "Unknown"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
-                      <span>{artist.fanBackers.toLocaleString()} backers</span>
+                      <span>
+                        {backers.totalBackers.toLocaleString()} backers
+                      </span>
                     </div>
+                    {artist.league && (
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-1 rounded bg-white/10 text-xs">
+                          {artist.league}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex gap-3">
-                  <Button className="gradient-bg hover:opacity-90 glow-pulse">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add to My Fholio
-                  </Button>
                   <Button
-                    variant="outline"
-                    className="border-primary/40 text-white hover:bg-primary/20 hover:border-primary/60 hover:text-white transition-all"
+                    onClick={handleVote}
+                    disabled={
+                      hasVoted || isVoting || remaining <= 0 || !userSession
+                    }
+                    className={
+                      hasVoted
+                        ? "bg-accent/20 text-accent"
+                        : "gradient-bg hover:opacity-90 glow-pulse"
+                    }
                   >
-                    <Heart className="w-4 h-4" />
+                    {hasVoted ? (
+                      <>
+                        <Heart className="w-4 h-4 mr-2 fill-current" />
+                        Voted
+                      </>
+                    ) : isVoting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Voting...
+                      </>
+                    ) : (
+                      <>
+                        <Vote className="w-4 h-4 mr-2" />
+                        Vote for Artist
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -139,11 +256,18 @@ export function ArtistProfile({
               <div className="glass-card p-6 rounded-xl bg-gradient-to-br from-primary/10 to-transparent mb-6">
                 <div className="flex items-baseline gap-2 mb-2">
                   <span className="text-5xl gradient-text">
-                    {artist.score.toFixed(1)}
+                    {stats.currentScore.toFixed(1)}
                   </span>
                   <span className="text-muted-foreground">/ 100</span>
                 </div>
                 <p className="text-muted-foreground">Overall Score</p>
+                {stats.status && stats.status !== "N/A" && (
+                  <div className="mt-3">
+                    <span className="px-3 py-1 rounded-full bg-accent/20 text-accent text-sm">
+                      {stats.status}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -153,45 +277,53 @@ export function ArtistProfile({
                       Streams
                     </span>
                     <span className="text-white">
-                      {artist.streams.toLocaleString()}
+                      {stats.streams.toLocaleString()}
                     </span>
                   </div>
-                  <Progress value={92} className="h-2" />
+                  <Progress
+                    value={Math.min(100, stats.streams / 1000)}
+                    className="h-2"
+                  />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-muted-foreground">
                       Engagement
                     </span>
-                    <span className="text-white">{artist.engagement}%</span>
+                    <span className="text-white">{stats.engagement}%</span>
                   </div>
-                  <Progress value={artist.engagement} className="h-2" />
+                  <Progress value={stats.engagement} className="h-2" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-muted-foreground">
                       Fan Votes
                     </span>
-                    <span className="text-white">{artist.votes}%</span>
+                    <span className="text-white">{stats.totalVotes}</span>
                   </div>
-                  <Progress value={artist.votes} className="h-2" />
+                  <Progress
+                    value={Math.min(100, stats.totalVotes / 10)}
+                    className="h-2"
+                  />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-muted-foreground">
-                      Growth Rate
+                      Social Growth
                     </span>
                     <span
                       className={
-                        artist.growth >= 0 ? "text-accent" : "text-secondary"
+                        stats.socialGrowth >= 0
+                          ? "text-accent"
+                          : "text-secondary"
                       }
                     >
-                      {artist.growth >= 0 ? "+" : ""}
-                      {artist.growth}%
+                      {stats.socialGrowth >= 0 ? "+" : ""}
+                      {stats.socialGrowth.toFixed(1)}%
                     </span>
                   </div>
                   <Progress
-                    value={Math.abs(artist.growth) * 10}
+                    value={Math.min(100, Math.abs(stats.socialGrowth))}
                     className="h-2"
                   />
                 </div>
@@ -219,55 +351,57 @@ export function ArtistProfile({
         </motion.div>
 
         {/* Performance History */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="glass-card p-8 rounded-2xl"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl text-white">Performance History</h2>
-            <div className="flex items-center gap-2">
-              <TrendingUp
-                className={`w-5 h-5 ${artist.change >= 0 ? "text-accent" : "text-secondary rotate-180"}`}
-              />
-              <span
-                className={
-                  artist.change >= 0 ? "text-accent" : "text-secondary"
-                }
-              >
-                {artist.change >= 0 ? "+" : ""}
-                {artist.change.toFixed(1)}% this week
-              </span>
+        {history.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="glass-card p-8 rounded-2xl"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl text-white">Performance History</h2>
+              <div className="flex items-center gap-2">
+                {change >= 0 ? (
+                  <TrendingUp className="w-5 h-5 text-accent" />
+                ) : (
+                  <TrendingDown className="w-5 h-5 text-secondary" />
+                )}
+                <span
+                  className={change >= 0 ? "text-accent" : "text-secondary"}
+                >
+                  {change >= 0 ? "+" : ""}
+                  {change.toFixed(1)}% this week
+                </span>
+              </div>
             </div>
-          </div>
-          <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={weeklyData}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.1)"
-              />
-              <XAxis dataKey="week" stroke="#a0a0a0" />
-              <YAxis stroke="#a0a0a0" />
-              <Tooltip
-                contentStyle={{
-                  background: "#1a1a1a",
-                  border: "1px solid rgba(139, 31, 255, 0.2)",
-                  borderRadius: "8px",
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="score"
-                stroke="#8b1fff"
-                strokeWidth={3}
-                dot={{ fill: "#8b1fff", r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </motion.div>
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={weeklyData}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(255,255,255,0.1)"
+                />
+                <XAxis dataKey="week" stroke="#a0a0a0" />
+                <YAxis stroke="#a0a0a0" />
+                <Tooltip
+                  contentStyle={{
+                    background: "#1a1a1a",
+                    border: "1px solid rgba(139, 31, 255, 0.2)",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#8b1fff"
+                  strokeWidth={3}
+                  dot={{ fill: "#8b1fff", r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </motion.div>
+        )}
 
-        {/* About & Social */}
+        {/* About & Tracks */}
         <div className="grid md:grid-cols-3 gap-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -276,13 +410,53 @@ export function ArtistProfile({
             className="md:col-span-2 glass-card p-8 rounded-2xl"
           >
             <h2 className="text-2xl text-white mb-4">About {artist.name}</h2>
-            <p className="text-muted-foreground mb-6">{artist.bio}</p>
+            <p className="text-muted-foreground mb-6">
+              {artist.bio ||
+                `${artist.name} is a ${artist.genre} artist competing in the ${artist.league} league. Follow their journey on Fholio!`}
+            </p>
 
-            <h3 className="text-lg text-white mb-4">Fan Insights</h3>
+            {/* Tracks */}
+            {tracks.length > 0 && (
+              <>
+                <h3 className="text-lg text-white mb-4">Tracks</h3>
+                <div className="space-y-3">
+                  {tracks.slice(0, 5).map((track: any) => (
+                    <div
+                      key={track.id}
+                      className="glass-card p-4 rounded-xl flex items-center gap-4 hover:bg-white/5 transition-all"
+                    >
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
+                        <Play className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-white font-medium">
+                          {track.title}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {track.genre}
+                        </div>
+                      </div>
+                      {track.spotify_url && (
+                        <a
+                          href={track.spotify_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-accent hover:text-accent/80"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <h3 className="text-lg text-white mb-4 mt-6">Fan Insights</h3>
             <div className="grid sm:grid-cols-3 gap-4">
               <div className="glass-card p-4 rounded-xl text-center">
                 <div className="text-3xl gradient-text mb-1">
-                  {artist.fanBackers.toLocaleString()}
+                  {backers.totalBackers.toLocaleString()}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Total Backers
@@ -290,15 +464,17 @@ export function ArtistProfile({
               </div>
               <div className="glass-card p-4 rounded-xl text-center">
                 <div className="text-3xl text-accent mb-1">
-                  +{(artist.fanBackers * 0.12).toFixed(0)}
+                  {backers.voters}
                 </div>
-                <div className="text-sm text-muted-foreground">This Week</div>
+                <div className="text-sm text-muted-foreground">Voters</div>
               </div>
               <div className="glass-card p-4 rounded-xl text-center">
                 <div className="text-3xl text-primary mb-1">
-                  #{artists.findIndex((a) => a.id === artist.id) + 1}
+                  {stats.currentRank ? `#${stats.currentRank}` : "N/A"}
                 </div>
-                <div className="text-sm text-muted-foreground">Global Rank</div>
+                <div className="text-sm text-muted-foreground">
+                  Current Rank
+                </div>
               </div>
             </div>
           </motion.div>
@@ -311,9 +487,9 @@ export function ArtistProfile({
           >
             <h2 className="text-2xl text-white mb-6">Listen Now</h2>
             <div className="space-y-3">
-              {artist.socialLinks.spotify && (
+              {artist.spotify_url && (
                 <a
-                  href={artist.socialLinks.spotify}
+                  href={artist.spotify_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between glass-card p-4 rounded-lg hover:bg-white/5 transition-all group"
@@ -327,9 +503,9 @@ export function ArtistProfile({
                   <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-white" />
                 </a>
               )}
-              {artist.socialLinks.apple && (
+              {artist.apple_music_url && (
                 <a
-                  href={artist.socialLinks.apple}
+                  href={artist.apple_music_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between glass-card p-4 rounded-lg hover:bg-white/5 transition-all group"
@@ -343,9 +519,25 @@ export function ArtistProfile({
                   <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-white" />
                 </a>
               )}
-              {artist.socialLinks.tiktok && (
+              {artist.instagram_url && (
                 <a
-                  href={artist.socialLinks.tiktok}
+                  href={artist.instagram_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between glass-card p-4 rounded-lg hover:bg-white/5 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500 flex items-center justify-center">
+                      <Music2 className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-white">Instagram</span>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-white" />
+                </a>
+              )}
+              {artist.tiktok_url && (
+                <a
+                  href={artist.tiktok_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between glass-card p-4 rounded-lg hover:bg-white/5 transition-all group"
@@ -359,18 +551,18 @@ export function ArtistProfile({
                   <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-white" />
                 </a>
               )}
-              {artist.socialLinks.instagram && (
+              {artist.youtube_url && (
                 <a
-                  href={artist.socialLinks.instagram}
+                  href={artist.youtube_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between glass-card p-4 rounded-lg hover:bg-white/5 transition-all group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center">
                       <Music2 className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-white">Instagram</span>
+                    <span className="text-white">YouTube</span>
                   </div>
                   <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-white" />
                 </a>
